@@ -1,0 +1,69 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use App\Models\Service;
+use App\Models\Field;
+use App\Http\Controllers\Concerns\UsesServiceQuery;
+
+class PagesController extends Controller
+{
+    use UsesServiceQuery;
+    public function about()
+    {
+        return view('pages.visitor.about');
+    }
+
+    public function dashboard()
+    {
+        $user = Auth::user();
+        
+        // Get booking stats
+        $stats_total = $user ? $user->bookings()->count() : 0;
+        $stats_confirmed = $user ? $user->bookings()->where('status', 'confirmed')->count() : 0;
+        $stats_revenue = $user ? $user->bookings()->sum('total_price') : 0;
+        
+        // Get recent bookings
+        $bookings = $user ? $user->bookings()->latest()->take(5)->get() : [];
+        
+        return view('pages.visitor.dashboard', [
+            'user' => $user,
+            'stats_total' => $stats_total,
+            'stats_confirmed' => $stats_confirmed,
+            'stats_revenue' => $stats_revenue,
+            'bookings' => $bookings,
+        ]);  
+    }
+       public function fields()
+    {
+        // use the Eloquent scope to include ratings
+        $fields = Field::withRatings()->get();
+        return view('pages.visitor.fields', ['fields' => $fields]);
+    }
+
+                  
+    public function profile()
+    {
+        $user = Auth::user();
+        return view('pages.profile', ['user' => $user]);
+    }
+
+    public function feedback()
+    {
+        return view('pages.visitor.feedback');
+    }
+
+    public function serviceDetail()
+    {
+        return view('pages.visitor.Services-detail');
+    }
+
+    public function myServices()
+    {
+        $data = $this->getServicesForRequest();
+        return view('pages.visitor.services', $data);
+    }
+}
+ 
