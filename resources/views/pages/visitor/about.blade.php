@@ -1,7 +1,7 @@
 @extends('layouts.visitor')
 
 @section('content')
-
+                
 
 <style>
 /* =======================
