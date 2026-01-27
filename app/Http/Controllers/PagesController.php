@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Service;
 use App\Models\Field;
 use App\Http\Controllers\Concerns\UsesServiceQuery;
+use Illuminate\Support\Facades\DB;
 
 class PagesController extends Controller
 {
@@ -52,8 +53,55 @@ class PagesController extends Controller
 
     public function feedback()
     {
-        return view('pages.visitor.feedback');
-    }
+       $serviceFeedbacks = DB::table('feedback as f')
+    ->join('services as s', 'f.service_id', '=', 's.id')
+    ->join('users as u', 'f.user_id', '=', 'u.id')
+    ->whereNotNull('f.service_id')
+    ->where(function ($q) {
+        $q->whereNotNull('f.message')
+          ->orWhereNotNull('f.rating');
+    })
+    ->orderByDesc('f.id')
+    ->select([
+        'f.id as feedback_id',
+        'u.name as user_name',
+        's.name as service_name',
+        's.price as service_price',
+        'f.message as feedback',
+        'f.rating'
+    ])
+    ->get()
+    ->toArray();
+
+
+$bookingFeedbacks = DB::table('bookings as b')
+    ->join('users as u', 'u.id', '=', 'b.user_id')
+    ->join('fields as f', 'f.id', '=', 'b.field_id')
+    ->leftJoin('feedback as fb', function ($join) {
+        $join->on('fb.booking_id', '=', 'b.id')
+             ->on('fb.user_id', '=', 'u.id');
+    })
+    ->where(function ($q) {
+        $q->whereNotNull('fb.message')
+          ->orWhereNotNull('fb.rating');
+    })
+    ->orderByDesc('b.created_at')
+    ->select([
+        'b.id as booking_id',
+        'u.name as user_name',
+        'f.name as field_name',
+        'b.booking_date',
+        'b.start_time',
+        'b.end_time',
+        'fb.message as feedback_message',
+        'fb.rating as feedback_rating'
+    ])
+    ->get()
+    ->toArray();
+
+return view('views.pages.visitor.feedback', compact('serviceFeedbacks', 'bookingFeedbacks'));
+      
+    }   
 
     public function serviceDetail()
     {

@@ -102,13 +102,36 @@ Route::get('/pages/{slug}', function ($slug) {
     $map = [
         'login' => route('login'),
         'register' => route('register'),
-        'fields' => route('fields.index'),
+        'fields' => route('visitor.fields'),
         'field-schedule.php' => route('field.schedule'),
         'booking.php' => route('booking.create'),
+<<<<<<< HEAD
         'dashboard.php' => route('visitor.dashboard'),
+=======
+        'booking' => route('booking.create'),
+        'dashboard.php' => route('visitor.dashboard'),
+        'dashboard' => route('visitor.dashboard'),
+>>>>>>> e9cfacecff05cb2d6bab1f312193f156473f814e
         'about.php' => route('about'),
         'cart.php' => route('cart.index'),
         'checkout.php' => route('order.detail'),
+<<<<<<< HEAD
+=======
+        'pages/login' => route('login'), 
+        // Legacy php-base Visitor pages (e.g. /pages/Visitor/dashboard.php)
+        'Visitor/dashboard.php' => route('home'),
+        'Visitor/dashboard' => route('home'),
+        'Visitor/fields.php' => route('visitor.fields'),
+        'Visitor/fields' => route('visitor.fields'),
+        'Visitor/services.php' => route('services.index'),
+        'Visitor/services' => route('services.index'),
+        'Visitor/feedback.php' => route('visitor.feedback'),
+        'Visitor/feedback' => route('visitor.feedback'),
+        'Visitor/about.php' => route('about'),
+        'Visitor/about' => route('about'),
+        'Visitor/booking.php' => route('booking.create'),
+        'Visitor/booking' => route('booking.create'),
+>>>>>>> e9cfacecff05cb2d6bab1f312193f156473f814e
     ];
 
     return $map[$slug] ?? abort(404);
