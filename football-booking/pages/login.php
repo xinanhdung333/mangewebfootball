@@ -1,0 +1,108 @@
+<?php
+$page_title = 'Đăng nhập';
+require_once '../includes/header.php';
+
+$error = '';
+$success = '';
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    $email = trim($_POST['email']);
+    $password = $_POST['password'];
+    
+    if (empty($email) || empty($password)) {
+        $error = 'Vui lòng điền đầy đủ email và password';
+    } else {
+        $stmt = $conn->prepare("SELECT id, password, role FROM users WHERE email = ?");
+        $stmt->bind_param("s", $email);
+        $stmt->execute();
+        $result = $stmt->get_result();
+        
+        if ($result->num_rows > 0) {
+            $user = $result->fetch_assoc();
+            if (verifyPassword($password, $user['password'])) {
+                $_SESSION['user_id'] = $user['id'];
+                $_SESSION['role'] = $user['role'];
+
+                if ($user['role'] == 'admin') {
+                    redirect(SITE_URL . '/pages/admin/statistics.php');
+                } elseif ($user['role'] == 'boss') {
+                    redirect(SITE_URL . '/pages/boss/statistics.php');
+                } else {
+                    redirect(SITE_URL . '/pages/dashboard.php');
+                }
+
+            } else {
+                $error = 'Email hoặc password không chính xác';
+            }
+        } else {
+            $error = 'Email hoặc password không chính xác';
+        }
+    }
+}
+?>
+
+<div class="container">
+    <div class="row justify-content-center align-items-center" style="min-height:80vh;">
+        <div class="col-md-5">
+            <div class="card shadow-lg border-0 rounded-4">
+                <div class="card-body p-5">
+                    <h2 class="card-title text-center mb-4 fw-bold text-primary">
+                        <i class="bi bi-box-arrow-in-right me-2"></i> Đăng nhập
+                    </h2>
+
+                    <?php 
+                    if ($error) echo "<div class='alert alert-danger'>{$error}</div>";
+                    if ($success) echo "<div class='alert alert-success'>{$success}</div>";
+                    if (isset($_GET['msg']) && $_GET['msg'] == 'registered') {
+                        echo "<div class='alert alert-success'>Đăng ký thành công! Vui lòng đăng nhập.</div>";
+                    }
+                    ?>
+
+                    <form method="POST">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Email</label>
+                            <input type="email" class="form-control form-control-lg" name="email" placeholder="Nhập email của bạn" required>
+                        </div>
+
+                        <div class="mb-3 position-relative">
+                            <label class="form-label fw-semibold">Mật khẩu</label>
+                            <input type="password" class="form-control form-control-lg" id="password" name="password" placeholder="Nhập mật khẩu" required>
+                            <span 
+                                class="position-absolute top-50 end-0 translate-middle-y me-3"
+                                onclick="togglePassword()" 
+                                style="cursor: pointer;">
+                                <i id="eyeIcon" class="bi bi-eye-slash fs-5 text-secondary"></i>
+                            </span>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100 fw-semibold">Đăng nhập</button>
+                    </form>
+
+                    <hr class="my-4">
+
+                    <p class="text-center mb-0">
+                        Chưa có tài khoản? <a href="register.php" class="text-primary fw-semibold">Đăng ký ngay</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SCRIPT xem mật khẩu -->
+<script>
+function togglePassword() {
+    const password = document.getElementById("password");
+    const icon = document.getElementById("eyeIcon");
+
+    if (password.type === "password") {
+        password.type = "text";
+        icon.classList.replace("bi-eye-slash", "bi-eye");
+    } else {
+        password.type = "password";
+        icon.classList.replace("bi-eye", "bi-eye-slash");
+    }
+}
+</script>
+
+<?php require_once '../includes/footerADMIN.php'; ?>

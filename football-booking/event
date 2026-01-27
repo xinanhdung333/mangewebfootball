@@ -1,0 +1,29 @@
+DELIMITER $$
+
+CREATE EVENT IF NOT EXISTS auto_update_booking_status
+ON SCHEDULE EVERY 1 MINUTE
+DO
+BEGIN
+    
+    -- (1) confirmed → in_progress khi đến giờ đá
+    UPDATE bookings
+    SET status = 'in_progress'
+    WHERE status = 'confirmed'
+      AND NOW() >= CONCAT(booking_date, ' ', start_time)
+      AND NOW() <  CONCAT(booking_date, ' ', end_time);
+
+    -- (2) in_progress → completed khi hết giờ
+    UPDATE bookings
+    SET status = 'completed'
+    WHERE status = 'in_progress'
+      AND NOW() >= CONCAT(booking_date, ' ', end_time);
+
+    -- (3) pending quá 24h → expired
+    UPDATE bookings
+    SET status = 'expired'
+    WHERE status = 'pending'
+      AND TIMESTAMPDIFF(HOUR, created_at, NOW()) >= 24;
+
+END$$
+
+DELIMITER ;

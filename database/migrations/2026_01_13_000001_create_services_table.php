@@ -12,7 +12,11 @@ return new class extends Migration {
             $table->string('name');
             $table->text('description')->nullable();
             $table->decimal('price', 10, 2)->default(0);
+            $table->integer('quantity')->default(0);
             $table->string('image')->nullable();
+            $table->float('avg_rating')->default(0);
+            $table->integer('total_reviews')->default(0);
+            $table->enum('status', ['active', 'inactive'])->default('active');
             $table->timestamps();
         });
     }

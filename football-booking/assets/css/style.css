@@ -1,0 +1,201 @@
+/* Bootstrap sẽ xử lý hầu hết CSS, thêm custom CSS ở đây nếu cần */
+.stat-card {
+    border-radius: 15px;
+    transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.stat-card:hover {
+    transform: translateY(-10px) scale(1.05);
+    box-shadow: 0 15px 25px rgba(0, 0, 0, 0.4);
+}
+
+.shadow-3d {
+    box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+}
+
+body {
+    background-image: url('../images/pngtree-sleek-gradient-background-with-smooth-black-texture-image_13782877.png') !important;
+    background-size: cover;       /* phóng to bao phủ toàn bộ */
+    background-repeat: no-repeat; /* không lặp ảnh */
+    background-attachment: fixed; /* cố định ảnh nền khi cuộn */
+    background-position: center;  /* căn giữa */
+    min-height: 100vh;   
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+html, body {
+    height: 100%;
+    margin: 0; /* xoá margin mặc định */
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+.content {
+    flex: 1 0 auto; /* chiếm phần còn lại */
+}
+
+
+main.flex-fill {
+    flex: 1 0 auto; /* chiếm phần còn lại */
+}
+
+footer {
+    flex-shrink: 0;
+    background-color: #212529;
+    color: #fff;
+    text-align: center;
+    padding: 1rem 0;
+}
+.container {
+    background: transparent !important;
+}
+
+.content-sidebar {
+    background: transparent !important;
+}
+
+.navbar-brand {
+    font-weight: bold;
+    font-size: 1.5rem;
+}
+
+.jumbotron {
+    border-radius: 0.5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+    color: white;
+}
+
+.jumbotron h1,
+.jumbotron p {
+    color: white;
+}
+
+.jumbotron hr {
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.card {
+    border-radius: 0.5rem;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+.table {
+    background-color: white;
+}
+
+.table th {
+    background-color: #f8f9fa;
+    font-weight: 600;
+    border-top: none;
+}
+
+.btn {
+    border-radius: 0.25rem;
+    font-weight: 500;
+}
+
+.alert {
+    border-radius: 0.5rem;
+    border: none;
+}
+
+footer {
+    margin-top: auto;
+    border-top: 1px solid #dee2e6;
+}
+
+.badge {
+    padding: 0.5rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+.form-control,
+.form-select {
+    border-radius: 0.25rem;
+}
+
+.form-control:focus,
+.form-select:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .jumbotron {
+        padding: 1.5rem !important;
+    }
+
+    .jumbotron h1 {
+        font-size: 1.75rem;
+    }
+
+    .btn {
+        margin-bottom: 0.5rem;
+    }
+    .v
+    {
+        background-color: #2ac82fff;
+    }
+}
+
+/* Footer styles */
+.site-footer {
+    background: linear-gradient(180deg, #111827 0%, #1f2937 100%);
+    color: #d1d5db;
+}
+.site-footer .footer-brand {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #fff;
+}
+.site-footer .footer-links li,
+.site-footer .team-list li {
+    margin-bottom: 0.5rem;
+}
+.site-footer .footer-links a {
+    color: #d1d5db;
+    text-decoration: none;
+}
+.site-footer .footer-links a:hover {
+    color: #ffffff;
+    text-decoration: underline;
+}
+.site-footer .sponsor-logo {
+    width: 100%;
+    max-width: 140px;
+    height: auto;
+    object-fit: cover;
+    border: 1px solid rgba(255,255,255,0.06);
+}
+.site-footer .footer-sponsors a {
+    display: inline-block;
+}
+.site-footer .social-links a { 
+    font-size: 1.15rem;
+    color: #d1d5db;
+}
+.site-footer .social-links a:hover {
+    color: #fff;
+}
+.site-footer .footer-bottom {
+    color: #9ca3af;
+}
+
+@media (max-width: 576px) {
+    .site-footer .footer-sponsors {
+        align-items: flex-start;
+    }
+    .site-footer .sponsor-logo {
+        max-width: 100px;
+    }
+}

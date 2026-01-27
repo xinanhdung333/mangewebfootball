@@ -12,17 +12,51 @@ class Booking extends Model
     protected $table = 'bookings';
 
     protected $fillable = [
-        'user_id','field_id','start_time','end_time','status','total'
+        'user_id',
+        'field_id',
+        'booking_date',
+        'start_time',
+        'end_time',
+        'total_price',
+        'status',
+        'notes'
     ];
 
+    protected $casts = [
+        'booking_date' => 'date',
+        'created_at' => 'datetime',
+        'updated_at' => 'datetime',
+    ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function field()
+    {
+        return $this->belongsTo(Field::class);
+    }
+
+    public function services()
+    {
+        return $this->belongsToMany(Service::class, 'booking_services')
+            ->withPivot('quantity')
+            ->withTimestamps();
+    }
+
+    public function feedback()
+    {
+        return $this->hasOne(Feedback::class);
+    }
+
     /**
-     * Check availability for a field within a time window (excludes a booking id if provided)
-     * This replicates the original isFieldAvailable logic using Eloquent.
+     * Check availability for a field within a time window
      */
     public static function isFieldAvailable(int $fieldId, string $date, string $startTime, string $endTime, ?int $excludeBookingId = null): bool
     {
         $query = self::where('field_id', $fieldId)
-            ->whereDate('start_time', $date)
+            ->whereDate('booking_date', $date)
             ->where('status', '!=', 'cancelled')
             ->where(function($q) use ($startTime, $endTime) {
                 $q->where('start_time', '<', $endTime)
@@ -36,6 +70,9 @@ class Booking extends Model
         return $query->count() === 0;
     }
 
+    /**
+     * Calculate price based on hours and price per hour
+     */
     public static function calculatePrice(float $pricePerHour, string $startTime, string $endTime): float
     {
         $start = strtotime($startTime);
@@ -44,29 +81,22 @@ class Booking extends Model
         return $hours * $pricePerHour;
     }
 
-    public function field()
-    {
-        return $this->belongsTo(\App\Models\Field::class, 'field_id');
-    }
-
-    public function user()
-    {
-        return $this->belongsTo(\App\Models\User::class, 'user_id');
-    }
-
     /**
-     * Auto-update booking status (similar to commented function in original)
+     * Auto-update booking status
      */
     public static function autoUpdateBookingStatus()
     {
+        $now = now();
+        
         // confirmed -> in_progress
         self::where('status', 'confirmed')
-            ->whereRaw("start_time <= NOW() AND end_time >= NOW()")
+            ->whereRaw("CONCAT(booking_date, ' ', start_time) <= ?", [$now])
+            ->whereRaw("CONCAT(booking_date, ' ', end_time) >= ?", [$now])
             ->update(['status' => 'in_progress']);
 
         // in_progress -> completed
         self::where('status', 'in_progress')
-            ->whereRaw("end_time < NOW()")
+            ->whereRaw("CONCAT(booking_date, ' ', end_time) < ?", [$now])
             ->update(['status' => 'completed']);
     }
 }
