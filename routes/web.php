@@ -68,6 +68,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function(){
 
 // Boss
 Route::prefix('boss')->name('boss.')->middleware(['auth'])->group(function(){
+    Route::get('/boss/profile', [BossController::class, 'profile'])->name('profile');
+    Route::post('/boss/profile', [BossController::class, 'updateProfile'])->name('profile.update');
     Route::get('/dashboard', [BossController::class, 'dashboard'])->name('dashboard');
     Route::get('/manage-users', [BossController::class, 'manageUsers'])->name('manage.users');
     Route::post('/store-user', [BossController::class, 'storeUser'])->name('store.user');

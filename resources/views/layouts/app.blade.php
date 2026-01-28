@@ -1,3 +1,5 @@
+
+
 <!DOCTYPE html>
 <html lang="vi">
 <head>
@@ -97,7 +99,7 @@
                             <i class="bi bi-person"></i> {{ auth()->user()->name }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{{ route('profile') }}">Hồ sơ</a></li>
+                            <li><a class="dropdown-item" href="{{ route('boss.profile') }}">Hồ sơ</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ route('logout') }}">Đăng xuất</a></li>
                         </ul>
@@ -118,7 +120,9 @@
     </div>
 </nav>
 
-<a href="{{ route('home') }}">
+<a href="{{ route('about') }}">
+
+
     <img src="{{ asset('assets/images/mascot.png') }}" id="mascot" alt="Mascot">
 </a>
 
