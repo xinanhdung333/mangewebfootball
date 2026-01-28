@@ -1,4 +1,4 @@
-@extends('layouts.visitor')
+@extends('layouts.app')
 
 @section('content')
 @php

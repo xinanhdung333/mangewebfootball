@@ -105,6 +105,11 @@
                                             @endforeach
                                         </select>
                                     </form>
+                                    @if($booking->status === 'completed')
+                                        <a href="{{ route('boss.export.invoice', ['type' => 'booking', 'id' => $booking->id]) }}" class="btn btn-success btn-sm mt-2" title="Xuất hóa đơn">
+                                            <i class="bi bi-file-earmark-pdf"></i> PDF
+                                        </a>
+                                    @endif
                                 </td>
                             </tr>
 
@@ -157,3 +162,4 @@
     </div>
 </div>
 @endsection
+ 

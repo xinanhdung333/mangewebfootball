@@ -1,16 +1,9 @@
-<?php
-$page_title = 'Trang chủ';
-require_once 'includes/header.php';
-$user = null;
-if (isLoggedIn()) {
-    $user = getUserInfo($conn, $_SESSION['user_id']);
-}
-?>
-<style>
-    .feature-box:hover {
-    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
-}
+@extends('layouts.app')
 
+@section('title', 'Trang chủ')
+
+@section('content')
+<style>
 .feature-box {
     background: #ffffff;
     border-radius: 20px;
@@ -20,12 +13,11 @@ if (isLoggedIn()) {
     transition: all 0.3s ease;
     text-align: left;
 }
-
 .feature-box:hover {
+    background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
     transform: translateY(-8px);
     box-shadow: 0 15px 30px rgba(0,0,0,0.12);
 }
-
 .feature-icon {
     width: 70px;
     height: 70px;
@@ -37,8 +29,6 @@ if (isLoggedIn()) {
     justify-content: center;
     margin-bottom: 15px;
 }
-
-/* Màu icon */
 .bg-blue   { background: #3f8efc; }
 .bg-yellow { background: #f3c63f; }
 .bg-orange { background: #ff8a3d; }
@@ -50,65 +40,63 @@ if (isLoggedIn()) {
     margin-bottom: 10px;
     color: #333;
 }
-
 .feature-text {
     color: #666;
     font-size: 15px;
     line-height: 1.6;
 }
-
 .feature-box button {
     border-radius: 30px;
     padding: 6px 20px;
 }
 .jumbotron {
-    background-image: url('<?php echo SITE_URL; ?>../assets/images/2340596.jpg') !important;
+    background-image: url('{{ asset('assets/images/2340596.jpg') }}');
+    background-size: cover;
+    background-position: center;
+    color: white;
 }
-
 </style>
 
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-12">
+            <div class="jumbotron p-5 rounded">
+                <h1 class="display-4">Chào mừng tới Football Booking</h1>
+                <p class="lead">Đặt sân bóng nhanh chóng, dễ dàng và an toàn</p>
+                <hr>
 
-<div class="row">
-    <div class="col-md-12">
-        <div class="jumbotron bg-light p-5 rounded">
-            <h1 class="display-4">Chào mừng tới Football Booking</h1>
-            <p class="lead">Đặt sân bóng nhanh chóng, dễ dàng và an toàn</p>
-            <hr>
+                @guest
+                    <a href="{{ route('login') }}" class="btn btn-primary btn-lg">
+                        <i class="bi bi-box-arrow-in-right"></i> Đăng nhập
+                    </a>
+                    <a href="{{ route('register') }}" class="btn btn-outline-light btn-lg ms-2">
+                        <i class="bi bi-person-plus"></i> Đăng ký
+                    </a>
+                @endguest
 
-            <?php if (!isLoggedIn()): ?>
-                <!-- Chưa đăng nhập -->
-                <a href="<?php echo SITE_URL; ?>/pages/login.php" class="btn btn-primary btn-lg">
-                    <i class="bi bi-box-arrow-in-right"></i> Đăng nhập
-                </a>
-                <a href="<?php echo SITE_URL; ?>/pages/register.php" class="btn btn-outline-primary btn-lg ms-2">
-                    <i class="bi bi-person-plus"></i> Đăng ký
-                </a>
-            <?php endif; ?>
-
-            <!-- Đã đăng nhập là ADMIN -->
-<?php if (isset($user['role']) && $user['role'] === 'admin'): ?>
-                <a href="<?php echo SITE_URL; ?>/pages/admin/statistics.php" class="btn btn-danger btn-lg">
-                    <i class="bi bi-speedometer2"></i> Quản lý hệ thống
-                </a>
-            <?php endif; ?>
-<?php if (isset($user['role']) && $user['role'] === 'boss'): ?>
-                <a href="<?php echo SITE_URL; ?>/pages/boss/statistics.php" class="btn btn-danger btn-lg">
-                    <i class="bi bi-speedometer2"></i> Quản lý hệ thống
-                </a>
-            <?php endif; ?>
-            <!-- Đã đăng nhập là USER -->
-            <?php if (isset($user['role']) && $user['role'] === 'user'): ?>
-                <a href="<?php echo SITE_URL; ?>/pages/fields.php" class="btn btn-primary btn-lg">
-                    <i class="bi bi-calendar-plus"></i> Đặt sân ngay
-                </a>
-            <?php endif; ?>
+                @auth
+                  @if(auth()->user()->role === 'admin')
+    <a href="{{ route('admin.statistics') }}" class="btn btn-danger btn-lg">
+        <i class="bi bi-speedometer2"></i> Quản lý hệ thống
+    </a>
+@endif
+                  @if(auth()->user()->role === 'boss')
+    <a href="{{ route('boss.statistics') }}" class="btn btn-danger btn-lg">
+        <i class="bi bi-speedometer2"></i> Quản lý hệ thống
+    </a>
+@endif
+                    @elseif(auth()->user()->role === 'user')
+                        <a href="{{ route('fields.index') }}" class="btn btn-success btn-lg">
+                            <i class="bi bi-calendar-plus"></i> Đặt sân ngay
+                        </a>
+                    @endif
+                @endauth
+            </div>
         </div>
     </div>
-</div>
 
-    <!-- Hiển thị phần feature giống mẫu HTML5 UP khi chưa đăng nhập -->
+    <!-- Feature section -->
     <div class="container mt-5">
-
         <div class="row">
             <div class="col-md-6">
                 <div class="feature-box">
@@ -135,8 +123,7 @@ if (isLoggedIn()) {
             </div>
         </div>
 
-        <!-- Row dưới -->
-        <div class="row">
+        <div class="row mt-3">
             <div class="col-md-6">
                 <div class="feature-box">
                     <div class="feature-icon bg-orange">
@@ -163,9 +150,6 @@ if (isLoggedIn()) {
                 </div>
             </div>
         </div>
-
     </div>
-
-<br><br><br><br><br><br><br><br>
-
-<?php require_once 'includes/footer.php'; ?>
+</div>
+@endsection

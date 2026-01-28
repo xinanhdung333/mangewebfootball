@@ -44,22 +44,21 @@
                                         <td>{{ isset($order->total) ? number_format($order->total, 0, ',', '.') . 'đ' : 'N/A' }}</td>
                                         <td><span class="badge bg-success">Đã thanh toán</span></td>
                                         <td>
-                                            <button class="btn btn-sm btn-primary">Chi tiết</button>
+                                            <a href="{{ route('boss.export.invoice', ['type' => 'service', 'id' => $order->id]) }}" class="btn btn-sm btn-success" title="Xuất PDF">
+                                                <i class="bi bi-file-earmark-pdf"></i> Xuất PDF
+                                            </a>
                                         </td>
                                     </tr>
                                 @endforeach
                             </tbody>
                         </table>
                     </div>
-                    @if ($orders->hasPages())
-                        <div class="mt-3">
-                            {{ $orders->links() }}
-                        </div>
-                    @endif
+                
                 @else
-                    <p class="text-muted">Không có hóa đơn nào</p>
+                    <p class="text-muted">Chưa có hóa đơn nào được tạo.</p>
                 @endif
             </div>
         </div>
     </div>
 </div>
+@endsection

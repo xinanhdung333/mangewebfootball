@@ -146,7 +146,7 @@ body.dark-mode .table thead th { border-bottom-color: rgba(255,255,255,0.06); }
         </div>
 
         <div class="col-sm-6 col-md-3 fade-in" style="animation-delay:.20s">
-            <a href="{{ route('boss.invoices') }}" class="text-decoration-none">
+            <a href="{{ route('boss.manage.orders') }}" class="text-decoration-none">
                 <div class="stat-card" style="background: linear-gradient(135deg,#17a2b8,#63d2e6);">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>

@@ -103,15 +103,8 @@
                         </ul>
                     </li>
                 @else
-               <li class="nav-item"><a class="nav-link" href="{{ route('visitor.dashboard') }}"><i class="bi bi-house"></i> Trang chủ</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('visitor.fields') }}"><i class="bi bi-grid"></i> Sân</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('myServices') }}"><i class="bi bi-bag"></i> Dịch vụ</a></li>
-                         <li class="nav-item"><a class="nav-link" href="{{ route('visitor.feedback') }}"><i class="bi bi-chat-dots"></i> Feedback</a></li>
-                                                  <li class="nav-item"><a class="nav-link" href="{{ route('about') }}"><i class="bi bi-chat-dots"></i>About</a></li>
-
                     <li class="nav-item"><a class="nav-link" href="{{ route('login') }}"><i class="bi bi-box-arrow-in-right"></i> Đăng nhập</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ route('register') }}"><i class="bi bi-person-plus"></i> Đăng ký</a></li>
-
                 @endauth
             </ul>
         </div>

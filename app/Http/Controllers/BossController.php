@@ -175,8 +175,84 @@ class BossController extends Controller
         return back()->with('success', 'Xóa người dùng thành công!');
     }
     
-    public function invoices() { return view('boss.invoices'); }
-    public function exportInvoice() { return view('boss.export_invoice'); }
+    public function invoices() 
+    { 
+        $orders = DB::table('orders')->orderBy('created_at', 'DESC')->paginate(20);
+        return view('boss.invoices', compact('orders')); 
+    }
+    
+    public function exportInvoice(Request $request)
+    {
+        $type = $request->get('type', '');
+        $id = (int)$request->get('id', 0);
+        
+        // If no type/id, show form
+        if (empty($type) || $id <= 0) {
+            return view('boss.export_invoice');
+        }
+        
+        // Validate type
+        if (!in_array($type, ['booking', 'service'])) {
+            return back()->with('error', 'Loại hóa đơn không hợp lệ');
+        }
+        
+        // Generate PDF based on type
+        if ($type === 'booking') {
+            $booking = DB::table('bookings')
+                ->join('users', 'bookings.user_id', '=', 'users.id')
+                ->join('fields', 'bookings.field_id', '=', 'fields.id')
+                ->where('bookings.id', $id)
+                ->whereIn('bookings.status', ['confirmed', 'completed'])
+                ->select('bookings.*', 'users.name as user_name', 'users.email', 'fields.name as field_name', 'fields.location')
+                ->first();
+            
+            if (!$booking) {
+                return back()->with('error', 'Không tìm thấy booking hoặc chưa đủ điều kiện xuất hóa đơn');
+            }
+            
+            // Get booking services
+            $services = DB::table('booking_services')
+                ->join('services', 'booking_services.service_id', '=', 'services.id')
+                ->where('booking_services.booking_id', $id)
+                ->select('services.name', 'services.price', 'booking_services.quantity')
+                ->get();
+            
+            $pdf = \PDF::loadView('boss.pdf.invoice-booking', [
+                'booking' => $booking,
+                'services' => $services
+            ]);
+            
+            return $pdf->download('hoa-don-booking-' . $id . '.pdf');
+        }
+        
+        if ($type === 'service') {
+            $order = DB::table('orders')
+                ->join('users', 'orders.user_id', '=', 'users.id')
+                ->where('orders.id', $id)
+                ->whereIn('orders.status', ['confirmed', 'completed'])
+                ->select('orders.*', 'users.name as user_name', 'users.email')
+                ->first();
+            
+            if (!$order) {
+                return back()->with('error', 'Không tìm thấy đơn dịch vụ hoặc chưa đủ điều kiện xuất hóa đơn');
+            }
+            
+            // Get order items
+            $items = DB::table('order_items')
+                ->join('services', 'order_items.service_id', '=', 'services.id')
+                ->where('order_items.order_id', $id)
+                ->select('services.name', 'order_items.price', 'order_items.quantity')
+                ->get();
+            
+            $pdf = \PDF::loadView('boss.pdf.invoice-service', [
+                'order' => $order,
+                'items' => $items
+            ]);
+            
+            return $pdf->download('hoa-don-dich-vu-' . $id . '.pdf');
+        }
+    }
+    
     public function editStatus() { return view('boss.edit-status'); }
     public function about() { return view('boss.about'); }
     public function manageFields()
@@ -266,7 +342,32 @@ class BossController extends Controller
         return back()->with('success', 'Xóa sân thành công!');
     }
     
-    public function manageOrders() { return view('boss.manage-orders'); }
+    public function manageOrders(Request $request) 
+    { 
+        $filter_user = $request->get('user_id', '');
+
+        $query = DB::table('user_spending as us')
+            ->leftJoin('users as u', 'us.user_id', '=', 'u.id')
+            ->select([
+                'us.id',
+                'us.user_id',
+                'us.total_booking',
+                'us.total_services',
+                'us.total_spent',
+                'us.last_update',
+                'u.name as user_name',
+                'u.phone as user_phone'
+            ]);
+
+        if ($filter_user !== "") {
+            $query->where('us.user_id', intval($filter_user));
+        }
+
+        $orders = $query->orderByDesc('us.last_update')->paginate(20);
+        $users = DB::table('users')->orderBy('name')->get();
+
+        return view('boss.manage-orders', compact('orders', 'users', 'filter_user'));
+    }
     public function manageServices()
     {
         $services = Service::orderBy('name')->get();
@@ -350,8 +451,70 @@ class BossController extends Controller
         return back()->with('success', 'Xóa dịch vụ thành công!');
     }
     
-    public function userServiceHistory() { return view('boss.user_service_history'); }
-    public function manageFeedback() { return view('boss.manage-feedback'); }
+    public function userServiceHistory() 
+    { 
+        $data = DB::table('orders as o')
+            ->join('order_items as oi', 'o.id', '=', 'oi.order_id')
+            ->join('services as s', 'oi.service_id', '=', 's.id')
+            ->join('users as u', 'o.user_id', '=', 'u.id')
+            ->select(
+                'o.id as order_id',
+                'o.created_at',
+                'o.status',
+                'oi.quantity',
+                'oi.price',
+                's.name',
+                's.image',
+                'u.name as user_name'
+            )
+            ->orderByDesc('o.created_at')
+            ->paginate(20);
+        
+        return view('boss.user_service_history', compact('data'));
+    }
+    public function manageFeedback() 
+    { 
+        // Feedback dịch vụ
+        $serviceFeedbacks = DB::table('feedback as f')
+            ->join('services as s', 's.id', '=', 'f.service_id')
+            ->join('users as u', 'u.id', '=', 'f.user_id')
+            ->whereNotNull('f.service_id')
+            ->select([
+                'f.id as feedback_id',
+                'u.name as user_name',
+                's.id as service_id',
+                's.name as service_name',
+                's.image as service_image',
+                'f.message as feedback_message',
+                'f.rating as feedback_rating',
+                'f.created_at'
+            ])
+            ->orderByDesc('f.id')
+            ->get();
+
+        // Feedback booking
+        $bookingFeedbacks = DB::table('feedback as fb')
+            ->join('bookings as b', 'b.id', '=', 'fb.booking_id')
+            ->join('users as u', 'u.id', '=', 'fb.user_id')
+            ->join('fields as f', 'f.id', '=', 'b.field_id')
+            ->select([
+                'fb.id as feedback_id',
+                'b.id as booking_id',
+                'u.name as user_name',
+                'f.name as field_name',
+                'f.image as field_image',
+                'b.booking_date',
+                'b.start_time',
+                'b.end_time',
+                'fb.message as feedback_message',
+                'fb.rating as feedback_rating',
+                'fb.created_at'
+            ])
+            ->orderByDesc('fb.id')
+            ->get();
+        
+        return view('boss.manage-feedback', compact('serviceFeedbacks', 'bookingFeedbacks')); 
+    }
 
     public function statistics()
     {
@@ -464,45 +627,7 @@ class BossController extends Controller
                 'stats_services'
             );
         });
-
+ 
         return view('boss.statistics', $stats);
-    }
-    
-    public function invoices()
-    {
-        $orders = DB::table('orders')->orderBy('created_at', 'DESC')->paginate(20);
-        return view('boss.invoices', compact('orders'));
-    }
-    
-    public function exportInvoice()
-    {
-        return view('boss.export_invoice');
-    }
-    
-    public function editStatus()
-    {
-        return view('boss.edit-status');
-    }
-    
-    public function about()
-    {
-        return view('boss.about');
-    }
-    
-    public function manageOrders()
-    {
-        $orders = DB::table('orders')->orderBy('created_at', 'DESC')->paginate(20);
-        return view('boss.manage-orders', compact('orders'));
-    }
-    
-    public function userServiceHistory()
-    {
-        return view('boss.user_service_history');
-    }
-    
-    public function manageFeedback()
-    {
-        $feedbacks = DB::table('feedbacks')->orderBy('created_at', 'DESC')->paginate(20);
-        return view('boss.manage-feedback', compact('feedbacks'));
     }
 }

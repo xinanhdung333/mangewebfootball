@@ -71,6 +71,7 @@ class PagesController extends Controller
         'f.rating'
     ])
     ->get()
+    ->map(function($item) { return (array)$item; })
     ->toArray();
 
 
@@ -97,9 +98,10 @@ $bookingFeedbacks = DB::table('bookings as b')
         'fb.rating as feedback_rating'
     ])
     ->get()
+    ->map(function($item) { return (array)$item; })
     ->toArray();
 
-return view('views.pages.visitor.feedback', compact('serviceFeedbacks', 'bookingFeedbacks'));
+return view('pages.visitor.feedback', compact('serviceFeedbacks', 'bookingFeedbacks'));
       
     }   
 

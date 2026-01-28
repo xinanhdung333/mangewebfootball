@@ -29,8 +29,9 @@ Route::get('/services', [ServiceController::class, 'index'])->name('services.ind
 // Pages
 Route::get('/about', [PagesController::class, 'about'])->name('about');
 Route::get('/dashboard', [PagesController::class, 'dashboard'])->name('visitor.dashboard');
+Route::get('/fields', [PagesController::class, 'fields'])->name('visitor.fields');
 Route::get('/profile', [PagesController::class, 'profile'])->name('profile');
-Route::get('/feedback', [PagesController::class, 'feedback'])->name('feedback');
+Route::get('/feedback', [PagesController::class, 'feedback'])->name('visitor.feedback');
 Route::get('/myServices', [PagesController::class, 'myServices'])->name('myServices');
 Route::get('/Services-detail', [PagesController::class, 'serviceDetail'])->name('visitor.Services-detail');
 Route::get('/order-detail', [PagesController::class, 'orderDetail'])->name('order.detail');
@@ -95,44 +96,4 @@ Route::prefix('boss')->name('boss.')->middleware(['auth'])->group(function(){
 // Momo
 Route::get('/momo/pay', [MomoController::class, 'createPayment'])->name('momo.pay');
 Route::get('/momo/return', [MomoController::class, 'returnUrl'])->name('momo.return');
-Route::post('/momo/ipn', [MomoController::class, 'ipnUrl'])->name('momo.ipn');
-
-// Legacy redirects
-Route::get('/pages/{slug}', function ($slug) {
-    $map = [
-        'login' => route('login'),
-        'register' => route('register'),
-        'fields' => route('visitor.fields'),
-        'field-schedule.php' => route('field.schedule'),
-        'booking.php' => route('booking.create'),
-<<<<<<< HEAD
-        'dashboard.php' => route('visitor.dashboard'),
-=======
-        'booking' => route('booking.create'),
-        'dashboard.php' => route('visitor.dashboard'),
-        'dashboard' => route('visitor.dashboard'),
->>>>>>> e9cfacecff05cb2d6bab1f312193f156473f814e
-        'about.php' => route('about'),
-        'cart.php' => route('cart.index'),
-        'checkout.php' => route('order.detail'),
-<<<<<<< HEAD
-=======
-        'pages/login' => route('login'), 
-        // Legacy php-base Visitor pages (e.g. /pages/Visitor/dashboard.php)
-        'Visitor/dashboard.php' => route('home'),
-        'Visitor/dashboard' => route('home'),
-        'Visitor/fields.php' => route('visitor.fields'),
-        'Visitor/fields' => route('visitor.fields'),
-        'Visitor/services.php' => route('services.index'),
-        'Visitor/services' => route('services.index'),
-        'Visitor/feedback.php' => route('visitor.feedback'),
-        'Visitor/feedback' => route('visitor.feedback'),
-        'Visitor/about.php' => route('about'),
-        'Visitor/about' => route('about'),
-        'Visitor/booking.php' => route('booking.create'),
-        'Visitor/booking' => route('booking.create'),
->>>>>>> e9cfacecff05cb2d6bab1f312193f156473f814e
-    ];
-
-    return $map[$slug] ?? abort(404);
-});
+Route::post('/momo/ipn', [MomoController::class, 'ipnUrl'])->name('momo.ipn');  
