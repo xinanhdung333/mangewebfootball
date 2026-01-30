@@ -53,14 +53,26 @@ Route::get('/my-bookings', [BookingController::class, 'myBookings'])->name('book
 
 // Admin
 Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function(){
+    Route::get('/home', [HomeController::class, 'indexadmin'])->name('home');
+
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
+    Route::get('/profile', [AdminController::class, 'profile'])->name('profile');
+    Route::post('/profile', [AdminController::class, 'updateProfile'])->name('profile.update');
     Route::get('/manage-bookings', [AdminController::class, 'manageBookings'])->name('manage.bookings');
+    Route::post('/update-booking-status', [AdminController::class, 'updateBookingStatus'])->name('update-booking-status');
     Route::get('/invoices', [AdminController::class, 'invoices'])->name('invoices');
+    Route::get('/export-invoice', [AdminController::class, 'exportInvoice'])->name('export.invoice');
     Route::get('/edit-status', [AdminController::class, 'editStatus'])->name('edit.status');
     Route::get('/about', [AdminController::class, 'about'])->name('about');
     Route::get('/manage-fields', [AdminController::class, 'manageFields'])->name('manage.fields');
+    Route::post('/store-field', [AdminController::class, 'storeField'])->name('store.field');
+    Route::post('/update-field', [AdminController::class, 'updateField'])->name('update.field');
+    Route::post('/delete-field', [AdminController::class, 'deleteField'])->name('delete.field');
     Route::get('/manage-orders', [AdminController::class, 'manageOrders'])->name('manage.orders');
     Route::get('/manage-services', [AdminController::class, 'manageServices'])->name('manage.services');
+    Route::post('/store-service', [AdminController::class, 'storeService'])->name('store.service');
+    Route::post('/update-service', [AdminController::class, 'updateService'])->name('update.service');
+    Route::post('/delete-service', [AdminController::class, 'deleteService'])->name('delete.service');
     Route::get('/user_service_history', [AdminController::class, 'userServiceHistory'])->name('user.service.history');
     Route::get('/statistics', [AdminController::class, 'statistics'])->name('statistics');
     Route::get('/manage-feedback', [AdminController::class, 'manageFeedback'])->name('manage.feedback');
@@ -68,8 +80,10 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function(){
 
 // Boss
 Route::prefix('boss')->name('boss.')->middleware(['auth'])->group(function(){
-    Route::get('/boss/profile', [BossController::class, 'profile'])->name('profile');
-    Route::post('/boss/profile', [BossController::class, 'updateProfile'])->name('profile.update');
+    Route::get('/home', [HomeController::class, 'indexboss'])->name('home');
+
+    Route::get('/profile', [BossController::class, 'profile'])->name('profile');
+    Route::post('/profile', [BossController::class, 'updateProfile'])->name('profile.update');
     Route::get('/dashboard', [BossController::class, 'dashboard'])->name('dashboard');
     Route::get('/manage-users', [BossController::class, 'manageUsers'])->name('manage.users');
     Route::post('/store-user', [BossController::class, 'storeUser'])->name('store.user');
@@ -93,6 +107,53 @@ Route::prefix('boss')->name('boss.')->middleware(['auth'])->group(function(){
     Route::get('/user_service_history', [BossController::class, 'userServiceHistory'])->name('user.service.history');
     Route::get('/statistics', [BossController::class, 'statistics'])->name('statistics');
     Route::get('/manage-feedback', [BossController::class, 'manageFeedback'])->name('manage.feedback');
+});
+// User Pages - Protected Routes
+Route::middleware(['auth'])->prefix('user')->name('user.')->group(function(){
+    // Dashboard & Main Pages
+    Route::get('/dashboard', [PagesController::class, 'dashboard'])->name('dashboard');
+    Route::get('/about', [PagesController::class, 'about'])->name('about');
+    
+    // Fields & Services
+    Route::get('/fields', [PagesController::class, 'fields'])->name('fields');
+    Route::get('/services', [PagesController::class, 'services'])->name('services');
+    Route::get('/service/{id}', [PagesController::class, 'serviceDetail'])->name('serviceDetail');
+    
+    // Profile
+    Route::get('/profile', [PagesController::class, 'profile'])->name('profile');
+    Route::post('/profile/update', [PagesController::class, 'updateProfile'])->name('profile.update');
+    
+    // Booking
+    Route::get('/booking', [PagesController::class, 'booking'])->name('booking');
+    Route::post('/booking', [PagesController::class, 'storeBooking'])->name('booking.store');
+    Route::get('/booking/{id}', [PagesController::class, 'bookingDetail'])->name('bookingDetail');
+    Route::post('/booking/{id}/cancel', [PagesController::class, 'cancelBooking'])->name('cancelBooking');
+    Route::get('/my-bookings', [PagesController::class, 'myBookings'])->name('myBookings');
+    Route::get('/field-schedule', [PagesController::class, 'fieldSchedule'])->name('fieldSchedule');
+    
+    // Cart & Shopping
+    Route::get('/cart', [PagesController::class, 'cart'])->name('cart');
+    Route::post('/cart/add', [PagesController::class, 'addToCart'])->name('addToCart');
+    Route::post('/cart/remove', [PagesController::class, 'removeFromCart'])->name('removeFromCart');
+    Route::post('/cart/update-quantity', [PagesController::class, 'updateQuantity'])->name('updateQuantity');
+    Route::post('/cart/update-item', [PagesController::class, 'updateCartItem'])->name('updateCartItem');
+    
+    // Checkout
+    Route::post('/checkout', [PagesController::class, 'checkout'])->name('checkout');
+    Route::post('/checkout-multiple', [PagesController::class, 'checkoutMultiple'])->name('checkoutMultiple');
+    Route::get('/checkout-success', [PagesController::class, 'checkoutSuccess'])->name('checkoutSuccess');
+    
+    // Orders
+    Route::get('/orders', [PagesController::class, 'orders'])->name('orders');
+    Route::get('/order/{id}', [PagesController::class, 'orderDetail'])->name('orderDetail');
+    Route::get('/order/{id}/export', [PagesController::class, 'exportInvoice'])->name('exportInvoice');
+    
+    // Services Purchased
+    Route::get('/my-services', [PagesController::class, 'myServices'])->name('myServices');
+    
+    // Feedback
+    Route::get('/feedback', [PagesController::class, 'feedback'])->name('feedback');
+    Route::post('/feedback', [PagesController::class, 'sendFeedback'])->name('sendFeedback');
 });
 
 // Momo

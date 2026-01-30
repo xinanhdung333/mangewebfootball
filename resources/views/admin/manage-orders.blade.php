@@ -1,6 +1,6 @@
 @extends('layouts.app')
-@section('content')
 
+@section('content')
 <div class="row mb-4">
     <div class="col-md-12">
         <h1><i class="bi bi-cash-stack"></i> Quản lý doanh thu</h1>
@@ -73,5 +73,11 @@
         </table>
     </div>
 </div>
+
+@if($orders->hasPages())
+    <div class="mt-3">
+        {{ $orders->links() }}
+    </div>
+@endif
 
 @endsection

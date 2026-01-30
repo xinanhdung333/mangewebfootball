@@ -48,9 +48,15 @@
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
-      <a class="navbar-brand" href="{{ route('home') }}">
+    @if(auth()->user()->role === 'boss')
+      <a class="navbar-brand" href="{{ route('boss.home') }}">
     <i class="bi bi-dribbble"></i> Football Booking
 </a>
+    @elseif(auth()->user()->role === 'admin')
+      <a class="navbar-brand" href="{{ route('admin.home') }}">
+    <i class="bi bi-dribbble"></i> Football Booking
+</a>
+   @endif
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
             <span class="navbar-toggler-icon"></span>
@@ -102,6 +108,7 @@
                             <li><a class="dropdown-item" href="{{ route('boss.profile') }}">Hồ sơ</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ route('logout') }}">Đăng xuất</a></li>
+                            <li> 
                         </ul>
                     </li>
                 @else

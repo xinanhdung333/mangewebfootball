@@ -1,0 +1,184 @@
+@extends('layouts.app')
+
+@section('content')
+<style>
+.hero-modern { position:relative; height:420px; display:flex; align-items:center; justify-content:center; overflow:hidden; background-color:#0f1724; margin-bottom:40px; }
+.hero-modern::before { content:""; position:absolute; inset:0; background:linear-gradient(120deg, rgba(37,99,235,.38), rgba(139,92,246,.28), rgba(249,115,22,.18)), url('{{ asset("assets/images/BANNERr.jpg") }}') center/cover no-repeat; filter:brightness(0.95); z-index:1; }
+.hero-content-modern { text-align:center; color:#fff; z-index:2; }
+.hero-title { font-size:42px; font-weight:800; line-height:1.1; margin-bottom:10px; text-shadow:0 4px 18px rgba(0,0,0,0.35); }
+.hero-subtitle { font-size:18px; opacity:.9; margin-bottom:18px; }
+.hero-ctas { display:flex; gap:14px; justify-content:center; flex-wrap:wrap; }
+.hero-btn { padding:12px 22px; border-radius:50px; font-weight:700; box-shadow:0 8px 28px rgba(0,0,0,0.16); text-decoration:none; display:inline-flex; align-items:center; gap:6px; }
+.hero-btn.primary { background:linear-gradient(90deg,#06b6d4,#7c3aed); color:#fff; }
+.hero-btn.ghost { background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.25); color:#fff; }
+.container { max-width:1180px; margin:0 auto; padding:0 20px 40px; }
+.row.stats-row { margin-bottom:36px; display:flex; gap:20px; flex-wrap:wrap; }
+.stat-card { flex:1; padding:26px; border-radius:14px; color:#fff; box-shadow:0 18px 40px rgba(0,0,0,0.12); transition:.25s; text-align:center; }
+.stat-card:hover { transform:translateY(-8px); box-shadow:0 26px 60px rgba(0,0,0,0.18); }
+.stat-card .stat-icon { font-size:34px; margin-bottom:10px; }
+.stat-card h5 { margin:0; opacity:.85; }
+.stat-card .value { font-size:28px; font-weight:800; margin-top:8px; }
+.stat-1 { background: linear-gradient(135deg, #64bd29ff, #265879ff); }
+.stat-2 { background: linear-gradient(135deg, #79a4cdff, #101258ff); }
+.stat-3 { background: linear-gradient(135deg, #2a1b4d, #59308a); }   
+.section-block { background:#fff; border-radius:14px; padding:24px; box-shadow:0 10px 30px rgba(0,0,0,0.06); margin-bottom:30px; }
+.table-custom thead th { background:#0f1724; color:#fff; border:none; }
+.table-custom tbody tr:hover { background:rgba(14,165,233,0.06); }
+.intro-box { padding:20px; background:#fff; border-left:5px solid #7c3aed; border-radius:10px; box-shadow:0 6px 20px rgba(0,0,0,0.06); }
+.news-grid {
+    display: grid;
+    grid-template-columns: repeat(1, 1fr);
+    gap: 18px;
+    margin-top: 16px;
+}
+@media (min-width: 768px) {
+    .news-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+.news-card {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 26px rgba(0,0,0,0.08);
+    transition: .22s;
+}
+.news-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 20px 40px rgba(0,0,0,0.12);
+}
+.news-card img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+}
+.news-card .body {
+    padding: 14px 16px;
+}
+.news-card h6 { margin:0 0 4px; font-weight:700; }
+.news-card small { color:#6b7280; } 
+.news-card p { margin-top:8px; font-size:14px; color:#333; }
+.image-between {
+    position: relative;
+    height: 0;
+}
+.image-between img {
+    position: absolute;
+    right: -9%;
+    top: -330px;
+    transform: translateX(-50%);
+    width: 550px;
+    z-index: 10;
+}
+.between-img {
+    filter: drop-shadow(-10px 10px 22px rgba(12, 10, 10, 0.35));
+    transition: .25s ease;
+}
+.between-img:hover {
+    filter: drop-shadow(-18px 16px 38px rgba(0,0,0,0.5));
+}
+</style>
+
+<section class="hero-modern">
+    <div class="hero-content-modern">
+        <h1 class="hero-title">Chào mừng {{ Auth::user()->name }} — Đặt sân nhanh, chơi đã</h1>
+        <p class="hero-subtitle">Nhanh chóng chọn sân, giờ, và dịch vụ. Trải nghiệm đặt sân mượt mà trên mọi thiết bị.</p>
+        <div class="hero-ctas">
+            <a href="{{ route('visitor.fields') }}" class="hero-btn primary"><i class="bi bi-geo-alt-fill"></i> Tìm sân gần bạn</a>
+            <a href="{{ route('services.index') }}" class="hero-btn ghost"><i class="bi bi-bag"></i> Dịch vụ & đồ ăn</a>
+        </div>
+    </div>
+</section>
+
+<div class="container">
+    <div class="row stats-row">
+        <div class="stat-card stat-1"><div class="stat-icon"><i class="bi bi-calendar-check"></i></div><h5>Tổng đặt sân</h5><p class="value">{{ $stats_total }}</p></div>
+        <div class="stat-card stat-2"><div class="stat-icon"><i class="bi bi-patch-check"></i></div><h5>Sân đã xác nhận</h5><p class="value">{{ $stats_confirmed }}</p></div>
+        <div class="stat-card stat-3"><div class="stat-icon"><i class="bi bi-cash-stack"></i></div><h5>Tổng chi phí</h5><p class="value">{{ formatCurrency($stats_revenue) }}</p></div>
+    </div>
+
+    <div class="row g-4 mt-2">
+        <div class="col-lg-8">
+            <div class="section-block">
+                <h3><i class="bi bi-clock-history"></i> Đặt sân gần đây</h3>
+                <div class="table-wrap">
+                    @if($bookings && count($bookings) > 0)
+                    <table class="table table-hover table-custom align-middle mb-0">
+                        <thead><tr><th>Sân</th><th>Ngày</th><th>Giờ</th><th>Giá</th><th>Trạng thái</th><th></th></tr></thead>
+                        <tbody>
+                        @foreach(array_slice($bookings->toArray(), 0, 6) as $b)
+                            <tr>
+                            <td>{{ $b['field']['name'] ?? 'N/A' }}</td>
+                            <td>{{ date('d/m/Y', strtotime($b['booking_date'])) }}</td>
+                            <td>{{ $b['start_time'] }} - {{ $b['end_time'] }}</td>
+                            <td>{{ formatCurrency($b['total_price']) }}</td>
+                            <td><span class="badge bg-{{ $b['status']=='confirmed'?'success':($b['status']=='pending'?'warning':'danger') }}">{{ $b['status']=='confirmed'?'Xác nhận':($b['status']=='pending'?'Chờ':'Hủy') }}</span></td>
+                            <td><a href="{{ route('booking.detail', ['id' => $b['id']]) }}" class="btn btn-sm btn-outline-primary">Xem</a></td>
+                            </tr>
+                        @endforeach
+                        </tbody>
+                    </table>
+                    @else
+                    <div class="p-4">Chưa có đặt sân nào. <a href="{{ route('visitor.fields') }}">Đặt ngay</a></div>
+                    @endif
+                </div>
+                <a href="{{ route('bookings.my') }}" class="btn btn-outline-primary mt-2">Xem tất cả</a>
+            </div>
+
+            <div class="section-block mt-4">
+                <h3><i class="bi bi-gift"></i> Khuyến mãi hôm nay</h3>
+                <div class="intro-box">
+                    <p>Giảm 20% giá sân cho các khung giờ từ 14:00 - 17:00. Nhanh tay đặt ngay!</p>
+                    <a href="#" class="btn btn-sm btn-warning">Xem khuyến mãi</a>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="section-block">
+                <h3><i class="bi bi-info-circle"></i> Giới thiệu</h3>
+                <div class="intro-box">
+                    <p>Hệ thống sân bóng hiện đại, đạt chuẩn thi đấu – chiếu sáng LED, cỏ nhân tạo cao cấp, khu dịch vụ tiện nghi. Trải nghiệm tốt nhất cho người chơi bóng phong trào.</p>
+                    <a href="{{ route('about') }}" class="btn btn-sm btn-primary">Tìm hiểu thêm</a>
+                </div>
+            </div>
+
+            <div class="section-block mt-4">
+                <h3><i class="bi bi-info-circle"></i> Về chúng tôi</h3>
+                <div class="intro-box">
+                    <p>Hệ thống sân bóng hiện đại, đạt chuẩn thi đấu – chiếu sáng LED, cỏ nhân tạo cao cấp, khu dịch vụ tiện nghi. Trải nghiệm tốt nhất cho người chơi bóng phong trào.</p>
+                    <a href="{{ route('about') }}" class="btn btn-sm btn-primary">Tìm hiểu thêm</a>
+                </div>
+            </div>
+        </div>
+
+        <div class="image-between">
+            <img src="{{ asset('assets/images/XXX.png') }}" class="between-img">
+        </div>
+
+        <div class="mt-4" style="width: 100%;">
+            <div class="section-block">
+                <h3><i class="bi bi-newspaper"></i> Tin mới</h3>
+                <div class="news-grid">
+                    @foreach($news->take(3) as $article)
+                        <div class="news-card">
+                            <img src="{{ $article['urlToImage'] }}" alt="">
+                            <div class="body">
+                                <h6>{{ $article['title'] }}</h6>
+                                <small>{{ date('d/m/Y H:i', strtotime($article['publishedAt'])) }}</small>
+                                <p>{{ $article['description'] }}</p>
+                                <a href="{{ $article['url'] }}" target="_blank">Xem thêm</a>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const hero = document.querySelector('.hero-modern');
+    window.addEventListener('scroll', () => { hero.style.backgroundPositionY = `${window.scrollY*0.2}px`; }, { passive:true });
+</script>
+@endsection

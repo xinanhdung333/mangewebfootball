@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Booking;
@@ -43,6 +43,8 @@ class AdminController extends Controller
      */
     public function statistics()
     {
+        Cache::forget('admin_statistics');
+        
         $stats = Cache::remember('admin_statistics', 300, function() {
             // Basic stats
             $stats_users = User::count();
@@ -90,9 +92,9 @@ class AdminController extends Controller
             $service_revenue = DB::table('booking_services')
                 ->join('bookings', 'booking_services.booking_id', '=', 'bookings.id')
                 ->join('services', 'booking_services.service_id', '=', 'services.id')
-                ->selectRaw("DATE_FORMAT(bookings.booking_date, '%m/%Y') AS month, SUM(booking_services.quantity * services.price) AS revenue")
-                ->groupByRaw("DATE_FORMAT(bookings.booking_date, '%Y-%m')")
-                ->orderByRaw("DATE_FORMAT(bookings.booking_date, '%Y-%m')")
+                ->selectRaw("DATE_FORMAT(bookings.booking_date, '%m/%Y') AS month, SUM(booking_services.quantity * services.price) AS revenue, DATE_FORMAT(bookings.booking_date, '%Y-%m') as sort_month")
+                ->groupBy('month', 'sort_month')
+                ->orderBy('sort_month')
                 ->get();
 
             $service_revenue_labels = $service_revenue->pluck('month')->toArray();
@@ -106,13 +108,15 @@ class AdminController extends Controller
             $field_type_labels = $field_types->pluck('status')->toArray();
             $field_type_counts = $field_types->pluck('total')->map(fn($v) => (int)$v)->toArray();
 
+            $stats_services = Service::count();
+
             return [
-                'users' => $stats_users,
-                'fields' => $stats_fields,
-                'bookings' => $stats_bookings,
-                'revenue' => $stats_revenue,
-                'services_used' => $stats_services_used,
-                'services_revenue' => $stats_services_revenue,
+                'stats_users' => $stats_users,
+                'stats_fields' => $stats_fields,
+                'stats_bookings' => $stats_bookings,
+                'stats_revenue' => $stats_revenue,
+                'stats_services_used' => $stats_services_used,
+                'stats_services_revenue' => $stats_services_revenue,
                 'service_labels' => $service_labels,
                 'service_counts' => $service_counts,
                 'labels_month' => $labels_month,
@@ -121,11 +125,12 @@ class AdminController extends Controller
                 'service_revenue_labels' => $service_revenue_labels,
                 'service_revenue_values' => $service_revenue_values,
                 'field_types' => $field_type_labels,
-                'field_type_counts' => $field_type_counts,
+                'field_types_counts' => $field_type_counts,
+                'stats_services' => $stats_services,
             ];
         });
 
-        return view('admin.statistics', $stats);
+        return view('admin.statistics', [...$stats]);
     }
 
     /**
@@ -145,7 +150,7 @@ class AdminController extends Controller
 
         return view('admin.manage-bookings', [
             'bookings' => $bookings,
-            'filter_status' => $filter_status,
+            'filterStatus' => $filter_status,
         ]);
     }
 
@@ -244,6 +249,24 @@ class AdminController extends Controller
     {
         $fields = Field::orderBy('name')->paginate(15);
         return view('admin.manage-fields', ['fields' => $fields]);
+    }
+
+    /**
+     * Update admin profile
+     */
+    public function updateProfile(Request $request)
+    {
+        $admin = Auth::user();
+        
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $admin->id,
+            'phone' => 'nullable|string|max:20',
+        ]);
+
+        $admin->update($validated);
+
+        return redirect()->back()->with('success', 'Cập nhật thông tin thành công!');
     }
 
     /**
@@ -450,17 +473,20 @@ class AdminController extends Controller
     /**
      * User service history
      */
+    /**
+     * User service history
+     */
     public function userServiceHistory()
     {
-        $history = DB::table('booking_services')
+        $data = DB::table('booking_services')
             ->join('bookings', 'booking_services.booking_id', '=', 'bookings.id')
             ->join('services', 'booking_services.service_id', '=', 'services.id')
             ->join('users', 'bookings.user_id', '=', 'users.id')
-            ->select('users.name', 'services.name as service_name', 'booking_services.quantity', 'services.price', 'bookings.booking_date')
+            ->select('users.name as user_name', 'services.name', 'services.image', 'booking_services.quantity', 'services.price', 'bookings.booking_date', 'bookings.created_at', 'bookings.status', 'bookings.id as order_id')
             ->orderBy('bookings.booking_date', 'desc')
             ->paginate(15);
 
-        return view('admin.user_service_history', ['history' => $history]);
+        return view('admin.user_service_history', ['data' => $data]);
     }
 
     /**
@@ -479,17 +505,18 @@ class AdminController extends Controller
             ->get();
 
         return view('admin.manage-feedback', [
-            'services_feedback' => $services_feedback,
-            'bookings_feedback' => $bookings_feedback,
+            'serviceFeedbacks' => $services_feedback,
+            'bookingFeedbacks' => $bookings_feedback,
         ]);
     }
 
     /**
-     * Invoices (placeholder)
+     * Invoices
      */
     public function invoices()
     {
-        return view('admin.invoices');
+        $orders = DB::table('orders')->orderBy('created_at', 'DESC')->paginate(20);
+        return view('admin.invoices', compact('orders'));
     }
 
     /**
@@ -506,5 +533,115 @@ class AdminController extends Controller
     public function about()
     {
         return view('admin.about');
+    }
+
+    /**
+     * User profile view
+     */
+    public function profile()
+    {
+        $admin = Auth::user();
+
+        $bookingHistory = DB::table('bookings')
+            ->join('fields', 'bookings.field_id', '=', 'fields.id')
+            ->where('bookings.user_id', $admin->id)
+            ->select(
+                'fields.name as field_name',
+                'bookings.booking_date',
+                'bookings.start_time',
+                'bookings.end_time',
+                'bookings.total_price'
+            )
+            ->orderByDesc('bookings.booking_date')
+            ->get();
+
+        $serviceHistory = DB::table('orders')
+            ->join('order_items', 'orders.id', '=', 'order_items.order_id')
+            ->join('services', 'order_items.service_id', '=', 'services.id')
+            ->where('orders.user_id', $admin->id)
+            ->where('orders.status', 'paid')
+            ->select(
+                'services.name as service_name',
+                'orders.created_at',
+                DB::raw('(order_items.price * order_items.quantity) as total')
+            )
+            ->orderByDesc('orders.created_at')
+            ->get();
+
+        return view('admin.profile', compact(
+            'admin',
+            'bookingHistory',
+            'serviceHistory'
+        ));
+    }
+
+    /**
+     * Export invoice as PDF
+     */
+    public function exportInvoice(Request $request)
+    {
+        $type = $request->get('type', '');
+        $id = (int)$request->get('id', 0);
+        
+        if (empty($type) || $id <= 0) {
+            return view('admin.export_invoice');
+        }
+        
+        if (!in_array($type, ['booking', 'service'])) {
+            return back()->with('error', 'Loại hóa đơn không hợp lệ');
+        }
+        
+        if ($type === 'booking') {
+            $booking = DB::table('bookings')
+                ->join('users', 'bookings.user_id', '=', 'users.id')
+                ->join('fields', 'bookings.field_id', '=', 'fields.id')
+                ->where('bookings.id', $id)
+                ->whereIn('bookings.status', ['confirmed', 'completed'])
+                ->select('bookings.*', 'users.name as user_name', 'users.email', 'fields.name as field_name', 'fields.location')
+                ->first();
+            
+            if (!$booking) {
+                return back()->with('error', 'Không tìm thấy booking hoặc chưa đủ điều kiện xuất hóa đơn');
+            }
+            
+            $services = DB::table('booking_services')
+                ->join('services', 'booking_services.service_id', '=', 'services.id')
+                ->where('booking_services.booking_id', $id)
+                ->select('services.name', 'services.price', 'booking_services.quantity')
+                ->get();
+            
+            $pdf = \PDF::loadView('admin.pdf.invoice-booking', [
+                'booking' => $booking,
+                'services' => $services
+            ]);
+            
+            return $pdf->download('hoa-don-booking-' . $id . '.pdf');
+        }
+        
+        if ($type === 'service') {
+            $order = DB::table('orders')
+                ->join('users', 'orders.user_id', '=', 'users.id')
+                ->where('orders.id', $id)
+                ->whereIn('orders.status', ['confirmed', 'completed'])
+                ->select('orders.*', 'users.name as user_name', 'users.email')
+                ->first();
+            
+            if (!$order) {
+                return back()->with('error', 'Không tìm thấy đơn dịch vụ hoặc chưa đủ điều kiện xuất hóa đơn');
+            }
+            
+            $items = DB::table('order_items')
+                ->join('services', 'order_items.service_id', '=', 'services.id')
+                ->where('order_items.order_id', $id)
+                ->select('services.name', 'order_items.price', 'order_items.quantity')
+                ->get();
+            
+            $pdf = \PDF::loadView('admin.pdf.invoice-service', [
+                'order' => $order,
+                'items' => $items
+            ]);
+            
+            return $pdf->download('hoa-don-dich-vu-' . $id . '.pdf');
+        }
     }
 }

@@ -183,41 +183,59 @@ class BossController extends Controller
         return view('boss.invoices', compact('orders')); 
     }
     public function profile()
-{
-    $boss = Auth::user();
+    {
+        $boss = Auth::user();
 
-    $bookingHistory = DB::table('bookings')
-        ->join('fields', 'bookings.field_id', '=', 'fields.id')
-        ->where('bookings.user_id', $boss->id)
-        ->select(
-            'fields.name as field_name',
-            'bookings.booking_date',
-            'bookings.start_time',
-            'bookings.end_time',
-            'bookings.total_price'
-        )
-        ->orderByDesc('bookings.booking_date')
-        ->get();
+        $bookingHistory = DB::table('bookings')
+            ->join('fields', 'bookings.field_id', '=', 'fields.id')
+            ->where('bookings.user_id', $boss->id)
+            ->select(
+                'fields.name as field_name',
+                'bookings.booking_date',
+                'bookings.start_time',
+                'bookings.end_time',
+                'bookings.total_price'
+            )
+            ->orderByDesc('bookings.booking_date')
+            ->get();
 
-    $serviceHistory = DB::table('orders')
-        ->join('order_items', 'orders.id', '=', 'order_items.order_id')
-        ->join('services', 'order_items.service_id', '=', 'services.id')
-        ->where('orders.user_id', $boss->id)
-        ->where('orders.status', 'paid')
-        ->select(
-            'services.name as service_name',
-            'orders.created_at',
-            DB::raw('(order_items.price * order_items.quantity) as total')
-        )
-        ->orderByDesc('orders.created_at')
-        ->get();
+        $serviceHistory = DB::table('orders')
+            ->join('order_items', 'orders.id', '=', 'order_items.order_id')
+            ->join('services', 'order_items.service_id', '=', 'services.id')
+            ->where('orders.user_id', $boss->id)
+            ->where('orders.status', 'paid')
+            ->select(
+                'services.name as service_name',
+                'orders.created_at',
+                DB::raw('(order_items.price * order_items.quantity) as total')
+            )
+            ->orderByDesc('orders.created_at')
+            ->get();
 
-    return view('boss.profile', compact(
-        'boss',
-        'bookingHistory',
-        'serviceHistory'
-    ));
-}
+        return view('boss.profile', compact(
+            'boss',
+            'bookingHistory',
+            'serviceHistory'
+        ));
+    }
+
+    /**
+     * Update boss profile
+     */
+    public function updateProfile(Request $request)
+    {
+        $boss = Auth::user();
+        
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $boss->id,
+            'phone' => 'nullable|string|max:20',
+        ]);
+
+        $boss->update($validated);
+
+        return redirect()->back()->with('success', 'Cập nhật thông tin thành công!');
+    }
 
     public function exportInvoice(Request $request)
     {

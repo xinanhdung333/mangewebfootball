@@ -20,7 +20,9 @@ class User extends Authenticatable
     protected $fillable = [
         'name',
         'email',
+        'phone',
         'password',
+        'avatar',
         'role',
     ];
 
@@ -50,6 +52,16 @@ class User extends Authenticatable
     public function bookings()
     {
         return $this->hasMany(\App\Models\Booking::class, 'user_id');
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(\App\Models\Order::class, 'user_id');
+    }
+
+    public function cart()
+    {
+        return $this->hasOne(\App\Models\Cart::class, 'user_id');
     }
 
     /**
