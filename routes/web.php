@@ -26,17 +26,15 @@ Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 Route::get('/fields', [FieldsController::class, 'index'])->name('fields.index');
 Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
 
-// Pages
-Route::get('/about', [PagesController::class, 'about'])->name('about');
-Route::get('/dashboard', [PagesController::class, 'dashboard'])->name('visitor.dashboard');
-Route::get('/fields', [PagesController::class, 'fields'])->name('visitor.fields');
-Route::get('/profile', [PagesController::class, 'profile'])->name('profile');
-Route::get('/feedback', [PagesController::class, 'feedback'])->name('visitor.feedback');
-Route::get('/myServices', [PagesController::class, 'myServices'])->name('myServices');
-Route::get('/Services-detail', [PagesController::class, 'serviceDetail'])->name('visitor.Services-detail');
-Route::get('/order-detail', [PagesController::class, 'orderDetail'])->name('order.detail');
+// visitor
+Route::get('/about', [VisitorController::class, 'about'])->name('about');
+Route::get('/dashboard', [VisitorController::class, 'dashboard'])->name('visitor.dashboard');
+Route::get('/fields', [VisitorController::class, 'fields'])->name('visitor.fields');
+Route::get('/feedback', [VisitorController::class, 'feedback'])->name('visitor.feedback');
+Route::get('/myServices', [VisitorController::class, 'myServices'])->name('myServices');
+Route::get('/Services-detail', [VisitorController::class, 'serviceDetail'])->name('visitor.Services-detail');
 
-// Cart
+// Cartp
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
 Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');

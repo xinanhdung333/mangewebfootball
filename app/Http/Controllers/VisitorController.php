@@ -11,7 +11,6 @@ use Illuminate\Support\Facades\DB;
 
 class PagesController extends Controller
 {
-    use UsesServiceQuery;
     public function about()
     {
         return view('pages.visitor.about');
@@ -20,22 +19,22 @@ class PagesController extends Controller
     public function dashboard()
     {
         $user = Auth::user();
-        
+
         // Get booking stats
         $stats_total = $user ? $user->bookings()->count() : 0;
-        $stats_confirmed = $user ? $user->bookings()->where('status', 'confirmed')->count() : 0;
+        $stats_confirmed = $user ? $user->bookings()->where('status', 'confirmed')->count() : 0;     
         $stats_revenue = $user ? $user->bookings()->sum('total_price') : 0;
-        
+
         // Get recent bookings
         $bookings = $user ? $user->bookings()->latest()->take(5)->get() : [];
-        
+
         return view('pages.visitor.dashboard', [
             'user' => $user,
             'stats_total' => $stats_total,
             'stats_confirmed' => $stats_confirmed,
             'stats_revenue' => $stats_revenue,
             'bookings' => $bookings,
-        ]);  
+        ]);
     }
        public function fields()
     {
@@ -44,14 +43,8 @@ class PagesController extends Controller
         return view('pages.visitor.fields', ['fields' => $fields]);
     }
 
-                  
-    public function profile()
-    {
-        $user = Auth::user();
-        return view('user.profile', ['user' => $user]);
-    }
 
-    public function feedback()
+   public function feedback()
     {
        $serviceFeedbacks = DB::table('feedback as f')
     ->join('services as s', 'f.service_id', '=', 's.id')
@@ -99,9 +92,9 @@ $bookingFeedbacks = DB::table('bookings as b')
     ->get()
     ->toArray();
 
-return view('views.pages.visitor.feedback', compact('serviceFeedbacks', 'bookingFeedbacks'));
-      
-    }   
+return view('views.pages.visitor.feedback', compact('serviceFeedbacks', 'bookingFeedbacks'));        
+
+    }
 
     public function serviceDetail()
     {
@@ -114,4 +107,3 @@ return view('views.pages.visitor.feedback', compact('serviceFeedbacks', 'booking
         return view('pages.visitor.services', $data);
     }
 }
- 

@@ -39,11 +39,11 @@
                     <ul class="list-unstyled footer-links">
                         <div class="t">
                             <li><a href="{{ route('visitor.fields') }}">Sân bóng</a></li>
-                            <li><a href="{{ route('services.index') }}">Dịch vụ</a></li>
-                            <li><a href="{{ route('booking.create') }}">Đặt sân</a></li>
-                            <li><a href="{{ route('cart.index') }}">Giỏ hàng</a></li>
-                            <li><a href="{{ route('bookings.my') }}">Lịch đặt của tôi</a></li>
-                            <li><a href="{{ route('profile') }}">Hồ sơ</a></li>
+                            <li><a href="{{ route('user.services') }}">Dịch vụ</a></li>
+                            <li><a href="{{ route('user.booking') }}">Đặt sân</a></li>
+                            <li><a href="{{ route('user.cart') }}">Giỏ hàng</a></li>
+                            <li><a href="{{ route('user.myBookings') }}">Lịch đặt của tôi</a></li>
+                            <li><a href="{{ route('user.profile') }}">Hồ sơ</a></li>
                         </div>
                     </ul>
                 </div>
