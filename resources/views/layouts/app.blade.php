@@ -48,12 +48,16 @@
 <body>
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
-    @if(auth()->user()->role === 'boss')
+    @if(auth()->check() && auth()->user()->role === 'boss')
       <a class="navbar-brand" href="{{ route('boss.home') }}">
     <i class="bi bi-dribbble"></i> Football Booking
 </a>
-    @elseif(auth()->user()->role === 'admin')
+    @elseif(auth()->check() && auth()->user()->role === 'admin')
       <a class="navbar-brand" href="{{ route('admin.home') }}">
+    <i class="bi bi-dribbble"></i> Football Booking
+</a>
+    @else
+      <a class="navbar-brand" href="{{ route('home') }}">
     <i class="bi bi-dribbble"></i> Football Booking
 </a>
    @endif
@@ -66,13 +70,13 @@
             <ul class="navbar-nav ms-auto align-items-center">
                 @auth
                     @if(auth()->user()->role === 'user')
-                        <li class="nav-item"><a class="nav-link" href="{{ route('home') }}"><i class="bi bi-house"></i> Trang chủ</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('fields.index') }}"><i class="bi bi-grid"></i> Sân</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('bookings.my') }}"><i class="bi bi-calendar"></i> Đặt sân của tôi</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('services.index') }}"><i class="bi bi-bag"></i> Dịch vụ</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('myServices') }}"><i class="bi bi-bag-check"></i> Dịch vụ của tôi</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('user.dashboard') }}"><i class="bi bi-house"></i> Trang chủ</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('user.fields') }}"><i class="bi bi-grid"></i> Sân</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('user.myBookings') }}"><i class="bi bi-calendar"></i> Đặt sân của tôi</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('user.services') }}"><i class="bi bi-bag"></i> Dịch vụ</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('user.myServices') }}"><i class="bi bi-bag-check"></i> Dịch vụ của tôi</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('cart.index') }}"><i class="bi bi-cart-fill"></i> Giỏ hàng</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('feedback') }}"><i class="bi bi-chat-dots"></i> Feedback</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('user.feedback') }}"><i class="bi bi-chat-dots"></i> Feedback</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('about') }}"><i class="bi bi-chat-dots"></i> About</a></li>
                     @endif
 

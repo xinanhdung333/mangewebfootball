@@ -44,12 +44,12 @@
                     <tbody>
                         @foreach($serviceFeedbacks as $row)
                             <tr>
-                                <td>{{ $row['feedback_id'] }}</td>
-                                <td>{{ $row['user_name'] }}</td>
-                                <td>{{ $row['service_name'] }}</td>
-                                <td>{{ number_format($row['service_price'], 0, ',', '.') }} VNĐ</td>
-                                <td>{{ $row['feedback'] }}</td>
-                                <td>{{ $row['rating'] }}</td>
+                                <td>{{ $row->feedback_id }}</td>
+                                <td>{{ $row->user_name }}</td>
+                                <td>{{ $row->service_name }}</td>
+                                <td>{{ number_format($row->service_price, 0, ',', '.') }} VNĐ</td>
+                                <td>{{ $row->feedback }}</td>
+                                <td>{{ $row->rating }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -81,13 +81,13 @@
                     <tbody>
                         @foreach($bookingFeedbacks as $b)
                             <tr>
-                                <td>{{ $b['booking_id'] }}</td>
-                                <td>{{ $b['user_name'] }}</td>
-                                <td>{{ $b['field_name'] }}</td>
-                                <td>{{ \Carbon\Carbon::parse($b['booking_date'])->format('d/m/Y') }}</td>
-                                <td>{{ $b['start_time'] }} - {{ $b['end_time'] }}</td>
-                                <td>{{ $b['feedback_message'] }}</td>
-                                <td>{{ $b['feedback_rating'] }}</td>
+                                <td>{{ $b->booking_id }}</td>
+                                <td>{{ $b->user_name }}</td>
+                                <td>{{ $b->field_name }}</td>
+                                <td>{{ \Carbon\Carbon::parse($b->booking_date)->format('d/m/Y') }}</td>
+                                <td>{{ $b->start_time }} - {{ $b->end_time }}</td>
+                                <td>{{ $b->feedback_message }}</td>
+                                <td>{{ $b->feedback_rating }}</td>
                             </tr>
                         @endforeach
                     </tbody>

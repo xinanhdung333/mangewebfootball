@@ -9,8 +9,10 @@ use App\Models\Field;
 use App\Http\Controllers\Concerns\UsesServiceQuery;
 use Illuminate\Support\Facades\DB;
 
-class PagesController extends Controller
+class VisitorController extends Controller
 {
+    use UsesServiceQuery;
+
     public function about()
     {
         return view('pages.visitor.about');
@@ -26,7 +28,7 @@ class PagesController extends Controller
         $stats_revenue = $user ? $user->bookings()->sum('total_price') : 0;
 
         // Get recent bookings
-        $bookings = $user ? $user->bookings()->latest()->take(5)->get() : [];
+        $bookings = $user ? $user->bookings()->latest()->take(5)->get()->toArray() : [];
 
         return view('pages.visitor.dashboard', [
             'user' => $user,
@@ -92,7 +94,7 @@ $bookingFeedbacks = DB::table('bookings as b')
     ->get()
     ->toArray();
 
-return view('views.pages.visitor.feedback', compact('serviceFeedbacks', 'bookingFeedbacks'));        
+return view('pages.visitor.feedback', compact('serviceFeedbacks', 'bookingFeedbacks'));        
 
     }
 

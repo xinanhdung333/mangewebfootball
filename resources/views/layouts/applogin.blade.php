@@ -56,62 +56,30 @@
 
         <div class="collapse navbar-collapse" id="navbarNav">
             <ul class="navbar-nav ms-auto align-items-center">
-                @auth
-                    @if(auth()->user()->role === 'user')
+             
                         <li class="nav-item"><a class="nav-link" href="{{ route('home') }}"><i class="bi bi-house"></i> Trang chủ</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('fields.index') }}"><i class="bi bi-grid"></i> Sân</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('bookings.my') }}"><i class="bi bi-calendar"></i> Đặt sân của tôi</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('services.index') }}"><i class="bi bi-bag"></i> Dịch vụ</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('myServices') }}"><i class="bi bi-bag-check"></i> Dịch vụ của tôi</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('cart.index') }}"><i class="bi bi-cart-fill"></i> Giỏ hàng</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('feedback') }}"><i class="bi bi-chat-dots"></i> Feedback</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('visitor.fields') }}"><i class="bi bi-grid"></i> Sân</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('myServices') }}"><i class="bi bi-bag"></i> Dịch vụ</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('visitor.feedback') }}"><i class="bi bi-chat-dots"></i> Feedback</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('about') }}"><i class="bi bi-chat-dots"></i> About</a></li>
-                    @endif
-
-                    @if(auth()->user()->role === 'admin')
-                        <ul class="admin-nav">
-                            <li><a href="{{ route('admin.manage.fields') }}"><i class="bi bi-gear"></i> Quản lý sân</a></li>
-                            <li><a href="{{ route('admin.manage.bookings') }}"><i class="bi bi-clipboard-check"></i> Quản lý đặt sân</a></li>
-                            <li><a href="{{ route('admin.manage.services') }}"><i class="bi bi-grid"></i> Quản lý dịch vụ</a></li>
-                            <li><a href="{{ route('admin.user.service.history') }}"><i class="bi bi-bag-check"></i> Chi tiết mua hàng</a></li>
-                            <li><a href="{{ route('admin.manage.feedback') }}"><i class="bi bi-chat-dots"></i> Quản lý Feedback</a></li>
-                            <li><a href="{{ route('admin.invoices') }}"><i class="bi bi-file-earmark-pdf"></i> Quản lý hóa đơn</a></li>
-                            <li><a href="{{ route('admin.statistics') }}"><i class="bi bi-bar-chart"></i> Thống kê</a></li>
-                        </ul>
-                    @endif
-                    @if(auth()->user()->role === 'boss')
-                        <ul class="admin-nav">
-                            <li><a href="{{ route('boss.manage.fields') }}"><i class="bi bi-gear"></i> Quản lý sân</a></li>
-                            <li><a href="{{ route('boss.manage.bookings') }}"><i class="bi bi-clipboard-check"></i> Quản lý đặt sân</a></li>
-                            <li><a href="{{ route('boss.manage.services') }}"><i class="bi bi-grid"></i> Quản lý dịch vụ</a></li>
-                            <li><a href="{{ route('boss.user.service.history') }}"><i class="bi bi-bag-check"></i> Chi tiết mua hàng</a></li>
-                            <li><a href="{{ route('boss.manage.feedback') }}"><i class="bi bi-chat-dots"></i> Quản lý Feedback</a></li>
-                            <li><a href="{{ route('boss.invoices') }}"><i class="bi bi-file-earmark-pdf"></i> Quản lý hóa đơn</a></li>
-                            <li><a href="{{ route('boss.manage.users') }}"><i class="bi bi-people"></i> Quản lý người dùng</a></li>
-                            <li><a href="{{ route('boss.statistics') }}"><i class="bi bi-bar-chart"></i> Thống kê</a></li>
-                        </ul>
-                    @endif
+          
 
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
                             <i class="bi bi-person"></i> {{ auth()->user()->name }}
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{{ route('profile') }}">Hồ sơ</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ route('logout') }}">Đăng xuất</a></li>
-                        </ul>
+                        
                     </li>
-                @else
+    
                     <li class="nav-item"><a class="nav-link" href="{{ route('login') }}"><i class="bi bi-box-arrow-in-right"></i> Đăng nhập</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ route('register') }}"><i class="bi bi-person-plus"></i> Đăng ký</a></li>
-                @endauth
+
             </ul>
         </div>
     </div>
 </nav>
 
-<a href="{{ route('home') }}">
+<a href="{{ route('about') }}">
     <img src="{{ asset('assets/images/mascot.png') }}" id="mascot" alt="Mascot">
 </a>
 

@@ -11,6 +11,7 @@ use App\Http\Controllers\CartController;
 use App\Http\Controllers\BookingController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\BossController;
+use App\Http\Controllers\VisitorController;
 
 // Home
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -23,7 +24,6 @@ Route::post('/register', [AuthController::class, 'register'])->name('register.po
 Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Fields & Services
-Route::get('/fields', [FieldsController::class, 'index'])->name('fields.index');
 Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
 
 // visitor

@@ -99,7 +99,7 @@ $bookingFeedbacks = DB::table('bookings as b')
     ->get()
     ->toArray();
 
-return view('views.pages.visitor.feedback', compact('serviceFeedbacks', 'bookingFeedbacks'));
+return view('pages.visitor.feedback', compact('serviceFeedbacks', 'bookingFeedbacks'));
       
     }   
 
