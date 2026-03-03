@@ -8,13 +8,14 @@ use App\Models\Service;
 use App\Models\Field;
 use App\Http\Controllers\Concerns\UsesServiceQuery;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http;
 
 class PagesController extends Controller
 {
     use UsesServiceQuery;
     public function about()
     {
-        return view('pages.visitor.about');
+        return view('user.about');
     }
 
     public function dashboard()
@@ -25,23 +26,29 @@ class PagesController extends Controller
         $stats_total = $user ? $user->bookings()->count() : 0;
         $stats_confirmed = $user ? $user->bookings()->where('status', 'confirmed')->count() : 0;
         $stats_revenue = $user ? $user->bookings()->sum('total_price') : 0;
-        
+            $response = Http::get('https://newsapi.org/v2/top-headlines', [
+        'country' => 'us',
+        'apiKey' => 'YOUR_API_KEY'
+    ]);
+
         // Get recent bookings
         $bookings = $user ? $user->bookings()->latest()->take(5)->get() : [];
-        
-        return view('pages.visitor.dashboard', [
+            $news = collect($response->json()['articles'] ?? []);
+
+        return view('user.dashboard', [
             'user' => $user,
             'stats_total' => $stats_total,
             'stats_confirmed' => $stats_confirmed,
             'stats_revenue' => $stats_revenue,
             'bookings' => $bookings,
+            'news' => $news
         ]);  
     }
        public function fields()
     {
         // use the Eloquent scope to include ratings
         $fields = Field::withRatings()->get();
-        return view('pages.visitor.fields', ['fields' => $fields]);
+        return view('user.fields', ['fields' => $fields]);
     }
 
                   
@@ -99,19 +106,46 @@ $bookingFeedbacks = DB::table('bookings as b')
     ->get()
     ->toArray();
 
-return view('pages.visitor.feedback', compact('serviceFeedbacks', 'bookingFeedbacks'));
+return view('user.feedback', compact('serviceFeedbacks', 'bookingFeedbacks'));
       
     }   
 
+
+public function services(Request $request)
+{
+    $query = Service::withRatings();
+
+    // Search
+    if ($request->q) {
+        $query->where('services.name', 'like', '%' . $request->q . '%');
+    }
+
+    // Price filter
+    if ($request->min) {
+        $query->where('services.price', '>=', $request->min);
+    }
+
+    if ($request->max) {
+        $query->where('services.price', '<=', $request->max);
+    }
+
+    $services = $query->get();
+
+    // Cart session
+    $cart = session()->get('cart', []);
+    $totalItems = array_sum(array_column($cart, 'quantity'));
+
+    return view('user.services', compact('services', 'totalItems'));
+}
     public function serviceDetail()
     {
-        return view('pages.visitor.Services-detail');
+        return view('user.Services-detail');
     }
 
     public function myServices()
     {
         $data = $this->getServicesForRequest();
-        return view('pages.visitor.services', $data);
+        return view('user.services', $data);
     }
 }
  

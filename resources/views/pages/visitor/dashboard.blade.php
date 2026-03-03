@@ -36,8 +36,7 @@
                 <table class="table table-hover table-custom align-middle mb-0">
                     <thead><tr><th>Sân</th><th>Ngày</th><th>Giờ</th><th>Giá</th><th>Trạng thái</th><th></th></tr></thead>
                     <tbody>
-                    @foreach(array_slice($bookings,0,6) as $b)
-                        <tr>
+@foreach($bookings->take(6) as $b)                        <tr>
                         <td>{{ $b['field_name'] }}</td>
                         <td>{{ date('d/m/Y', strtotime($b['booking_date'])) }}</td>
                         <td>{{ $b['start_time'].' - '.$b['end_time'] }}</td>

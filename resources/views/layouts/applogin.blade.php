@@ -64,16 +64,26 @@
                         <li class="nav-item"><a class="nav-link" href="{{ route('about') }}"><i class="bi bi-chat-dots"></i> About</a></li>
           
 
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
-                            <i class="bi bi-person"></i> {{ auth()->user()->name }}
-                        </a>
-                        
-                    </li>
-    
-                    <li class="nav-item"><a class="nav-link" href="{{ route('login') }}"><i class="bi bi-box-arrow-in-right"></i> Đăng nhập</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ route('register') }}"><i class="bi bi-person-plus"></i> Đăng ký</a></li>
+                  @auth
+    <li class="nav-item dropdown">
+        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+            <i class="bi bi-person"></i> {{ auth()->user()->name }}
+        </a>
+    </li>
+@endauth
 
+@guest
+    <li class="nav-item">
+        <a class="nav-link" href="{{ route('login') }}">
+            <i class="bi bi-box-arrow-in-right"></i> Đăng nhập
+        </a>
+    </li>
+    <li class="nav-item">
+        <a class="nav-link" href="{{ route('register') }}">
+            <i class="bi bi-person-plus"></i> Đăng ký
+        </a>
+    </li>
+@endguest
             </ul>
         </div>
     </div>

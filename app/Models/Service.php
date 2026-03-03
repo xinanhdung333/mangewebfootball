@@ -57,26 +57,28 @@ class Service extends Model
     /**
      * Scope to include ratings
      */
-    public function scopeWithRatings(Builder $query)
-    {
-        return $query
-            ->leftJoin('feedback as fe', 'fe.service_id', '=', 'services.id')
-            ->where('services.status', 'active')
-            ->where('services.quantity', '>', 0)
-            ->groupBy(
-                'services.id',
-                'services.name',
-                'services.description',
-                'services.price',
-                'services.quantity',
-                'services.image',
-                'services.status',
-                'services.created_at',
-                'services.updated_at'
-            )
-            ->select('services.*')
-            ->selectRaw('COALESCE(AVG(fe.rating), 0) as avg_rating')
-            ->selectRaw('COALESCE(COUNT(fe.id), 0) as total_reviews')
-            ->orderBy('services.name', 'asc');
-    }
+
+
+public function scopeWithRatings(Builder $query)
+{
+    return $query
+        ->leftJoin('feedbacks as fe', 'fe.service_id', '=', 'services.id')
+        ->where('services.status', 'active')
+        ->where('services.quantity', '>', 0)
+        ->groupBy(
+            'services.id',
+            'services.name',
+            'services.description',
+            'services.price',
+            'services.quantity',
+            'services.image',
+            'services.status',
+            'services.created_at',
+            'services.updated_at'
+        )
+        ->select('services.*')
+        ->selectRaw('COALESCE(AVG(fe.rating), 0) as avg_rating')
+        ->selectRaw('COALESCE(COUNT(fe.id), 0) as total_reviews')
+        ->orderBy('services.name', 'asc');
+}
 }
