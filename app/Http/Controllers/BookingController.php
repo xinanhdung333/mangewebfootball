@@ -26,6 +26,6 @@ class BookingController extends Controller
 
     public function myBookings(Request $request)
     {
-        return view('booking.my-bookings');
+        return view('user.my-bookings');
     }
 }

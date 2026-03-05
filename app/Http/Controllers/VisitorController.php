@@ -46,9 +46,9 @@ class VisitorController extends Controller
     }
 
 
-   public function feedback()
+   public function feedbacks()
     {
-       $serviceFeedbacks = DB::table('feedback as f')
+       $serviceFeedbacks = DB::table('feedbacks as f')
     ->join('services as s', 'f.service_id', '=', 's.id')
     ->join('users as u', 'f.user_id', '=', 'u.id')
     ->whereNotNull('f.service_id')
@@ -62,7 +62,7 @@ class VisitorController extends Controller
         'u.name as user_name',
         's.name as service_name',
         's.price as service_price',
-        'f.message as feedback',
+        'f.message as feedbacks',
         'f.rating'
     ])
     ->get()
@@ -72,7 +72,7 @@ class VisitorController extends Controller
 $bookingFeedbacks = DB::table('bookings as b')
     ->join('users as u', 'u.id', '=', 'b.user_id')
     ->join('fields as f', 'f.id', '=', 'b.field_id')
-    ->leftJoin('feedback as fb', function ($join) {
+    ->leftJoin('feedbacks as fb', function ($join) {
         $join->on('fb.booking_id', '=', 'b.id')
              ->on('fb.user_id', '=', 'u.id');
     })

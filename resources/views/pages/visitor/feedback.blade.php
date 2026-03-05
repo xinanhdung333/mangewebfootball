@@ -48,7 +48,7 @@
                                 <td>{{ $row->user_name }}</td>
                                 <td>{{ $row->service_name }}</td>
                                 <td>{{ number_format($row->service_price, 0, ',', '.') }} VNĐ</td>
-                                <td>{{ $row->feedback }}</td>
+                                <td>{{ $row->feedbacks }}</td>
                                 <td>{{ $row->rating }}</td>
                             </tr>
                         @endforeach

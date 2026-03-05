@@ -9,6 +9,7 @@ use App\Models\Field;
 use App\Http\Controllers\Concerns\UsesServiceQuery;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use App\Models\Booking;
 
 class PagesController extends Controller
 {
@@ -44,6 +45,28 @@ class PagesController extends Controller
             'news' => $news
         ]);  
     }
+   
+public function myBookings(Request $request)
+{
+    $user = Auth::user();
+
+    $filterStatus = $request->status;
+
+    $query = Booking::where('user_id', $user->id)
+        ->with(['field', 'services'])
+        ->orderByDesc('id');
+
+    if ($filterStatus) {
+        $query->where('status', $filterStatus);
+    }
+
+    $bookings = $query->paginate(10);
+
+    return view('user.my-bookings', [
+        'bookings' => $bookings,
+        'filterStatus' => $filterStatus
+    ]);
+}
        public function fields()
     {
         // use the Eloquent scope to include ratings

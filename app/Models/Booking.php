@@ -38,13 +38,11 @@ class Booking extends Model
         return $this->belongsTo(Field::class);
     }
 
-    public function services()
-    {
-        return $this->belongsToMany(Service::class, 'booking_services')
-            ->withPivot('quantity')
-            ->withTimestamps();
-    }
-
+ public function services()
+{
+    return $this->belongsToMany(Service::class, 'booking_services')
+        ->withPivot('quantity');
+}
     public function feedback()
     {
         return $this->hasOne(Feedback::class);

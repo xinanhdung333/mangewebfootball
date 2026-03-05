@@ -30,8 +30,7 @@ Route::get('/services', [ServiceController::class, 'index'])->name('services.ind
 Route::get('/about', [VisitorController::class, 'about'])->name('about');
 Route::get('/dashboard', [VisitorController::class, 'dashboard'])->name('visitor.dashboard');
 Route::get('/fields', [VisitorController::class, 'fields'])->name('visitor.fields');
-Route::get('/feedback', [VisitorController::class, 'feedback'])->name('visitor.feedback');
-Route::get('/myServices', [VisitorController::class, 'myServices'])->name('myServices');
+Route::get('/feedback', [VisitorController::class, 'feedbacks'])->name('visitor.feedback');Route::get('/myServices', [VisitorController::class, 'myServices'])->name('myServices');
 Route::get('/Services-detail', [VisitorController::class, 'serviceDetail'])->name('visitor.Services-detail');
 
 // Cartp

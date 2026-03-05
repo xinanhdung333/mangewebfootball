@@ -22,7 +22,7 @@ class Field extends Model
     {
         return $query
             ->leftJoin('bookings as b', 'b.field_id', '=', 'fields.id')
-            ->leftJoin('feedback as fe', 'fe.booking_id', '=', 'b.id')
+            ->leftJoin('feedbackS as fe', 'fe.booking_id', '=', 'b.id')
             ->where('fields.status', 'active')
             ->groupBy('fields.id', 'fields.name', 'fields.description', 'fields.image', 'fields.location', 'fields.price_per_hour', 'fields.status', 'fields.created_at', 'fields.updated_at')
             ->select('fields.*')

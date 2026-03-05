@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers\Concerns;
+use Illuminate\Support\Facades\DB;
 
 trait UsesServiceQuery
 {
