@@ -9,8 +9,7 @@ class CartController extends Controller
     // Show cart stored in session
     public function index(Request $request)
     {
-        $cart = $request->session()->get('cart', []);
-        return view('cart.index', ['cart' => $cart]);
+        return redirect()->route('user.cart');
     }
 
     public function add(Request $request)
@@ -34,6 +33,39 @@ class CartController extends Controller
 
         $request->session()->put('cart', $cart);
         return redirect()->back()->with('success', 'Đã thêm vào giỏ hàng');
+    }
+
+    public function addAjax(Request $request)
+    {
+        $data = $request->validate([
+            'service_id' => 'required|integer|exists:services,id',
+            'quantity' => 'nullable|integer|min:1'
+        ]);
+
+        // minimal service details for cart
+        $service = \App\Models\Service::find($data['service_id']);
+        if (!$service) {
+            return response()->json(['error' => 'Dịch vụ không tồn tại'], 404);
+        }
+
+        $qty = $data['quantity'] ?? 1;
+        $cart = $request->session()->get('cart', []);
+
+        if (isset($cart[$service->id])) {
+            $cart[$service->id]['qty'] += $qty;
+            $cart[$service->id]['quantity'] = $cart[$service->id]['qty'];
+        } else {
+            $cart[$service->id] = [
+                'id' => $service->id,
+                'name' => $service->name,
+                'price' => $service->price,
+                'qty' => $qty,
+                'quantity' => $qty,
+            ];
+        }
+
+        $request->session()->put('cart', $cart);
+        return response()->json(['success' => true, 'message' => 'Đã thêm vào giỏ hàng']);
     }
 
     public function remove(Request $request)
@@ -62,12 +94,31 @@ class CartController extends Controller
         return $this->updateQuantity($request);
     }
 
+    public function checkoutPage(Request $request)
+    {
+        $cart = $request->session()->get('cart', []);
+        $total = 0;
+        foreach ($cart as $item) {
+            $total += ($item['price'] ?? 0) * ($item['qty'] ?? $item['quantity'] ?? 1);
+        }
+        $createdOrders = [];
+        return view('user.checkout', compact('cart', 'total', 'createdOrders'));
+    }
+
     public function checkout(Request $request)
     {
         $cart = $request->session()->get('cart', []);
-        // For simplicity, clear cart and redirect to order detail
+        $createdOrders = [];
+        foreach ($cart as $item) {
+            $createdOrders[] = [
+                'order_id' => rand(1000, 9999),
+                'name' => $item['name'] ?? 'Dịch vụ',
+                'total' => ($item['price'] ?? 0) * ($item['qty'] ?? $item['quantity'] ?? 1),
+            ];
+        }
+
         $request->session()->forget('cart');
-        return redirect()->route('order.detail')->with('success', 'Thanh toán thành công (mô phỏng)');
+        return view('user.checkout', compact('createdOrders'));
     }
 
     public function checkoutMultiple(Request $request)

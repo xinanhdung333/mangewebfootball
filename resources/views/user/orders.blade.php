@@ -98,7 +98,7 @@
                                         @endswitch
                                     </td>
                                     <td>
-                                        <a href="{{ route('user.order-detail', $order->id) }}" class="btn btn-sm btn-outline-primary">
+                                        <a href="{{ route('user.orderDetail', $order->id) }}" class="btn btn-sm btn-outline-primary">
                                             <i class="fas fa-eye me-1"></i> Xem Chi Tiết
                                         </a>
                                         @if($order->status === 'completed')

@@ -138,10 +138,12 @@
 </a>
 
 <main class="container mt-4">
+    <div class="container-fluid px-4">
+
     @yield('content')
 </main>
 
-@include('partials.footer')
+@include('partials.visitor.footer')
 
 <script>
 const mascot = document.getElementById('mascot');

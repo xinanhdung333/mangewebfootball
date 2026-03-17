@@ -6,10 +6,16 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Service;
 use App\Models\Field;
+use App\Models\Feedback;
+use Barryvdh\DomPDF\Facade\Pdf; 
+
+use App\Models\Order;
+use App\Models\OrderItem;
+
+use App\Models\Booking;
 use App\Http\Controllers\Concerns\UsesServiceQuery;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
-use App\Models\Booking;
 
 class PagesController extends Controller
 {
@@ -34,7 +40,9 @@ class PagesController extends Controller
 
         // Get recent bookings
         $bookings = $user ? $user->bookings()->latest()->take(5)->get() : [];
-            $news = collect($response->json()['articles'] ?? []);
+            $news = collect($response->json()['articles'] ?? [])->map(function ($item) {
+                return (array) $item;
+            })->toArray();
 
         return view('user.dashboard', [
             'user' => $user,
@@ -67,6 +75,119 @@ public function myBookings(Request $request)
         'filterStatus' => $filterStatus
     ]);
 }
+public function bookingdetail($id)
+{
+    $booking = \App\Models\Booking::find($id);
+
+    if(!$booking){
+        return redirect()->back()->with('error','Không tìm thấy booking');
+    }
+
+    return view('user.booking-detail', compact('booking'));
+}
+    public function myServices()
+    {
+        $user = Auth::user();
+
+        if (!$user) {
+            return redirect()->route('login');
+        }
+
+        $orders = 
+            \App\Models\Order::with(['items.service'])
+                ->where('user_id', $user->id)
+                ->orderByDesc('id')
+                ->get();
+
+        $myServices = $orders->flatMap(function ($order) {
+            return $order->items->map(function ($item) use ($order) {
+                return [
+                    'order_id' => $order->id,
+                    'name' => $item->service->name ?? 'Unknown Service',
+                    'image' => $item->service->image ?? null,
+                    'quantity' => $item->quantity,
+                    'price' => $item->price,
+                    'status' => $order->status ?? 'pending',
+                    'created_at' => $item->created_at ?? $order->created_at,
+                ];
+            });
+        })->values();
+
+        return view('user.my-services', [
+            'myServices' => $myServices
+        ]);
+    }
+
+    public function orders(Request $request)
+    {
+        $user = Auth::user();
+        $query = Order::with('items.service')->where('user_id', $user->id)->orderByDesc('id');
+        if ($request->status) {
+            $query->where('status', $request->status);
+        }
+        $orders = $query->paginate(10);
+        return view('user.orders', compact('orders'));
+    }
+public function orderDetail($id)
+{
+    $userId = auth()->id();
+
+    $order = Order::where('user_id', $userId)
+        ->where('id', $id)
+        ->firstOrFail();
+
+    $orderItems = OrderItem::where('order_id', $id)
+        ->join('services','order_items.service_id','=','services.id')
+        ->select(
+            'services.name',
+            'services.image',
+            'order_items.quantity',
+            'order_items.price'
+        )
+        ->get();
+
+    return view('user.order-detail', [
+        'order' => $order,
+        'orderItems' => $orderItems
+    ]);
+}
+
+ public function exportInvoice($id)
+{
+    // Lấy đơn hàng
+    $order = Order::findOrFail($id);
+
+    // Lấy danh sách dịch vụ trong đơn
+    $items = OrderItem::join('services','order_items.service_id','=','services.id')
+        ->where('order_items.order_id',$id)
+        ->select(
+            'services.name',
+            'order_items.price',
+            'order_items.quantity'
+        )
+        ->get();
+
+    // tạo PDF
+    $pdf = Pdf::loadView('user.pdf.invoice-service', compact('order','items'));
+
+    return $pdf->stream("hoa-don-{$order->id}.pdf");
+}
+ 
+public function exportInvoicebooking($id)
+{
+    $booking = Booking::findOrFail($id);
+
+    $services = DB::table('booking_services as bs')
+        ->join('services as s', 'bs.service_id', '=', 's.id')
+        ->where('bs.booking_id', $id)
+        ->select('s.name', 's.price', 'bs.quantity')
+        ->get();
+
+    $pdf = Pdf::loadView('user.pdf.invoice-booking', compact('booking','services'));
+
+    return $pdf->stream("hoa-don-booking-{$booking->id}.pdf");
+}
+
        public function fields()
     {
         // use the Eloquent scope to include ratings
@@ -83,55 +204,97 @@ public function myBookings(Request $request)
 
     public function feedback()
     {
-       $serviceFeedbacks = DB::table('feedback as f')
-    ->join('services as s', 'f.service_id', '=', 's.id')
-    ->join('users as u', 'f.user_id', '=', 'u.id')
-    ->whereNotNull('f.service_id')
-    ->where(function ($q) {
-        $q->whereNotNull('f.message')
-          ->orWhereNotNull('f.rating');
-    })
-    ->orderByDesc('f.id')
-    ->select([
-        'f.id as feedback_id',
-        'u.name as user_name',
-        's.name as service_name',
-        's.price as service_price',
-        'f.message as feedback',
-        'f.rating'
-    ])
-    ->get()
-    ->toArray();
+        $userId = Auth::id();
 
+        $services = DB::table('order_items as oi')
+            ->join('orders as o', 'oi.order_id', '=', 'o.id')
+            ->join('services as s', 'oi.service_id', '=', 's.id')
+            ->leftJoin('feedbacks as f', function ($join) {
+                $join->on('f.service_id', '=', 's.id')
+                     ->on('f.user_id', '=', 'o.user_id');
+            })
+            ->where('o.user_id', $userId)
+            ->orderByDesc('oi.created_at')
+            ->select([
+                'oi.id as order_item_id',
+                's.name as service_name',
+                's.image as service_image',
+                DB::raw('(oi.price * oi.quantity) as total'),
+                'f.message as feedback_message',
+                'f.rating as feedback_rating',
+            ])
+            ->get()
+            ->map(function ($item) {
+                return (array) $item;
+            })
+            ->toArray();
 
-$bookingFeedbacks = DB::table('bookings as b')
-    ->join('users as u', 'u.id', '=', 'b.user_id')
-    ->join('fields as f', 'f.id', '=', 'b.field_id')
-    ->leftJoin('feedback as fb', function ($join) {
-        $join->on('fb.booking_id', '=', 'b.id')
-             ->on('fb.user_id', '=', 'u.id');
-    })
-    ->where(function ($q) {
-        $q->whereNotNull('fb.message')
-          ->orWhereNotNull('fb.rating');
-    })
-    ->orderByDesc('b.created_at')
-    ->select([
-        'b.id as booking_id',
-        'u.name as user_name',
-        'f.name as field_name',
-        'b.booking_date',
-        'b.start_time',
-        'b.end_time',
-        'fb.message as feedback_message',
-        'fb.rating as feedback_rating'
-    ])
-    ->get()
-    ->toArray();
+        $bookings = DB::table('bookings as b')
+            ->join('fields as f', 'b.field_id', '=', 'f.id')
+            ->leftJoin('feedbacks as fb', function ($join) {
+                $join->on('fb.booking_id', '=', 'b.id')
+                     ->on('fb.user_id', '=', 'b.user_id');
+            })
+            ->where('b.user_id', $userId)
+            ->orderByDesc('b.created_at')
+            ->select([
+                'b.id as booking_id',
+                'f.name as field_name',
+                'f.image as field_image',
+                'b.booking_date',
+                'b.start_time',
+                'b.end_time',
+                'fb.message as feedback_message',
+                'fb.rating as feedback_rating',
+            ])
+            ->get()
+            ->map(function ($item) {
+                return (array) $item;
+            })
+            ->toArray();
 
-return view('user.feedback', compact('serviceFeedbacks', 'bookingFeedbacks'));
-      
-    }   
+        return view('user.feedback', compact('services', 'bookings'));
+    }
+
+    public function sendFeedback(Request $request)
+    {
+        $validated = $request->validate([
+            'feedback_type' => 'required|in:service,booking',
+            'item_id' => 'required|integer',
+            'message' => 'required|string|max:2000',
+            'rating' => 'required|integer|min:1|max:5',
+        ]);
+
+        $userId = Auth::id();
+        $feedbackData = [
+            'user_id' => $userId,
+            'message' => $validated['message'],
+            'rating' => $validated['rating'],
+        ];
+
+        if ($validated['feedback_type'] === 'service') {
+            $feedbackData['service_id'] = $validated['item_id'];
+        } else {
+            $feedbackData['booking_id'] = $validated['item_id'];
+        }
+
+        // update existing feedback by user for this service/booking or create new
+        $query = Feedback::where('user_id', $userId);
+        if ($validated['feedback_type'] === 'service') {
+            $query->where('service_id', $validated['item_id']);
+        } else {
+            $query->where('booking_id', $validated['item_id']);
+        }
+
+        $feedback = $query->first();
+        if ($feedback) {
+            $feedback->update($feedbackData);
+        } else {
+            Feedback::create($feedbackData);
+        }
+
+        return redirect()->route('user.feedback')->with('success', 'Feedback đã gửi thành công.');
+    }
 
 
 public function services(Request $request)
@@ -160,15 +323,140 @@ public function services(Request $request)
 
     return view('user.services', compact('services', 'totalItems'));
 }
-    public function serviceDetail()
+
+    public function serviceDetail($id)
     {
-        return view('user.Services-detail');
+        $service = Service::findOrFail($id);
+        return view('user.service-detail', compact('service'));
     }
 
-    public function myServices()
+    public function cart(Request $request)
     {
-        $data = $this->getServicesForRequest();
-        return view('user.services', $data);
+        $cart = session()->get('cart', []);
+        $cartItems = [];
+        $totalPrice = 0;
+        $serviceHistory = [];
+
+        if (!empty($cart)) {
+            foreach ($cart as $id => $item) {
+                $quantity = $item['quantity'] ?? $item['qty'] ?? 1;
+                $price = $item['price'] ?? 0;
+                $cartItems[] = [
+                    'id' => $item['id'],
+                    'name' => $item['name'],
+                    'price' => $price,
+                    'quantity' => $quantity,
+                    'stock' => $item['stock'] ?? 0,
+                    'image' => $item['image'] ?? null,
+                    'total_amount' => $price * $quantity,
+                ];
+                $totalPrice += $price * $quantity;
+            }
+        }
+
+        return view('user.cart', compact('cartItems', 'totalPrice', 'serviceHistory'));
     }
+
+    public function addToCart(Request $request, $id = null)
+    {
+        $data = $request->validate([
+            'service_id' => 'sometimes|integer|exists:services,id',
+            'quantity' => 'required|integer|min:1',
+        ]);
+
+        $serviceId = $data['service_id'] ?? $id;
+        if (!$serviceId) {
+            return redirect()->back()->withErrors('Dịch vụ không hợp lệ.');
+        }
+
+        $service = Service::findOrFail($serviceId);
+        $cart = session()->get('cart', []);
+        $id = (string)$service->id;
+        $qty = $data['quantity'];
+
+        if (isset($cart[$id])) {
+            $cart[$id]['qty'] = ($cart[$id]['qty'] ?? 0) + $qty;
+        } else {
+            $cart[$id] = [
+                'id' => $service->id,
+                'name' => $service->name,
+                'price' => $service->price,
+                'qty' => $qty,
+                'quantity' => $qty,
+                'image' => $service->image ?? null,
+                'stock' => $service->quantity ?? 0,
+            ];
+        }
+        $cart[$id]['quantity'] = $cart[$id]['qty'];
+
+        session(['cart' => $cart]);
+
+        if ($request->has('buy_now')) {
+            return redirect()->route('user.checkout');
+        }
+
+        return redirect()->route('user.cart')->with('success', 'Đã thêm vào giỏ hàng');
+    }
+
+    public function removeFromCart(Request $request)
+    {
+        $id = $request->input('cart_item_id') ?? $request->input('id');
+        $cart = session()->get('cart', []);
+        if ($id && isset($cart[$id])) {
+            unset($cart[$id]);
+            session(['cart' => $cart]);
+        }
+        return redirect()->route('user.cart');
+    }
+
+    public function updateQuantity(Request $request)
+    {
+        $id = $request->input('cart_item_id') ?? $request->input('id');
+        $qty = (int) ($request->input('quantity') ?? $request->input('qty') ?? 1);
+        $cart = session()->get('cart', []);
+        if ($id && isset($cart[$id])) {
+            $cart[$id]['qty'] = max(1, $qty);
+            $cart[$id]['quantity'] = $cart[$id]['qty'];
+            session(['cart' => $cart]);
+        }
+        return redirect()->route('user.cart');
+    }
+
+    public function updateCartItem(Request $request)
+    {
+        return $this->updateQuantity($request);
+    }
+
+    public function checkoutMultiple(Request $request)
+    {
+        $selected = $request->input('selected_items', '[]');
+        $selectedIds = json_decode($selected, true);
+        if (!is_array($selectedIds)) {
+            $selectedIds = [];
+        }
+
+        $cart = session()->get('cart', []);
+        $createdOrders = [];
+
+        foreach ($cart as $id => $item) {
+            if (in_array((string)$id, array_map('strval', $selectedIds), true)) {
+                $createdOrders[] = [
+                    'order_id' => rand(10000, 99999),
+                    'name' => $item['name'] ?? 'Dịch vụ',
+                    'total' => ($item['price'] ?? 0) * ($item['qty'] ?? $item['quantity'] ?? 1),
+                ];
+            }
+        }
+
+        // Keep remaining cart items (unselected) and remove selected
+        foreach ($selectedIds as $id) {
+            if (isset($cart[$id])) {
+                unset($cart[$id]);
+            }
+        }
+        session(['cart' => $cart]);
+
+        return view('user.checkout', compact('createdOrders'));
+    }
+
 }
- 

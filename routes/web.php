@@ -36,6 +36,7 @@ Route::get('/Services-detail', [VisitorController::class, 'serviceDetail'])->nam
 // Cartp
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+Route::post('/cart/add/ajax', [CartController::class, 'addAjax'])->name('cart.add.ajax');
 Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
 Route::post('/cart/update-quantity', [CartController::class, 'updateQuantity'])->name('cart.updateQuantity');
 Route::post('/cart/update-item', [CartController::class, 'updateItem'])->name('cart.updateItem');
@@ -44,6 +45,7 @@ Route::post('/checkout-multiple', [CartController::class, 'checkoutMultiple'])->
 
 // Booking
 Route::get('/booking', [BookingController::class, 'create'])->name('booking.create');
+Route::post('/booking', [BookingController::class, 'store'])->name('booking.store');
 Route::get('/booking/detail', [BookingController::class, 'detail'])->name('booking.detail');
 Route::get('/field-schedule', [BookingController::class, 'fieldSchedule'])->name('field.schedule');
 Route::get('/my-bookings', [BookingController::class, 'myBookings'])->name('bookings.my');
@@ -115,6 +117,7 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function(){
     Route::get('/fields', [PagesController::class, 'fields'])->name('fields');
     Route::get('/services', [PagesController::class, 'services'])->name('services');
     Route::get('/service/{id}', [PagesController::class, 'serviceDetail'])->name('serviceDetail');
+    Route::post('/service/{id}', [PagesController::class, 'addToCart'])->name('service.addToCart');
     
     // Profile
     Route::get('/profile', [PagesController::class, 'profile'])->name('profile');
@@ -123,10 +126,12 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function(){
     // Booking
     Route::get('/booking', [PagesController::class, 'booking'])->name('booking');
     Route::post('/booking', [PagesController::class, 'storeBooking'])->name('booking.store');
-    Route::get('/booking/{id}', [PagesController::class, 'bookingDetail'])->name('bookingDetail');
+    Route::get('/booking/{id}', [PagesController::class, 'bookingdetail'])->name('bookingdetail');
     Route::post('/booking/{id}/cancel', [PagesController::class, 'cancelBooking'])->name('cancelBooking');
     Route::get('/my-bookings', [PagesController::class, 'myBookings'])->name('myBookings');
     Route::get('/field-schedule', [PagesController::class, 'fieldSchedule'])->name('fieldSchedule');
+        Route::get('/booking/{id}/export', [PagesController::class, 'exportInvoicebooking'])->name('exportInvoicebooking');
+
     
     // Cart & Shopping
     Route::get('/cart', [PagesController::class, 'cart'])->name('cart');
@@ -136,7 +141,8 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function(){
     Route::post('/cart/update-item', [PagesController::class, 'updateCartItem'])->name('updateCartItem');
     
     // Checkout
-    Route::post('/checkout', [PagesController::class, 'checkout'])->name('checkout');
+    Route::get('/checkout', [CartController::class, 'checkoutPage'])->name('checkout');
+    Route::post('/checkout', [CartController::class, 'checkout'])->name('checkout.post');
     Route::post('/checkout-multiple', [PagesController::class, 'checkoutMultiple'])->name('checkoutMultiple');
     Route::get('/checkout-success', [PagesController::class, 'checkoutSuccess'])->name('checkoutSuccess');
     

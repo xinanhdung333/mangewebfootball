@@ -31,7 +31,8 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-body">
-                    <form method="POST" id="bookingForm">
+                    <form method="POST" action="{{ route('booking.store') }}" id="bookingForm">
+                        <input type="hidden" name="field_id" value="{{ $field->id }}">
                         @csrf
                         <div class="row">
                             <div class="col-md-6">

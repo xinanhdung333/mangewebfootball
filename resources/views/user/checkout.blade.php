@@ -9,11 +9,12 @@
         
         <h3 class="text-success fw-bold mb-3">Thanh toán thành công!</h3>
 
+        @php $createdOrders = $createdOrders ?? []; @endphp
         <p class="fs-5 text-dark mb-4">
             Bạn đã tạo <strong>{{ count($createdOrders) }}</strong> đơn hàng riêng:
         </p>
 
-        @if($createdOrders && count($createdOrders) > 0)
+        @if(count($createdOrders) > 0)
             <div class="alert alert-light border" style="max-height: 300px; overflow-y: auto;">
                 <ul class="list-unstyled text-start">
                     @foreach($createdOrders as $order)
@@ -25,12 +26,14 @@
                     @endforeach
                 </ul>
             </div>
+        @else
+            <div class="alert alert-info">Chưa có đơn hàng. Vui lòng thực hiện thanh toán từ giỏ hàng.</div>
         @endif
 
         <div class="mt-4">
-            <p class="text-muted mb-3">Chuyển hướng đến trang đơn hàng trong 5 giây...</p>
-            <a href="{{ route('user.orders') }}" class="btn btn-success btn-lg px-5">
-                <i class="bi bi-box-seam"></i> Xem đơn hàng
+            <p class="text-muted mb-3">Nhấn vào nút bên dưới để quay lại giỏ hàng.</p>
+            <a href="{{ route('user.cart') }}" class="btn btn-primary btn-lg px-5">
+                <i class="bi bi-arrow-left"></i> Quay lại giỏ hàng
             </a>
         </div>
 

@@ -134,11 +134,11 @@
 
                     <!-- XUẤT HÓA ĐƠN CHO ĐƠN HÀNG ĐÃ HOÀN THÀNH -->
                     @if($order->status === 'completed')
-                        <a href="{{ route('user.exportInvoice', ['type' => 'order', 'id' => $order->id]) }}" 
-                           target="_blank" 
-                           class="btn btn-danger w-100">
-                            <i class="bi bi-file-pdf"></i> Xuất hóa đơn
-                        </a>
+                       <a href="{{ route('user.exportInvoice',$order->id) }}"
+   target="_blank"
+   class="btn btn-danger w-100">
+   <i class="bi bi-file-pdf"></i> Xuất hóa đơn
+</a>
                     @endif
                 </div>
             </div>

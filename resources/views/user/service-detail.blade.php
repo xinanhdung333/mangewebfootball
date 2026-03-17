@@ -104,7 +104,7 @@
 
                     <!-- BUY NOW -->
                     <div class="col-6">
-                        <form method="POST" action="" class="w-100">
+                        <form method="POST" action="{{ route('user.service.addToCart', ['id' => $service->id]) }}" class="w-100">
                             @csrf
                             <input type="hidden" name="service_id" value="{{ $service->id }}">
                             <input type="hidden" name="quantity" id="buyNowQty" value="1">
@@ -179,7 +179,7 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('quantity', quantity);
 
         try {
-            const response = await fetch('{{ route("user.addToCart") }}', {
+            const response = await fetch('{{ route("user.service.addToCart", ["id" => $service->id]) }}', {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content

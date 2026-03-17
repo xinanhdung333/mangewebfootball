@@ -215,7 +215,7 @@
                     <!-- NÚT XUẤT HÓA ĐƠN CHO ĐẶT SÂN ĐÃ HOÀN THÀNH -->
                     @if($booking->status === 'completed')
                         <hr>
-                        <a href="{{ route('user.exportInvoice', ['type' => 'booking', 'id' => $booking->id]) }}" 
+                        <a href="{{ route('user.exportInvoicebooking', $booking->id) }}" 
                            target="_blank" 
                            class="btn btn-primary w-100">
                             <i class="bi bi-file-pdf"></i> Xuất hóa đơn

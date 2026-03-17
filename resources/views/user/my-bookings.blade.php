@@ -67,9 +67,9 @@
                                     <span class="badge bg-{{ $status[0] }}">{{ $status[1] }}</span>
                                 </td>
                                 <td>
-                                    <a href="{{ route('booking.detail', ['id' => $booking->id]) }}" class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-eye"></i> Xem
-                                    </a>
+                                   <a href="{{ route('user.bookingdetail', $booking->id) }}" class="btn btn-sm btn-outline-primary">
+    <i class="bi bi-eye"></i> Xem
+</a>
                                 </td>
                             </tr>
                         @endforeach
