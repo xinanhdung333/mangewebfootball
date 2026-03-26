@@ -8,6 +8,7 @@ use App\Models\Service;
 use App\Models\Field;
 use App\Http\Controllers\Concerns\UsesServiceQuery;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Http; // thêm dòng này
 
 class VisitorController extends Controller
 {
@@ -17,27 +18,32 @@ class VisitorController extends Controller
     {
         return view('pages.visitor.about');
     }
+public function dashboard()
+{
+    $user = Auth::user();
+    
+    $stats_total = $user ? $user->bookings()->count() : 0;
+    $stats_confirmed = $user ? $user->bookings()->where('status', 'confirmed')->count() : 0;
+    $stats_revenue = $user ? $user->bookings()->sum('total_price') : 0;
 
-    public function dashboard()
-    {
-        $user = Auth::user();
+    $response = Http::get('https://newsapi.org/v2/top-headlines', [
+        'country' => 'us',
+        'apiKey' => 'YOUR_API_KEY'
+    ]);
 
-        // Get booking stats
-        $stats_total = $user ? $user->bookings()->count() : 0;
-        $stats_confirmed = $user ? $user->bookings()->where('status', 'confirmed')->count() : 0;     
-        $stats_revenue = $user ? $user->bookings()->sum('total_price') : 0;
+    $news = collect($response->json()['articles'] ?? [])->toArray();
 
-        // Get recent bookings
-        $bookings = $user ? $user->bookings()->latest()->take(5)->get()->toArray() : [];
+    $bookings = $user ? $user->bookings()->latest()->take(5)->get() : [];
 
-        return view('pages.visitor.dashboard', [
-            'user' => $user,
-            'stats_total' => $stats_total,
-            'stats_confirmed' => $stats_confirmed,
-            'stats_revenue' => $stats_revenue,
-            'bookings' => $bookings,
-        ]);
-    }
+    return view('pages.visitor.dashboard', [
+        'user' => $user,
+        'stats_total' => $stats_total,
+        'stats_confirmed' => $stats_confirmed,
+        'stats_revenue' => $stats_revenue,
+        'bookings' => $bookings,
+        'news' => $news
+    ]);
+}
        public function fields()
     {
         // use the Eloquent scope to include ratings

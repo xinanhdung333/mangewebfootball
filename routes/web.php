@@ -36,11 +36,10 @@ Route::get('/Services-detail', [VisitorController::class, 'serviceDetail'])->nam
 // Cartp
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
-Route::post('/cart/add/ajax', [CartController::class, 'addAjax'])->name('cart.add.ajax');
 Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
 Route::post('/cart/update-quantity', [CartController::class, 'updateQuantity'])->name('cart.updateQuantity');
 Route::post('/cart/update-item', [CartController::class, 'updateItem'])->name('cart.updateItem');
-Route::post('/checkout', [CartController::class, 'checkout'])->name('checkout');
+Route::post('/checkout', [CartController::class, 'checkout'])->name('checkout.post');
 Route::post('/checkout-multiple', [CartController::class, 'checkoutMultiple'])->name('checkout.multiple');
 
 // Booking
@@ -113,6 +112,7 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function(){
     Route::get('/dashboard', [PagesController::class, 'dashboard'])->name('dashboard');
     Route::get('/about', [PagesController::class, 'about'])->name('about');
     
+
     // Fields & Services
     Route::get('/fields', [PagesController::class, 'fields'])->name('fields');
     Route::get('/services', [PagesController::class, 'services'])->name('services');
@@ -135,13 +135,17 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function(){
     
     // Cart & Shopping
     Route::get('/cart', [PagesController::class, 'cart'])->name('cart');
+    Route::post('cart/add/checkoutAll', [CartController::class, 'checkoutAll'])->name('cart.add.checkoutAll');
+    Route::post('cart/add/checkoutSelected', [CartController::class, 'checkoutSelected'])->name('cart.add.checkoutSelected');
+    Route::post('add/checkoutBuyNow', [CartController::class, 'checkoutBuyNow'])->name('add.checkoutBuyNow');
+
     Route::post('/cart/add', [PagesController::class, 'addToCart'])->name('addToCart');
     Route::post('/cart/remove', [PagesController::class, 'removeFromCart'])->name('removeFromCart');
     Route::post('/cart/update-quantity', [PagesController::class, 'updateQuantity'])->name('updateQuantity');
     Route::post('/cart/update-item', [PagesController::class, 'updateCartItem'])->name('updateCartItem');
-    
+    Route::post('/cart/addAjax', [PagesController::class, 'addAjax'])->name('cart.add.ajax');
     // Checkout
-    Route::get('/checkout', [CartController::class, 'checkoutPage'])->name('checkout');
+     Route::get('/checkout', [CartController::class, 'checkout'])->name('checkout');
     Route::post('/checkout', [CartController::class, 'checkout'])->name('checkout.post');
     Route::post('/checkout-multiple', [PagesController::class, 'checkoutMultiple'])->name('checkoutMultiple');
     Route::get('/checkout-success', [PagesController::class, 'checkoutSuccess'])->name('checkoutSuccess');
@@ -153,13 +157,12 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function(){
     
     // Services Purchased
     Route::get('/my-services', [PagesController::class, 'myServices'])->name('myServices');
-    
+    //payments
+    Route::get('/momo-test', [MomoController::class, 'momoTest'])->name('momo.test');
+    Route::get('/momo/pay', [MomoController::class, 'createPayment'])->name('momo.pay');
+    Route::get('/momo/return', [MomoController::class, 'returnUrl'])->name('momo.return');
+    Route::post('/momo/ipn', [MomoController::class, 'ipnUrl'])->name('momo.ipn');  
     // Feedback
     Route::get('/feedback', [PagesController::class, 'feedback'])->name('feedback');
     Route::post('/feedback', [PagesController::class, 'sendFeedback'])->name('sendFeedback');
 });
-
-// Momo
-Route::get('/momo/pay', [MomoController::class, 'createPayment'])->name('momo.pay');
-Route::get('/momo/return', [MomoController::class, 'returnUrl'])->name('momo.return');
-Route::post('/momo/ipn', [MomoController::class, 'ipnUrl'])->name('momo.ipn');  

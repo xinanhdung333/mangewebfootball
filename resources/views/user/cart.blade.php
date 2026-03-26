@@ -36,8 +36,11 @@
                                 <div class="card-body">
                                     <div class="row align-items-center">
                                         <div class="col-auto">
-                                            <input type="checkbox" class="form-check-input select-item select-item-{{ $item['id'] }}" 
-                                                   value="{{ $item['id'] }}" style="width: 25px; height: 25px; cursor: pointer;">
+                                            <input type="checkbox"
+class="form-check-input select-item"
+name="selected_items[]"
+value="{{ $item['id'] }}"
+style="width:25px;height:25px;cursor:pointer;">
                                         </div>
                                         <div class="col-auto">
                                             <img src="{{ !empty($item['image']) ? asset('uploads/services/' . $item['image']) : asset('images/default.png') }}" 
@@ -85,20 +88,25 @@
                                         {{ number_format($totalPrice, 0, ',', '.') }} VNĐ
                                     </span>
                                 </h5>
-                                <a href="{{ route('user.checkout') }}" class="btn btn-primary">
-                                    <i class="bi bi-credit-card"></i> Thanh toán tất cả
-                                </a>
+                                <form method="POST" action="{{ route('user.cart.add.checkoutAll') }}">
+    @csrf
+    <input type="hidden" name="type" value="all_cart">
+
+    <button type="submit" class="btn btn-primary">
+        <i class="bi bi-credit-card"></i> Thanh toán tất cả
+    </button>
+</form>
                             </div>
                         </div>
                     </div>
 
-                    <form method="POST" action="{{ route('user.checkoutMultiple') }}" id="checkout-selected-form" class="mt-3">
-                        @csrf
-                        <input type="hidden" name="selected_items" id="selected-items">
-                        <button type="submit" class="btn btn-success w-100" id="checkout-selected-btn" disabled>
-                            <i class="bi bi-check-circle"></i> Thanh toán sản phẩm đã chọn
-                        </button>
-                    </form>
+         <form method="POST" action="{{ route('user.cart.add.checkoutSelected') }}" id="checkout-selected-form">
+    @csrf
+    <input type="hidden" name="selected_items" id="selected-items" value="">
+    <button type="submit" id="checkout-selected-btn" disabled>
+        Thanh toán sản phẩm đã chọn
+    </button>
+</form>
                 @else
                     <div class="alert alert-info text-center py-5">
                         <i class="bi bi-bag-slash" style="font-size: 3rem;"></i>
@@ -193,89 +201,24 @@
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // ==== UPDATE SỐ LƯỢNG + TÍNH TỔNG ====
-    document.querySelectorAll('.qty-btn').forEach(btn => {
-        btn.addEventListener('click', async function(e) {
-            e.preventDefault();
-            const itemId = this.dataset.itemId;
-            const cartItem = document.querySelector(`[data-id="${itemId}"]`);
-            const qtyEl = cartItem.querySelector('.qty');
-            const isIncrease = this.classList.contains('increase');
-            let currentQty = parseInt(qtyEl.innerText);
-            const stock = parseInt(cartItem.dataset.stock);
+document.addEventListener('DOMContentLoaded', function () {
+    const checkboxes = document.querySelectorAll('.select-item');
+    const selectedInput = document.getElementById('selected-items');
+    const checkoutBtn = document.getElementById('checkout-selected-btn');
 
-            if (isIncrease && currentQty >= stock) {
-                alert('Không thể tăng vượt quá số lượng có sẵn!');
-                return;
-            }
-
-            const newQty = isIncrease ? currentQty + 1 : currentQty - 1;
-            if (newQty <= 0) return;
-
-            const formData = new FormData();
-            formData.append('cart_item_id', itemId);
-            formData.append('quantity', newQty);
-
-            try {
-                const response = await fetch('{{ route("user.updateQuantity") }}', {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                    },
-                    body: formData
-                });
-
-                const data = await response.json();
-                if (data.success) {
-                    qtyEl.innerText = data.new_quantity;
-                    cartItem.querySelector('.item-total').innerText = 
-                        new Intl.NumberFormat('vi-VN').format(data.item_total) + ' VNĐ';
-                    document.getElementById('cart-total').innerText = 
-                        new Intl.NumberFormat('vi-VN').format(data.cart_total) + ' VNĐ';
-                    updateSelectedTotal();
-                }
-            } catch (err) {
-                console.error('Lỗi:', err);
-            }
+    checkboxes.forEach(cb => {
+        cb.addEventListener('change', () => {
+            const selected = Array.from(checkboxes)
+                .filter(i => i.checked)
+                .map(i => i.value);
+            selectedInput.value = selected.join(',');
+            checkoutBtn.disabled = selected.length === 0;
         });
     });
-
-    // ==== TÍNH TỔNG MỤC CHỌN ====
-    function updateSelectedTotal() {
-        let total = 0;
-        let hasSelection = false;
-
-        document.querySelectorAll('.select-item:checked').forEach(cb => {
-            hasSelection = true;
-            const cartItem = cb.closest('.cart-item');
-            const qty = parseInt(cartItem.querySelector('.qty').innerText);
-            const price = parseFloat(cartItem.dataset.price);
-            total += qty * price;
-        });
-
-        document.getElementById('checkout-selected-btn').disabled = !hasSelection;
-    }
-
-    document.querySelectorAll('.select-item').forEach(cb => {
-        cb.addEventListener('change', updateSelectedTotal);
-    });
-
-    // ==== THANH TOÁN SẢN PHẨM ĐÃ CHỌN ====
-    document.getElementById('checkout-selected-form').addEventListener('submit', function(e) {
-        const selected = [];
-        document.querySelectorAll('.select-item:checked').forEach(cb => {
-            selected.push(cb.value);
-        });
-
-        if (selected.length === 0) {
-            alert('Vui lòng chọn ít nhất một sản phẩm!');
-            e.preventDefault();
-            return;
-        }
-
-        document.getElementById('selected-items').value = JSON.stringify(selected);
-    });
+});
+document.getElementById('checkout-selected-form').addEventListener('submit', function(e) {
+    // Chỉ submit POST, không để link redirect
+    // e.preventDefault(); // chỉ dùng nếu submit bằng fetch/ajax
 });
 </script>
 

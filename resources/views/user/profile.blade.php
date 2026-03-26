@@ -79,7 +79,7 @@
             <div class="card-body">
                 <h5>Cập nhật thông tin</h5>
 
-                <form method="POST" action="{{ route('profile.update') }}" enctype="multipart/form-data">
+                <form method="POST" action="{{ route('user.profile.update') }}" enctype="multipart/form-data">
                     @csrf
                     
                     <div class="mb-3">

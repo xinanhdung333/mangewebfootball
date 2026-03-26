@@ -10,10 +10,10 @@
 <div class="row mb-3">
     <div class="col-md-12">
         <div class="btn-group" role="group">
-            <a href="{{ route('bookings.my') }}" class="btn btn-{{ !$filterStatus ? 'primary' : 'outline-primary' }}">Tất cả</a>
-            <a href="{{ route('bookings.my', ['status' => 'pending']) }}" class="btn btn-{{ $filterStatus == 'pending' ? 'warning' : 'outline-warning' }}">Chờ xác nhận</a>
-            <a href="{{ route('bookings.my', ['status' => 'confirmed']) }}" class="btn btn-{{ $filterStatus == 'confirmed' ? 'success' : 'outline-success' }}">Xác nhận</a>
-            <a href="{{ route('bookings.my', ['status' => 'cancelled']) }}" class="btn btn-{{ $filterStatus == 'cancelled' ? 'danger' : 'outline-danger' }}">Hủy</a>
+            <a href="{{ route('user.myBookings') }}" class="btn btn-{{ !$filterStatus ? 'primary' : 'outline-primary' }}">Tất cả</a>
+            <a href="{{ route('user.myBookings', ['status' => 'pending']) }}" class="btn btn-{{ $filterStatus == 'pending' ? 'warning' : 'outline-warning' }}">Chờ xác nhận</a>
+            <a href="{{ route('user.myBookings', ['status' => 'confirmed']) }}" class="btn btn-{{ $filterStatus == 'confirmed' ? 'success' : 'outline-success' }}">Xác nhận</a>
+            <a href="{{ route('user.myBookings', ['status' => 'cancelled']) }}" class="btn btn-{{ $filterStatus == 'cancelled' ? 'danger' : 'outline-danger' }}">Hủy</a>
         </div>
     </div>
 </div>
@@ -82,7 +82,7 @@
             </div>
         @else
             <div class="alert alert-info">
-                Bạn chưa có đặt sân nào. <a href="{{ route('visitor.fields') }}">Đặt ngay</a>
+                Bạn chưa có đặt sân nào. <a href="{{ route('user.fields') }}">Đặt ngay</a>
             </div>
         @endif
     </div>

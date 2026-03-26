@@ -307,7 +307,7 @@ Football Booking hướng tới trở thành hệ sinh thái thể thao phong tr
         <p class="opacity-75 mb-4">
             Không chỉ là đặt sân – mà là kết nối đam mê bóng đá
         </p>
-        <a href="../pages/fields.php" class="btn btn-light btn-lg px-5">
+        <a href="{{ route('user.fields') }}" class="btn btn-light btn-lg px-5">
             Đặt sân ngay
         </a>
     </div>

@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use Carbon\Carbon;
 
 use App\Models\Booking;
 use App\Models\Field;
@@ -61,10 +62,13 @@ class BossController extends Controller
         $hasTime = !empty($booking->booking_date) && !empty($booking->start_time) && !empty($booking->end_time);
         $now = new DateTime('now', new DateTimeZone('Asia/Ho_Chi_Minh'));
         
-        if ($hasTime) {
-            $start = new DateTime($booking->booking_date . ' ' . $booking->start_time, new DateTimeZone('Asia/Ho_Chi_Minh'));
-            $end = new DateTime($booking->booking_date . ' ' . $booking->end_time, new DateTimeZone('Asia/Ho_Chi_Minh'));
-        }
+       if ($hasTime) {
+    $start = Carbon::parse($booking->booking_date)
+                ->setTimeFromTimeString($booking->start_time);
+
+    $end = Carbon::parse($booking->booking_date)
+                ->setTimeFromTimeString($booking->end_time);
+}
         
         // Status transition rules
         if ($currentStatus === 'completed') {

@@ -104,14 +104,15 @@
 
                     <!-- BUY NOW -->
                     <div class="col-6">
-                        <form method="POST" action="{{ route('user.service.addToCart', ['id' => $service->id]) }}" class="w-100">
-                            @csrf
-                            <input type="hidden" name="service_id" value="{{ $service->id }}">
-                            <input type="hidden" name="quantity" id="buyNowQty" value="1">
-                            <button type="submit" name="buy_now" class="btn btn-primary btn-lg w-100">
-                                <i class="bi bi-lightning-fill"></i> Mua ngay
-                            </button>
-                        </form>
+                        <form method="POST" action="{{ route('user.add.checkoutBuyNow') }}">
+    @csrf
+    <input type="hidden" name="type" value="buy_now">
+    <input type="hidden" name="service_id" value="{{ $service->id }}">
+<input type="hidden" id="buyNowQty" name="quantity" value="1">
+    <button type="submit" class="btn btn-primary btn-lg w-100">
+        <i class="bi bi-lightning-fill"></i> Mua ngay
+    </button>
+</form>
                     </div>
                 </div>
 
@@ -148,16 +149,21 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Increase quantity
-    document.getElementById('increaseQty').addEventListener('click', function() {
-        let qty = parseInt(qtyEl.innerText);
-        if (qty < maxQty) {
-            qty++;
-            qtyEl.innerText = qty;
-            buyNowQtyEl.value = qty;
-        } else {
-            alert('Vượt quá số lượng có sẵn!');
-        }
-    });
+   document.getElementById('increaseQty').addEventListener('click', function() {
+
+    let qty = parseInt(qtyEl.innerText);
+
+    if (qty < maxQty) {
+
+        qty++;
+
+        qtyEl.innerText = qty;
+
+        if (buyNowQtyEl) buyNowQtyEl.value = qty;
+
+    }
+
+});
 
     // Decrease quantity
     document.getElementById('decreaseQty').addEventListener('click', function() {
@@ -179,7 +185,7 @@ document.addEventListener('DOMContentLoaded', function() {
         formData.append('quantity', quantity);
 
         try {
-            const response = await fetch('{{ route("user.service.addToCart", ["id" => $service->id]) }}', {
+            const response = await fetch('{{ route("user.cart.add.ajax") }}', {
                 method: 'POST',
                 headers: {
                     'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content

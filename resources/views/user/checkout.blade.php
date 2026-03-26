@@ -48,7 +48,7 @@
 <script>
 // Chuyển hướng sau 5 giây
 setTimeout(() => {
-    window.location.href = '{{ route("user.orders") }}';
+    window.location.href = '{{ route("user.myServices") }}';
 }, 5000);
 </script>
 

@@ -3,6 +3,8 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <link rel="icon" type="image/png" sizes="256x256" href="{{ asset('assets/images/logo.jpg') }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -72,9 +74,9 @@
                     @if(auth()->user()->role === 'user')
                         <li class="nav-item"><a class="nav-link" href="{{ route('user.dashboard') }}"><i class="bi bi-house"></i> Trang chủ</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('user.fields') }}"><i class="bi bi-grid"></i> Sân</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('user.myBookings') }}"><i class="bi bi-calendar"></i> Đặt sân của tôi</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('user.myBookings') }}"><i class="bi bi-calendar"></i> Sân đã đặt</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('user.services') }}"><i class="bi bi-bag"></i> Dịch vụ</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('user.myServices') }}"><i class="bi bi-bag-check"></i> Dịch vụ của tôi</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('user.myServices') }}"><i class="bi bi-bag-check"></i> Dịch vụ đã mua</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('cart.index') }}"><i class="bi bi-cart-fill"></i> Giỏ hàng</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('user.feedback') }}"><i class="bi bi-chat-dots"></i> Feedback</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('about') }}"><i class="bi bi-chat-dots"></i> About</a></li>

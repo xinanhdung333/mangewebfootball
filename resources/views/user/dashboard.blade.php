@@ -120,15 +120,15 @@ footer {
 }
 
 
-    </style>
+    </style>            
 
     <section class="hero-modern">
         <div class="hero-content-modern">
             <h1 class="hero-title">Chào mừng {{ Auth::user()->name }} — Đặt sân nhanh, chơi đã</h1>
             <p class="hero-subtitle">Nhanh chóng chọn sân, giờ, và dịch vụ. Trải nghiệm đặt sân mượt mà trên mọi thiết bị.</p>
             <div class="hero-ctas">
-                <a href="{{ route('visitor.fields') }}" class="hero-btn primary"><i class="bi bi-geo-alt-fill"></i> Tìm sân gần bạn</a>
-                <a href="{{ route('services.index') }}" class="hero-btn ghost"><i class="bi bi-bag"></i> Dịch vụ & đồ ăn</a>
+                <a href="{{ route('user.fields') }}" class="hero-btn primary"><i class="bi bi-geo-alt-fill"></i> Tìm sân gần bạn</a>
+                <a href="{{ route('user.services') }}" class="hero-btn ghost"><i class="bi bi-bag"></i> Dịch vụ & đồ ăn</a>
             </div>
         </div>
     </section>
@@ -155,16 +155,16 @@ footer {
                                 <td>{{ $b['start_time'] }} - {{ $b['end_time'] }}</td>
                                 <td>{{ formatCurrency($b['total_price']) }}</td>
                                 <td><span class="badge bg-{{ $b['status']=='confirmed'?'success':($b['status']=='pending'?'warning':'danger') }}">{{ $b['status']=='confirmed'?'Xác nhận':($b['status']=='pending'?'Chờ':'Hủy') }}</span></td>
-                                <td><a href="{{ route('booking.detail', ['id' => $b['id']]) }}" class="btn btn-sm btn-outline-primary">Xem</a></td>
+                                <td><a href="{{ route('user.bookingdetail', ['id' => $b['id']]) }}" class="btn btn-sm btn-outline-primary">Xem</a></td>
                                 </tr>
                             @endforeach
                             </tbody>
                         </table>
                         @else
-                        <div class="p-4">Chưa có đặt sân nào. <a href="{{ route('visitor.fields') }}">Đặt ngay</a></div>
+                        <div class="p-4">Chưa có đặt sân nào. <a href="{{ route('user.fields') }}">Đặt ngay</a></div>
                         @endif
                     </div>
-                    <a href="{{ route('bookings.my') }}" class="btn btn-outline-primary mt-2">Xem tất cả</a>
+                    <a href="{{ route('user.myBookings') }}" class="btn btn-outline-primary mt-2">Xem tất cả</a>
                 </div>
 
                 <div class="section-block mt-4">

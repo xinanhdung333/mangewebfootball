@@ -11,7 +11,7 @@
             <input type="text" id="searchField" class="form-control me-2" placeholder="Tìm kiếm sân..." 
                    style="background: rgba(255,255,255,0.8); border:1px solid #ccc;">
 
-            <a href="{{ url('/pages/field-schedule.php') }}" class="btn btn-info">
+            <a href="{{ route('user.fieldSchedule') }}" class="btn btn-info">
                 <i class="bi bi-calendar-check"></i> KHUNG GIỜ ĐÃ ĐƯỢC ĐẶT
             </a>
         </div>
@@ -22,7 +22,7 @@
     @if(count($fields) > 0)
         @foreach($fields as $field)
             <div class="col-md-4 mb-4 field-item">
-                <div class="card h-100">
+                   <div class="card h-100">
                     <img src="{{ !empty($field['image']) ? url('/uploads/fields/'.$field['image']) : url('/assets/images/banner.jpg') }}" 
                         class="card-img-top" alt="{{ $field['name'] ?? '' }}" 
                         style="height: 200px; object-fit: cover;">
@@ -52,7 +52,7 @@
                             <span class="text-muted">({{ $avg }} / 5, {{ $total }} đánh giá)</span>
                         </div>
 
-                        <a href="{{ url('/pages/booking.php') }}?field_id={{ $field['id'] }}" class="btn btn-primary w-100"><i class="bi bi-calendar-plus"></i> Đặt sân</a>
+                        <a href="{{ route('user.booking', ['field_id' => $field['id']]) }}" class="btn btn-primary w-100"><i class="bi bi-calendar-plus"></i> Đặt sân</a>
                     </div>
                 </div>
             </div>

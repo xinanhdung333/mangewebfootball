@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Cart extends Model
 {
+    protected $table = 'cart'; 
     protected $fillable = [
         'user_id'
     ];

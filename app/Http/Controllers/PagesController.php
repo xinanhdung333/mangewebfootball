@@ -7,6 +7,8 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Service;
 use App\Models\Field;
 use App\Models\Feedback;
+use App\Models\Cart;
+use App\Models\CartItem;
 use Barryvdh\DomPDF\Facade\Pdf; 
 
 use App\Models\Order;
@@ -36,7 +38,7 @@ class PagesController extends Controller
             $response = Http::get('https://newsapi.org/v2/top-headlines', [
         'country' => 'us',
         'apiKey' => 'YOUR_API_KEY'
-    ]);
+   ]);
 
         // Get recent bookings
         $bookings = $user ? $user->bookings()->latest()->take(5)->get() : [];
@@ -151,7 +153,52 @@ public function orderDetail($id)
         'orderItems' => $orderItems
     ]);
 }
+public function addAjax(Request $request)
+{
+    if (!auth()->check()) {
 
+        return response()->json([
+            'success' => false,
+            'error' => 'Bạn cần đăng nhập'
+        ]);
+    }
+
+    $user = auth()->user();
+
+    $cart = $user->cart;
+
+    if (!$cart) {
+
+        $cart = Cart::create([
+            'user_id' => $user->id
+        ]);
+
+    }
+
+    $item = CartItem::where([
+        'cart_id' => $cart->id,
+        'service_id' => $request->service_id
+    ])->first();
+
+    if ($item) {
+
+        $item->increment('quantity', 1);
+
+    } else {
+
+        CartItem::create([
+            'cart_id' => $cart->id,
+            'service_id' => $request->service_id,
+            'quantity' => 1,
+            'price' => Service::find($request->service_id)->price
+        ]);
+
+    }
+
+    return response()->json([
+        'success' => true
+    ]);
+}
  public function exportInvoice($id)
 {
     // Lấy đơn hàng
@@ -172,7 +219,26 @@ public function orderDetail($id)
 
     return $pdf->stream("hoa-don-{$order->id}.pdf");
 }
- 
+ public function cancelBooking($id)
+{
+    $booking = Booking::findOrFail($id);
+
+    // kiểm tra quyền (tránh user hủy booking của người khác)
+    if ($booking->user_id != auth()->id()) {
+        abort(403, 'Không có quyền');
+    }
+
+    // chỉ cho hủy nếu chưa hoàn thành
+    if ($booking->status === 'completed') {
+        return redirect()->back()->with('error', 'Không thể hủy booking đã hoàn thành');
+    }
+
+    // cập nhật trạng thái
+    $booking->status = 'cancelled';
+    $booking->save();
+
+    return redirect()->back()->with('success', 'Hủy booking thành công');
+}
 public function exportInvoicebooking($id)
 {
     $booking = Booking::findOrFail($id);
@@ -195,13 +261,86 @@ public function exportInvoicebooking($id)
         return view('user.fields', ['fields' => $fields]);
     }
 
-                  
-    public function profile()
-    {
-        $user = Auth::user();
-        return view('user.profile', ['user' => $user]);
+
+public function profile()
+{
+    $user = Auth::user();
+
+    // 🔥 lịch sử đặt sân
+    $bookingHistory = DB::table('bookings as b')
+        ->join('fields as f', 'b.field_id', '=', 'f.id')
+        ->where('b.user_id', $user->id)
+        ->orderByDesc('b.id')
+        ->select([
+            'b.id',
+            'f.name as field_name',
+            'b.booking_date',
+            'b.start_time',
+            'b.end_time',
+            'b.total_price'
+        ])
+        ->get();
+
+    // 🔥 lịch sử mua dịch vụ
+  $serviceHistory = DB::table('orders as o')
+    ->join('order_items as oi', 'o.id', '=', 'oi.order_id')
+    ->join('services as s', 'oi.service_id', '=', 's.id')
+    ->where('o.user_id', $user->id)
+    ->where('o.status', 'paid')
+    ->orderByDesc('o.created_at')
+    ->select([
+        's.name as service_name',
+        DB::raw('oi.price * oi.quantity as total'),
+        'o.created_at'
+    ])
+    ->get();
+
+    return view('user.profile', [
+        'user' => $user,
+        'bookingHistory' => $bookingHistory,
+        'serviceHistory' => $serviceHistory // 🔥 thêm dòng này
+    ]);
+}
+public function updateProfile(Request $request)
+{
+    $user = Auth::user();
+
+    // Validate
+    $request->validate([
+        'name' => 'required|string|max:255',
+        'phone' => 'required|string|max:20',
+        'avatar' => 'nullable|image|mimes:jpg,jpeg,png,webp|max:2048',
+        'new_password' => 'nullable|min:6|confirmed'
+    ]);
+
+    // Cập nhật avatar
+    if ($request->hasFile('avatar')) {
+        $file = $request->file('avatar');
+        $filename = 'avatar_'.$user->id.'_'.time().'.'.$file->getClientOriginalExtension();
+
+        $file->move(public_path('uploads/avatars'), $filename);
+
+        $user->avt = $filename;
     }
 
+    // Cập nhật thông tin cơ bản
+    $user->name = $request->name;
+    $user->phone = $request->phone;
+
+    // Đổi mật khẩu nếu có
+    if ($request->filled('new_password')) {
+
+        if (!Hash::check($request->current_password, $user->password)) {
+            return back()->with('error', 'Mật khẩu hiện tại không đúng');
+        }
+
+        $user->password = Hash::make($request->new_password);
+    }
+
+    $user->save();
+
+    return back()->with('success', 'Cập nhật thành công!');
+}
     public function feedback()
     {
         $userId = Auth::id();
@@ -329,33 +468,54 @@ public function services(Request $request)
         $service = Service::findOrFail($id);
         return view('user.service-detail', compact('service'));
     }
+public function cart()
+{
+    $userId = auth()->id();
 
-    public function cart(Request $request)
-    {
-        $cart = session()->get('cart', []);
-        $cartItems = [];
-        $totalPrice = 0;
-        $serviceHistory = [];
+    // lấy cart
+    $cart = Cart::where('user_id', $userId)
+        ->latest()
+        ->first();
 
-        if (!empty($cart)) {
-            foreach ($cart as $id => $item) {
-                $quantity = $item['quantity'] ?? $item['qty'] ?? 1;
-                $price = $item['price'] ?? 0;
-                $cartItems[] = [
-                    'id' => $item['id'],
-                    'name' => $item['name'],
-                    'price' => $price,
-                    'quantity' => $quantity,
-                    'stock' => $item['stock'] ?? 0,
-                    'image' => $item['image'] ?? null,
-                    'total_amount' => $price * $quantity,
-                ];
-                $totalPrice += $price * $quantity;
-            }
+    $cartItems = [];
+    $totalPrice = 0;
+
+    if ($cart) {
+        $items = CartItem::where('cart_id', $cart->id)
+            ->join('services', 'cart_items.service_id', '=', 'services.id')
+            ->select(
+                'cart_items.*',
+                'services.name',
+                'services.price',
+                'services.image',
+                'services.quantity as stock'
+            )
+            ->get();
+
+        $cartItems = $items;
+
+        foreach ($items as $item) {
+            $totalPrice += $item->price * $item->quantity;
         }
-
-        return view('user.cart', compact('cartItems', 'totalPrice', 'serviceHistory'));
     }
+
+    // history giống code cũ
+    $serviceHistory = Order::where('user_id', $userId)
+        ->join('order_items', 'orders.id', '=', 'order_items.order_id')
+        ->join('services', 'order_items.service_id', '=', 'services.id')
+        ->select(
+            'orders.id as order_id',
+            'orders.total_amount',
+            'orders.created_at',
+            'order_items.quantity',
+            'services.name',
+            'services.image'
+        )
+        ->orderByDesc('orders.created_at')
+        ->get();
+
+    return view('user.cart', compact('cartItems', 'totalPrice', 'serviceHistory'));
+}
 
     public function addToCart(Request $request, $id = null)
     {
@@ -398,16 +558,24 @@ public function services(Request $request)
         return redirect()->route('user.cart')->with('success', 'Đã thêm vào giỏ hàng');
     }
 
-    public function removeFromCart(Request $request)
-    {
-        $id = $request->input('cart_item_id') ?? $request->input('id');
-        $cart = session()->get('cart', []);
-        if ($id && isset($cart[$id])) {
-            unset($cart[$id]);
-            session(['cart' => $cart]);
-        }
-        return redirect()->route('user.cart');
+public function removeFromCart(Request $request)
+{
+    $id = $request->input('cart_item_id');
+
+    if (!$id) {
+        return back()->with('error', 'Không có ID');
     }
+
+    $cartItem = CartItem::find($id);
+
+    if (!$cartItem) {
+        return back()->with('error', 'Không tìm thấy sản phẩm');
+    }
+
+    $cartItem->delete();
+
+    return redirect()->route('user.cart')->with('success', 'Đã xóa khỏi giỏ hàng');
+}
 
     public function updateQuantity(Request $request)
     {
@@ -426,37 +594,96 @@ public function services(Request $request)
     {
         return $this->updateQuantity($request);
     }
+public function checkoutMultiple(Request $request)
+{
+    $user = $request->user();
+    $selected = $request->input('selected_items', '[]');
+    $selectedIds = json_decode($selected, true);
 
-    public function checkoutMultiple(Request $request)
-    {
-        $selected = $request->input('selected_items', '[]');
-        $selectedIds = json_decode($selected, true);
-        if (!is_array($selectedIds)) {
-            $selectedIds = [];
-        }
-
-        $cart = session()->get('cart', []);
-        $createdOrders = [];
-
-        foreach ($cart as $id => $item) {
-            if (in_array((string)$id, array_map('strval', $selectedIds), true)) {
-                $createdOrders[] = [
-                    'order_id' => rand(10000, 99999),
-                    'name' => $item['name'] ?? 'Dịch vụ',
-                    'total' => ($item['price'] ?? 0) * ($item['qty'] ?? $item['quantity'] ?? 1),
-                ];
-            }
-        }
-
-        // Keep remaining cart items (unselected) and remove selected
-        foreach ($selectedIds as $id) {
-            if (isset($cart[$id])) {
-                unset($cart[$id]);
-            }
-        }
-        session(['cart' => $cart]);
-
-        return view('user.checkout', compact('createdOrders'));
+    if (!is_array($selectedIds) || empty($selectedIds)) {
+        return redirect()->route('user.cart')->with('error', 'Chưa chọn sản phẩm nào để thanh toán.');
     }
+
+    $cartItems = CartItem::whereIn('id', $selectedIds)
+                         ->where('cart_id', $user->cart->id ?? null)
+                         ->get();
+
+    if ($cartItems->isEmpty()) {
+        return redirect()->route('user.cart')->with('error', 'Sản phẩm không tồn tại trong giỏ hàng.');
+    }
+
+    $createdOrders = [];
+
+    DB::transaction(function() use ($cartItems, $user, &$createdOrders) {
+        // Tạo order mới
+        $order = Order::create([
+            'user_id' => $user->id,
+            'total_amount' => $cartItems->sum(fn($item) => $item->price * $item->quantity),
+            'status' => 'pending',
+        ]);
+
+        foreach ($cartItems as $item) {
+            $orderItem = OrderItem::create([
+                'order_id' => $order->id,
+                'service_id' => $item->service_id,
+                'name' => $item->name,
+                'price' => $item->price,
+                'quantity' => $item->quantity,
+                'total' => $item->price * $item->quantity,
+            ]);
+
+            $createdOrders[] = [
+                'order_id' => $order->id,
+                'name' => $item->name,
+                'total' => $orderItem->total,
+            ];
+        }
+
+        // Xóa CartItem đã thanh toán
+        CartItem::whereIn('id', $cartItems->pluck('id'))->delete();
+    });
+
+    return view('user.checkout', compact('createdOrders'));
+}
+
+
+
+public function checkoutSelected(Request $request)
+{
+    $user = $request->user();
+    $ids = $request->selected_items;
+
+    if (!is_array($ids)) {
+        $ids = explode(',', $ids);
+    }
+
+    $items = CartItem::whereIn('id', $ids)->get();
+    if ($items->isEmpty()) {
+        return back()->with('error', 'Chưa chọn sản phẩm');
+    }
+
+    DB::beginTransaction();
+    try {
+        $order = $this->createOrderFromItems($items, $user);
+        Payment::create([
+            'order_id' => $order->id,
+            'amount' => $order->total_amount,
+            'status' => 'pending'
+        ]);
+
+        CartItem::whereIn('id', $ids)->delete();
+        DB::commit();
+
+        // Trả về view MoMo để auto POST
+        return response()->view('momo.redirect', [
+            'order_id' => $order->id
+        ]);
+
+    } catch (\Exception $e) {
+        DB::rollback();
+        dd($e->getMessage());
+    }
+}
+// taoj payment
 
 }

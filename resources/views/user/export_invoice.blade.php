@@ -68,15 +68,15 @@
                         <li>ID Đơn Dịch Vụ: Lấy từ danh sách "Lịch Sử Mua Dịch Vụ"</li>
                     </ul>
 
-                    <h6 class="mt-3">Bước 3: Xuất PDF</h6>
-                    <ul>
-                        <li>Nhấn "Xuất PDF" để tải file</li>
-                        <li>File sẽ được tải về máy tính của bạn</li>
-                    </ul>
+                        <h6 class="mt-3">Bước 3: Xuất PDF</h6>
+                        <ul>
+                            <li>Nhấn "Xuất PDF" để tải file</li>
+                            <li>File sẽ được tải về máy tính của bạn</li>
+                        </ul>
 
-                    <div class="alert alert-warning mt-3 mb-0">
-                        <small><strong>⚠️ Lưu ý:</strong> Chỉ các đơn đã xác nhận hoặc hoàn thành mới có thể xuất hóa đơn</small>
-                    </div>
+                        <div class="alert alert-warning mt-3 mb-0">
+                            <small><strong>⚠️ Lưu ý:</strong> Chỉ các đơn đã xác nhận hoặc hoàn thành mới có thể xuất hóa đơn</small>
+                        </div>
                 </div>
             </div>
         </div>

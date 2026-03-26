@@ -11,7 +11,7 @@
 
 <div style="max-width:1200px; margin:20px auto; padding:0 10px;">
   <div style="position:relative; display:inline-block; margin-left:20px;">
-    <a href="{{ url('/pages/cart.php') }}" id="cart-icon" style="position:relative; display:flex; align-items:center; text-decoration:none; color:#333; font-size:24px;">
+    <a href="{{ route('user.cart') }}" id="cart-icon" style="position:relative; display:flex; align-items:center; text-decoration:none; color:#333; font-size:24px;">
         <i class="bi bi-cart-fill"></i>
         @if($total_items > 0)
             <span id="cart-count" style="position:absolute; top:-5px; right:-10px; background:red; color:white; font-size:12px; padding:2px 6px; border-radius:50%;">{{ $total_items }}</span>
@@ -29,7 +29,7 @@
     <div class="product-grid">
         @foreach($services as $service)
             <div class="product-card" data-service-id="{{ $service['id'] }}">
-                <a href="{{ url('pages/service-detail.php') }}?id={{ $service['id'] }}">
+                <a href="{{ route('user.serviceDetail', ['id' => $service['id']]) }}">
                     <img src="{{ !empty($service['image']) ? url('/uploads/services/'.$service['image']) : url('/assets/images/default.png') }}" alt="{{ $service['name'] }}" class="product-image">
                 </a>
                 <div class="product-desc">{{ $service['name'] }}</div>

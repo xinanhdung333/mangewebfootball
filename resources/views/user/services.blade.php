@@ -189,60 +189,66 @@ transform:scale(1.2);
 
 
 <script>
+document.addEventListener('DOMContentLoaded', function(){
 
-document.querySelectorAll('.btn-add-cart').forEach(btn => {
+    document.querySelectorAll('.btn-add-cart').forEach(btn => {
 
-btn.addEventListener('click', () => {
+        btn.addEventListener('click', (e) => {
 
-const serviceId = btn.dataset.serviceId;
+            e.preventDefault();
+            e.stopPropagation();
 
-fetch("{{ route('cart.add.ajax') }}",{
+            const serviceId = btn.dataset.serviceId;
 
-method:'POST',
+            if (!serviceId) {
+                alert('Không có ID');
+                return;
+            }
 
-headers:{
-'Content-Type':'application/x-www-form-urlencoded',
-'X-CSRF-TOKEN': '{{ csrf_token() }}'
-},
+            fetch("{{ route('user.cart.add.ajax') }}", {
+                method:'POST',
+                headers:{
+                    'Content-Type':'application/x-www-form-urlencoded',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    'Accept':'application/json'
+                },
+                credentials:'same-origin',
+                body:`service_id=${serviceId}&quantity=1`
+            })
+            .then(res=>res.json())
+            .then(data=>{
 
-body:`service_id=${serviceId}&quantity=1`
+                if(data.success){
 
-})
+                    const cartCount = document.getElementById('cart-count');
 
-.then(res=>res.json())
+                    let current = parseInt(cartCount.textContent || '0');
 
-.then(data=>{
+                    current++;
 
-if(data.success){
+                    cartCount.textContent = current;
+                    cartCount.style.display='inline-block';
 
-const cartCount = document.getElementById('cart-count');
+                    btn.style.transform='scale(1.4)';
+                    setTimeout(()=>btn.style.transform='scale(1)',200);
 
-let current = parseInt(cartCount.textContent || '0');
+                }else{
 
-current += 1;
+btn.innerHTML = "✓";
 
-cartCount.textContent = current;
+setTimeout(()=>{
+    btn.innerHTML = "+";
+},1000);
+                }
 
-cartCount.style.display='inline-block';
+            })
+            .catch(()=>alert('Lỗi kết nối AJAX'));
 
-btn.style.transform='scale(1.4)';
+        });
 
-setTimeout(()=>btn.style.transform='scale(1.2)',200);
-
-}else{
-
-alert(data.error || 'Lỗi thêm vào giỏ hàng');
-
-}
-
-})
-
-.catch(()=>alert('Lỗi kết nối AJAX'));
+    });
 
 });
-
-});
-
 </script>
 
 @endsection
