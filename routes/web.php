@@ -158,11 +158,12 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function(){
     // Services Purchased
     Route::get('/my-services', [PagesController::class, 'myServices'])->name('myServices');
     //payments
-    Route::get('/momo-test', [MomoController::class, 'momoTest'])->name('momo.test');
     Route::get('/momo/pay', [MomoController::class, 'createPayment'])->name('momo.pay');
     Route::get('/momo/return', [MomoController::class, 'returnUrl'])->name('momo.return');
-    Route::post('/momo/ipn', [MomoController::class, 'ipnUrl'])->name('momo.ipn');  
     // Feedback
     Route::get('/feedback', [PagesController::class, 'feedback'])->name('feedback');
     Route::post('/feedback', [PagesController::class, 'sendFeedback'])->name('sendFeedback');
 });
+Route::match(['GET','POST'], '/momo/ipn',
+    [MomoController::class, 'ipnUrl']
+)->name('momo.ipn');

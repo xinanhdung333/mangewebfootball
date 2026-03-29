@@ -34,16 +34,16 @@ function execPostRequest($url, $data)
 
     $endpoint = "https://test-payment.momo.vn/v2/gateway/api/create";
 
-    $partnerCode = "MOMOBKUN20180529";
-    $accessKey = "klm05TvNBzhg7h7j";
-    $secretKey = "at67qH6mk8w5Y1nAyMoYKMWACiEi2bsa";
+ $partnerCode = config('momo.partnerCode');
+$accessKey   = config('momo.accessKey');
+$secretKey   = config('momo.secretKey');
 
 $amount = (string) intval($order->total_amount);
 
 $orderId = $order->id . "_" . uniqid();
 $orderInfo = "Thanh_toan_don_hang_" . $order->id;
-$redirectUrl = route('user.momo.return');
-$ipnUrl = route('user.momo.ipn'); 
+$redirectUrl = config('momo.redirectUrl');
+$ipnUrl = config('momo.redirectUrl');
 
   Payment::updateOrCreate(
     ['order_id' => $order->id],
@@ -102,90 +102,57 @@ $requestType = "payWithATM";
      * MoMo redirect GET (user trở về website)
      * Chỉ dùng để hiển thị kết quả, KHÔNG update DB
      */
-    public function returnUrl(Request $request)
-    {
-        $status = $request->resultCode == 0 ? 'success' : 'failed';
+public function returnUrl(Request $request)
+{
+    $orderId = explode('_', $request->orderId)[0];
 
-        // Lấy orderId để show user (có thể lấy thông tin Order từ DB)
-        $orderId = explode('_', $request->orderId)[0];
-        $order = Order::find($orderId);
+    if ($request->resultCode != 0) {
 
-        if (!$order) {
-            return redirect()->route('user.myServices')
-                ->with('error', 'Đơn hàng không tồn tại');
-        }
+        Payment::updateOrCreate(
+            ['order_id' => $orderId],
+            [
+                'status' => 'failed',
+            ]
+        );
 
         return redirect()->route('user.myServices')
-            ->with('success', $status === 'success' ? 'Thanh toán thành công' : 'Thanh toán thất bại');
+            ->with('error', 'Thanh toán thất bại');
     }
 
-    /**
-     * MoMo IPN POST
-     * Cập nhật DB, verify signature
-     */
-    public function ipnUrl(Request $request)
-    {
-        // 1. verify signature từ MoMo
-        if (!$this->verifyMoMoSignature($request)) {
-            return response()->json(['status' => 'invalid signature'], 400);
-        }
+    DB::transaction(function () use ($orderId, $request) {
 
-        $orderId = explode('_', $request->orderId)[0];
+        Payment::updateOrCreate(
+            ['order_id' => $orderId],
+            [
+                'momo_trans_id' => $request->transId,
+                'amount' => $request->amount,
+                'status' => 'success',
+                'paid_at' => now()
+            ]
+        );
 
-        if ($request->resultCode == 0) {
-            DB::transaction(function () use ($orderId, $request) {
+        Order::where('id', $orderId)
+            ->update(['status' => 'confirmed']);
 
-                // Cập nhật Payment
-                Payment::updateOrCreate(
-                    ['order_id' => $orderId],
-                    [
-                        'momo_trans_id' => $request->transId,
-                        'amount' => $request->amount,
-                        'status' => 'success',
-                        'paid_at' => now()
-                    ]
-                );
+  $order = Order::find($orderId);
 
-                // Cập nhật Order
-                Order::where('id', $orderId)
-                    ->update(['status' => 'confirmed']);
+$serviceIds = OrderItem::where('order_id', $orderId)
+    ->pluck('service_id');
 
-                // Xóa CartItem của user
-                $userId = Order::find($orderId)->user_id;
+CartItem::where('cart_id', $order->cart_id)
+    ->whereIn('service_id', $serviceIds)
+    ->delete();
 
-                CartItem::whereHas('cart', function ($q) use ($userId) {
-                    $q->where('user_id', $userId);
-                })->delete();
-            });
-        }
-
-        return response()->json(['status' => 'ok']);
-    }
-
-    /**
-     * Hàm verify chữ ký từ MoMo
-     */
-    private function verifyMoMoSignature(Request $request)
-    {
-        // Lấy các thông số MoMo gửi về
-        $data = [
-            'partnerCode' => $request->partnerCode,
-            'accessKey'   => config('momo.accessKey'),
-            'requestId'   => $request->requestId,
-            'amount'      => $request->amount,
-            'orderId'     => $request->orderId,
-            'orderInfo'   => $request->orderInfo,
-            'orderType'   => $request->orderType,
-            'transId'     => $request->transId,
-            'message'     => $request->message,
-            'resultCode'  => $request->resultCode,
-            'payType'     => $request->payType,
-            'responseTime'=> $request->responseTime
-        ];
-
-        $rawHash = http_build_query($data, '', '&');
-        $computedSignature = hash_hmac('sha256', $rawHash, config('momo.secretKey'));
-
-        return $computedSignature === $request->signature;
-    }
+    });
+    return redirect()->route('user.myServices')
+        ->with('success', 'Thanh toán thành công');
 }
+  
+    public function ipnUrl(Request $request)
+{
+
+}
+
+  
+}
+    
