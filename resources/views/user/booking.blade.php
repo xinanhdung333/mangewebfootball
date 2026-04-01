@@ -31,7 +31,7 @@
         <div class="col-md-8">
             <div class="card">
                 <div class="card-body">
-                    <form method="POST" action="{{ route('booking.store') }}" id="bookingForm">
+                    <form method="POST" action="{{ route('user.bookingstore') }}" id="bookingForm">
                         <input type="hidden" name="field_id" value="{{ $field->id }}">
                         @csrf
                         <div class="row">
@@ -41,6 +41,7 @@
                                     <input type="date" class="form-control @error('booking_date') is-invalid @enderror" 
                                            name="booking_date" 
                                            min="{{ date('Y-m-d') }}" 
+                                                  id="booking_date"
                                            value="{{ old('booking_date') }}" 
                                            required>
                                     @error('booking_date')
@@ -53,6 +54,7 @@
                                     <label class="form-label">Bắt đầu</label>
                                     <input type="time" class="form-control @error('start_time') is-invalid @enderror" 
                                            name="start_time" 
+                                                  id="start_time"
                                            value="{{ old('start_time') }}" 
                                            required>
                                     @error('start_time')
@@ -65,6 +67,7 @@
                                     <label class="form-label">Kết thúc</label>
                                     <input type="time" class="form-control @error('end_time') is-invalid @enderror" 
                                            name="end_time" 
+                                                  id="end_time"
                                            value="{{ old('end_time') }}" 
                                            required>
                                     @error('end_time')
@@ -73,6 +76,7 @@
                                 </div>
                             </div>
                         </div>
+                        <div id="check-result" class="mt-2"></div>
 
                         <!-- Dịch vụ dạng lưới với ảnh -->
                         @if($services && count($services) > 0)
@@ -126,7 +130,7 @@
                             <span id="total_price" class="text-primary fw-bold" style="font-size: 1.3rem;">0 VNĐ</span>
                         </div>
 
-                        <button type="submit" class="btn btn-primary btn-lg w-100">
+                        <button id="submitBtn" type="submit" class="btn btn-primary btn-lg w-100">
                             <i class="bi bi-check-circle"></i> Đặt sân
                         </button>
                     </form>
@@ -269,6 +273,52 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // ==== VALIDATE FORM ====
     document.getElementById('bookingForm').addEventListener('submit', function(e) {
+
+    // chặn submit nhiều lần
+    if (submitBtn.disabled) {
+        e.preventDefault();
+        return;
+    }
+document.querySelectorAll('#booking_date, #start_time, #end_time').forEach(el => {
+    el.addEventListener('change', checkBooking);
+});
+
+function checkBooking() {
+    let field_id = {{ $field->id ?? 0 }};
+    let booking_date = document.getElementById('booking_date').value;
+    let start_time = document.getElementById('start_time').value;
+    let end_time = document.getElementById('end_time').value;
+
+    if (!booking_date || !start_time || !end_time) return;
+
+    fetch("{{ route('user.check.booking') }}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-TOKEN": "{{ csrf_token() }}"
+        },
+        body: JSON.stringify({
+            field_id,
+            booking_date,
+            start_time,
+            end_time
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        let result = document.getElementById('check-result');
+
+        if (data.available) {
+            result.innerHTML = "✅ Khung giờ còn trống";
+            result.style.color = "green";
+        } else {
+            result.innerHTML = "❌ Khung giờ đã có người đặt";
+            result.style.color = "red";
+        }
+    });
+}
+    submitBtn.disabled = true;
+    submitBtn.innerHTML = 'Đang xử lý...';
         const bookingDate = document.querySelector('input[name="booking_date"]').value;
         const startTime = document.querySelector('input[name="start_time"]').value;
         const endTime = document.querySelector('input[name="end_time"]').value;
@@ -298,5 +348,49 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 });
 </script>
+<script>
+document.querySelectorAll('#booking_date, #start_time, #end_time').forEach(el => {
+    el.addEventListener('change', checkBooking);
+});
 
+function checkBooking() {
+    let field_id = {{ $field->id }};
+    let booking_date = document.getElementById('booking_date').value;
+    let start_time = document.getElementById('start_time').value;
+    let end_time = document.getElementById('end_time').value;
+    let submitBtn = document.getElementById('submitBtn');
+
+    if (!booking_date || !start_time || !end_time) return;
+
+    fetch("{{ route('user.check.booking') }}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-TOKEN": "{{ csrf_token() }}"
+        },
+        body: JSON.stringify({
+            field_id,
+            booking_date,
+            start_time,
+            end_time
+        })
+    })
+    .then(res => res.json())
+    .then(data => {
+        let result = document.getElementById('check-result');
+
+        if (data.available) {
+            result.innerHTML = "✅ Khung giờ còn trống";
+            result.style.color = "green";
+
+            submitBtn.disabled = false;
+        } else {
+            result.innerHTML = "❌ Khung giờ đã có người đặt";
+            result.style.color = "red";
+
+            submitBtn.disabled = true;
+        }
+    });
+}
+</script>
 @endsection

@@ -52,7 +52,7 @@
                             <span class="text-muted">({{ $avg }} / 5, {{ $total }} đánh giá)</span>
                         </div>
 
-                        <a href="{{ route('user.booking', ['field_id' => $field['id']]) }}" class="btn btn-primary w-100"><i class="bi bi-calendar-plus"></i> Đặt sân</a>
+                        <a href="{{ route('user.bookingcreate', ['field_id' => $field['id']]) }}" class="btn btn-primary w-100"><i class="bi bi-calendar-plus"></i> Đặt sân</a>
                     </div>
                 </div>
             </div>

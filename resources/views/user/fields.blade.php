@@ -10,7 +10,7 @@
             <input type="text" id="searchField" class="form-control me-2" placeholder="Tìm kiếm sân..." 
                    style="background: rgba(255,255,255,0.8); border:1px solid #ccc;">
 
-            <a href="{{ route('field.schedule') }}" class="btn btn-info">
+            <a href="{{  route('user.fieldSchedule') }}" class="btn btn-info">
                 <i class="bi bi-calendar-check"></i> KHUNG GIỜ ĐÃ ĐƯỢC ĐẶT
             </a>
         </div>
@@ -68,7 +68,7 @@
                             <span class="text-muted">({{ $avg }} / 5, {{ $total }} đánh giá)</span>
                         </div>
 
-                        <a href="{{ route('booking.create', ['field_id' => $field->id]) }}" class="btn btn-primary w-100">
+                        <a href="{{ route('user.bookingcreate', ['field_id' => $field->id]) }}" class="btn btn-primary w-100">
                             <i class="bi bi-calendar-plus"></i> Đặt sân
                         </a>
                     </div>

@@ -164,7 +164,7 @@ footer {
                         <div class="p-4">Chưa có đặt sân nào. <a href="{{ route('visitor.fields') }}">Đặt ngay</a></div>
                         @endif
                     </div>
-                    <a href="{{ route('user.booking') }}" class="btn btn-outline-primary mt-2">Xem tất cả</a>
+                    <a href="{{ route('user.bookingcreate') }}" class="btn btn-outline-primary mt-2">Xem tất cả</a>
                 </div>
 
                 <div class="section-block mt-4">
@@ -224,6 +224,4 @@ footer {
         window.addEventListener('scroll', () => { hero.style.backgroundPositionY = `${window.scrollY*0.2}px`; }, { passive:true });
     </script>
     @endsection
-<php
-require_once '../partials/visitor/footer.php';
-?>
+

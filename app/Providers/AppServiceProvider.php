@@ -4,6 +4,7 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use App\Helpers\Formatter;
+        use Illuminate\Support\Facades\URL;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -32,5 +33,9 @@ class AppServiceProvider extends ServiceProvider
                 return Formatter::formatDateTime($datetime);
             }
         }
+
+
+    URL::forceScheme('https');
+
     }
 }

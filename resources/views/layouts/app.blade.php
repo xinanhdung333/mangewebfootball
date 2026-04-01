@@ -15,15 +15,33 @@
     <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
 
     <style>
-        #mascot {
-            position: fixed;
-            top: 80%;
-            left: 90%;
-            width: 80px;
-            height: 80px;
-            cursor: grab;
-            z-index: 9999;
-        }
+      #mascot {
+    position: fixed;
+    top: 80%;
+    left: 90%;
+    width: 140px;
+    height: 120px;
+    cursor: grab;
+    z-index: 9999;
+}
+
+#chat-box {
+    position: fixed;
+    bottom: 40px;
+    right: 20px;
+    width: 300px;
+    height: 400px;
+    background: white;
+    border: 1px solid #ccc;
+    display: none;
+    z-index: 9999;
+}
+
+.chat-header {
+    background: #007bff;
+    color: white;
+    padding: 10px;
+}
         .admin-nav {
             display: flex;
             gap: 10px;
@@ -132,12 +150,22 @@
         </div>
     </div>
 </nav>
+<img src="{{ asset('assets/images/chatbot.png') }}" id="mascot" alt="Mascot">
 
-<a href="{{ route('about') }}">
+<div id="chat-box">
+    <div class="chat-header">
+        Chat hỗ trợ
+        <span id="close-chat">✖</span>
+    </div>
 
+    <div class="chat-body" id="chat-body">
+    Xin chào 👋
+</div>
 
-    <img src="{{ asset('assets/images/mascot.png') }}" id="mascot" alt="Mascot">
-</a>
+<input type="text" id="message">
+
+<button onclick="sendMessage()">Gửi</button>
+</div>
 
 <main class="container mt-4">
     <div class="container-fluid px-4">
@@ -149,10 +177,19 @@
 
 <script>
 const mascot = document.getElementById('mascot');
+const chatBox = document.getElementById('chat-box');
+const closeChat = document.getElementById('close-chat');
+
 let isDragging = false;
 let offsetX = 0, offsetY = 0;
 
-mascot.addEventListener('mousedown',  (e) => {
+// click mở chat
+mascot.addEventListener('click', () => {
+    chatBox.style.display = 'block';
+});
+
+// kéo mascot
+mascot.addEventListener('mousedown', (e) => {
     isDragging = true;
     offsetX = e.clientX - mascot.offsetLeft;
     offsetY = e.clientY - mascot.offsetTop;
@@ -170,8 +207,52 @@ document.addEventListener('mousemove', (e) => {
     mascot.style.left = (e.clientX - offsetX) + 'px';
     mascot.style.top  = (e.clientY - offsetY) + 'px';
 });
-</script>
 
+// đóng chat
+closeChat.addEventListener('click', () => {
+    chatBox.style.display = 'none';
+});
+</script>
+<script>
+function sendMessage()
+{
+    fetch('/chat/send', {
+
+        method:'POST',
+
+        headers:{
+            'Content-Type':'application/json',
+            'X-CSRF-TOKEN':'{{ csrf_token() }}'
+        },
+
+        body:JSON.stringify({
+
+            conversation_id:1,
+            message:document.getElementById('message').value
+
+        })
+
+    });
+}
+</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pusher/8.2.0/pusher.min.js"></script>
+<script>
+Pusher.logToConsole = true;
+
+var pusher = new Pusher("{{ config('broadcasting.connections.pusher.key') }}", {
+    cluster: "ap1"
+});
+var conversationId = 1;
+var channel = pusher.subscribe('chat.' + conversationId);
+channel.bind('MessageSent', function(data) {
+
+    let chatBody = document.querySelector(".chat-body");
+
+    chatBody.innerHTML +=
+        `<div>${data.message.message}</div>`;
+
+});
+</script>
 @stack('scripts')
 </body>
 </html>

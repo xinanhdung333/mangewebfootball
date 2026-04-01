@@ -77,6 +77,102 @@ public function myBookings(Request $request)
         'filterStatus' => $filterStatus
     ]);
 }
+public function checkBooking(Request $request)
+{
+    $exists = Booking::where('field_id', $request->field_id)
+        ->where('booking_date', $request->booking_date)
+        ->where(function ($query) use ($request) {
+            $query->whereBetween('start_time', [$request->start_time, $request->end_time])
+                ->orWhereBetween('end_time', [$request->start_time, $request->end_time])
+                ->orWhere(function ($q) use ($request) {
+                    $q->where('start_time', '<=', $request->start_time)
+                        ->where('end_time', '>=', $request->end_time);
+                });
+        })
+        ->exists();
+
+    return response()->json([
+        'available' => !$exists
+    ]);
+}
+    public function storeBooking(Request $request)
+    {
+        
+        $data = $request->validate([
+            'field_id' => 'required|exists:fields,id',
+            'booking_date' => 'required|date|after_or_equal:today',
+            'start_time' => 'required',
+            'end_time' => 'required|after:start_time',
+            'services' => 'array',
+        ]);
+
+        $user = Auth::user();
+        if (!$user) {
+            return redirect()->route('login')->with('error', 'Bạn cần đăng nhập để đặt sân.');
+        }
+$exists = Booking::where('field_id', $data['field_id'])
+    ->where('booking_date', $data['booking_date'])
+    ->where(function ($query) use ($data) {
+        $query->whereBetween('start_time', [$data['start_time'], $data['end_time']])
+              ->orWhereBetween('end_time', [$data['start_time'], $data['end_time']])
+              ->orWhere(function ($q) use ($data) {
+                  $q->where('start_time', '<=', $data['start_time'])
+                    ->where('end_time', '>=', $data['end_time']);
+              });
+    })
+    ->exists();
+
+if ($exists) {
+    return back()->with('error', 'Khung giờ này đã có người đặt.');
+}
+        DB::transaction(function () use ($data, $user, $request) {
+            $field = Field::findOrFail($data['field_id']);
+            $totalPrice = $field->price_per_hour * (strtotime($data['end_time']) - strtotime($data['start_time'])) / 3600;
+
+            $booking = Booking::create([
+                'user_id' => $user->id,
+                'field_id' => $field->id,
+                'booking_date' => $data['booking_date'],
+                'start_time' => $data['start_time'],
+                'end_time' => $data['end_time'],
+                'total_price' => max(0, $totalPrice),
+                'status' => 'pending',
+            ]);
+
+         foreach ($request->input('services', []) as $serviceId => $qty) {
+    $qty = (int) $qty;
+
+    if ($qty > 0) {
+
+        $service = Service::find($serviceId);
+
+        // kiểm tra tồn kho
+        if ($service->quantity < $qty) {
+            throw new \Exception("Dịch vụ {$service->name} không đủ số lượng");
+        }
+
+        // lưu booking service
+        DB::table('booking_services')->insert([
+            'booking_id' => $booking->id,
+            'service_id' => $serviceId,
+            'quantity' => $qty,
+        ]);
+
+        // trừ kho
+        $service->decrement('quantity', $qty);
+    }
+}
+        });
+
+        return redirect()->route('user.bookingcreate', ['field_id' => $data['field_id']])->with('success', 'Đặt sân thành công.');
+    }
+     public function bookingcreate(Request $request)
+    {
+        $fieldId = $request->query('field_id');
+        $field = $fieldId ? Field::find($fieldId) : null;
+        $services = Service::where('status','active')->get();
+        return view('user.booking', ['field' => $field, 'services' => $services]);
+    }
 public function bookingdetail($id)
 {
     $booking = \App\Models\Booking::find($id);
@@ -119,7 +215,11 @@ public function bookingdetail($id)
             'myServices' => $myServices
         ]);
     }
-
+  public function fieldSchedule(Request $request)
+    {
+        $fields = Field::all();
+        return view('user.field-schedule', ['fields' => $fields]);
+    }
     public function orders(Request $request)
     {
         $user = Auth::user();

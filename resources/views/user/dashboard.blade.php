@@ -181,7 +181,7 @@ footer {
                     <h3><i class="bi bi-info-circle"></i> Giới thiệu</h3>
                     <div class="intro-box">
                         <p>Hệ thống sân bóng hiện đại, đạt chuẩn thi đấu – chiếu sáng LED, cỏ nhân tạo cao cấp, khu dịch vụ tiện nghi. Trải nghiệm tốt nhất cho người chơi bóng phong trào.</p>
-                        <a href="{{ route('about') }}" class="btn btn-sm btn-primary">Tìm hiểu thêm</a>
+                        <a href="{{ route('user.about') }}" class="btn btn-sm btn-primary">Tìm hiểu thêm</a>
                     </div>
                 </div>
 
@@ -189,7 +189,7 @@ footer {
                     <h3><i class="bi bi-info-circle"></i> Về chúng tôi</h3>
                     <div class="intro-box">
                         <p>Hệ thống sân bóng hiện đại, đạt chuẩn thi đấu – chiếu sáng LED, cỏ nhân tạo cao cấp, khu dịch vụ tiện nghi. Trải nghiệm tốt nhất cho người chơi bóng phong trào.</p>
-                        <a href="{{ route('about') }}" class="btn btn-sm btn-primary">Tìm hiểu thêm</a>
+                        <a href="{{ route('user.about') }}" class="btn btn-sm btn-primary">Tìm hiểu thêm</a>
                     </div>
                 </div>
             </div>

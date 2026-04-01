@@ -40,7 +40,6 @@
                         <div class="t">
                             <li><a href="{{ route('visitor.fields') }}">Sân bóng</a></li>
                             <li><a href="{{ route('user.services') }}">Dịch vụ</a></li>
-                            <li><a href="{{ route('user.booking') }}">Đặt sân</a></li>
                             <li><a href="{{ route('user.cart') }}">Giỏ hàng</a></li>
                             <li><a href="{{ route('user.myBookings') }}">Lịch đặt của tôi</a></li>
                             <li><a href="{{ route('user.profile') }}">Hồ sơ</a></li>

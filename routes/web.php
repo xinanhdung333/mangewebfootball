@@ -109,6 +109,8 @@ Route::prefix('boss')->name('boss.')->middleware(['auth'])->group(function(){
 // User Pages - Protected Routes
 Route::middleware(['auth'])->prefix('user')->name('user.')->group(function(){
     // Dashboard & Main Pages
+Route::post('/check-booking', [PagesController::class, 'checkBooking'])
+    ->name('check.booking');
     Route::get('/dashboard', [PagesController::class, 'dashboard'])->name('dashboard');
     Route::get('/about', [PagesController::class, 'about'])->name('about');
     
@@ -124,8 +126,8 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function(){
     Route::post('/profile/update', [PagesController::class, 'updateProfile'])->name('profile.update');
     
     // Booking
-    Route::get('/booking', [PagesController::class, 'booking'])->name('booking');
-    Route::post('/booking', [PagesController::class, 'storeBooking'])->name('booking.store');
+    Route::get('/bookingcreate', [PagesController::class, 'bookingcreate'])->name('bookingcreate');
+    Route::post('/booking', [PagesController::class, 'storeBooking'])->name('bookingstore');
     Route::get('/booking/{id}', [PagesController::class, 'bookingdetail'])->name('bookingdetail');
     Route::post('/booking/{id}/cancel', [PagesController::class, 'cancelBooking'])->name('cancelBooking');
     Route::get('/my-bookings', [PagesController::class, 'myBookings'])->name('myBookings');
@@ -167,3 +169,5 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function(){
 Route::match(['GET','POST'], '/momo/ipn',
     [MomoController::class, 'ipnUrl']
 )->name('momo.ipn');
+Route::get('/chat/{id}', [ChatController::class,'index']);
+Route::post('/chat/send', [ChatController::class,'sendMessage']);
