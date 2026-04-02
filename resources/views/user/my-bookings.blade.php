@@ -78,8 +78,8 @@
             </div>
 
             <div class="mt-3">
-                {{ $bookings->links() }}
-            </div>
+               {{ $bookings->links('pagination::bootstrap-5') }}
+               </div>
         @else
             <div class="alert alert-info">
                 Bạn chưa có đặt sân nào. <a href="{{ route('user.fields') }}">Đặt ngay</a>

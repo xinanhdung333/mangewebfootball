@@ -23,8 +23,7 @@
             <div class="col-md-4 mb-4 field-item">
                 <div class="card h-100">
                     <img src="{{ !empty($field->image) ? asset('uploads/fields/' . $field->image) : asset('assets/images/banner.jpg') }}" 
-                        class="card-img-top" alt="{{ htmlspecialchars($field->name) }}" 
-                        style="height: 200px; object-fit: cover;">
+                        class="fields" alt="{{ htmlspecialchars($field->name) }}">
                     <div class="card-body">
                         <h5 class="card-title">{{ htmlspecialchars($field->name) }}</h5>
                         

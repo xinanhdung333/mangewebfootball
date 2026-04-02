@@ -26,19 +26,19 @@
                     @foreach($myServices as $service)
                         <tr>
                             <td>
-                                <img src="{{ !empty($service['image']) ? asset('uploads/services/' . $service['image']) : asset('images/default.png') }}" 
-                                     alt="{{ $service['name'] }}"
-                                     width="60" height="60" 
+                                <img src="{{ !empty($service->service->image) ? asset('uploads/services/' . $service->service->image) : asset('images/default.png') }}" 
+                                     alt="{{ $service->service->name ?? 'Dịch vụ' }}"
+                                     class="imgservice"
                                      style="border-radius: 6px; object-fit: cover;">
                             </td>
-                            <td><strong>{{ $service['name'] }}</strong></td>
-                            <td>{{ $service['quantity'] }}</td>
+                            <td><strong>{{ $service->service->name ?? 'Dịch vụ' }}</strong></td>
+                            <td>{{ $service->quantity }}</td>
                             <td>
                                 <span class="fw-bold text-success">
-                                    {{ number_format($service['quantity'] * $service['price'], 0, ',', '.') }} VNĐ
+                                    {{ number_format($service->quantity * $service->service->price, 0, ',', '.') }} VNĐ
                                 </span>
                             </td>
-                            <td>{{ Carbon\Carbon::parse($service['created_at'])->format('d/m/Y H:i') }}</td>
+                            <td>{{ Carbon\Carbon::parse($service->created_at)->format('d/m/Y H:i') }}</td>
                             <td>
                                 @php
                                     $statusColors = [
@@ -71,6 +71,9 @@
                 </tbody>
             </table>
         </div>
+        <div class="mt-3">
+               {{ $myServices->links('pagination::bootstrap-5') }}
+               </div>
     @else
         <div class="alert alert-info text-center py-5">
             <i class="bi bi-info-circle" style="font-size: 3rem;"></i>

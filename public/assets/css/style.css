@@ -1,4 +1,51 @@
 /* Bootstrap sẽ xử lý hầu hết CSS, thêm custom CSS ở đây nếu cần */
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    min-width: 0;
+}
+
+
+picture,
+video,
+svg {
+    max-width: 60PX !important;
+    height: 60px !important;
+    display: block;
+}
+.imageservicedetail {
+ width: 100%; height: 500px; object-fit: contain; border: 1px solid #ddd; border-radius: 12px; background:#f9f9f9;
+}
+.chatbot {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 200px !important;
+    height: 100px !important;
+    cursor: pointer;
+    z-index: 1000;
+}
+.fields {
+    width: 100% !important;
+    height: 300px !important;
+    object-fit: cover;
+}
+.imgservice {
+       max-width: 60PX !important;
+    height: 60px !important;
+     display: block;
+}
+.product-image{
+width:100% !important;
+height:140px !important;
+object-fit:cover !important;
+}
+
+body {
+    background-attachment: scroll; /* mobile-friendly */
+}
+
 .stat-card {
     border-radius: 15px;
     transition: transform 0.3s, box-shadow 0.3s;
@@ -17,7 +64,7 @@ body {
     background-image: url('../images/pngtree-sleek-gradient-background-with-smooth-black-texture-image_13782877.png') !important;
     background-size: cover;       /* phóng to bao phủ toàn bộ */
     background-repeat: no-repeat; /* không lặp ảnh */
-    background-attachment: fixed; /* cố định ảnh nền khi cuộn */
+    background-attachment: scroll; /* mobile-friendly */
     background-position: center;  /* căn giữa */
     min-height: 100vh;   
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -142,9 +189,55 @@ footer {
     .btn {
         margin-bottom: 0.5rem;
     }
-    .v
-    {
+
+    .navbar-nav {
+        flex-direction: column;
+    }
+
+    .navbar-nav .nav-link {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    .dropdown-menu {
+        width: 100%;
+    }
+
+    .container,
+    .container-fluid {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    .table-responsive {
+        width: 100%;
+    }
+
+    .v {
         background-color: #2ac82fff;
+    }
+}
+
+.table-custom thead {
+    background: linear-gradient(90deg, #0d6efd 0%, #cfc1e5 100%) !important;
+    color: #fff;
+}
+
+.table-custom th {
+    border-color: rgba(255, 255, 255, 0.15);
+}
+
+.table-custom tbody tr {
+    background-color: #ffffff;
+}
+
+.table-custom tbody tr:hover {
+    background-color: #e7f1ff;
+}
+
+@media (max-width: 768px) {
+    .table-custom {
+        font-size: 0.95rem;
     }
 }
 

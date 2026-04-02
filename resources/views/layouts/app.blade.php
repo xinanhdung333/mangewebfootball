@@ -15,33 +15,11 @@
     <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
 
     <style>
-      #mascot {
-    position: fixed;
-    top: 80%;
-    left: 90%;
-    width: 140px;
-    height: 120px;
-    cursor: grab;
-    z-index: 9999;
-}
-
-#chat-box {
-    position: fixed;
-    bottom: 40px;
-    right: 20px;
-    width: 300px;
-    height: 400px;
-    background: white;
-    border: 1px solid #ccc;
-    display: none;
-    z-index: 9999;
-}
-
-.chat-header {
-    background: #007bff;
-    color: white;
-    padding: 10px;
-}
+        .chat-header {
+            background: #007bff;
+            color: white;
+            padding: 10px;
+        }
         .admin-nav {
             display: flex;
             gap: 10px;
@@ -61,11 +39,152 @@
         .admin-nav li a:hover {
             background: rgba(255, 255, 255, 0.2);
         }
+
+        #mascot {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            width: 140px;
+            max-width: 90px;
+            height: auto;
+            cursor: grab;
+            z-index: 9999;
+        }
+
+        html,
+        body {
+            width: 100%;
+            overflow-x: hidden;
+        }
+
+        #chat-box {
+            position: fixed;
+            bottom: 80px;
+            right: 20px;
+            width: 300px;
+            max-width: 90vw;
+            height: 400px;
+            background: white;
+            border: 1px solid #ccc;
+            display: none;
+            z-index: 9999;
+        }
+
+        .chat-body {
+            height: calc(100% - 92px);
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        #message,
+        #chat-box button {
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        #message {
+            margin: 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-top: none;
+        }
+
+        #chat-box button {
+            border: none;
+            background: #007bff;
+            color: #fff;
+            padding: 10px;
+        }
+
+        @media (max-width: 991px) {
+            .navbar-nav {
+                flex-direction: column;
+                width: 100%;
+            }
+
+            .navbar-nav .nav-item,
+            .navbar-nav > li {
+                width: 100%;
+            }
+
+            .navbar-nav .nav-link {
+                padding-left: 0.75rem;
+                padding-right: 0.75rem;
+                width: 100%;
+            }
+
+            .dropdown-menu {
+                width: 100%;
+            }
+
+            .container-fluid,
+            .container {
+                padding-left: 0.75rem;
+                padding-right: 0.75rem;
+            }
+
+            #mascot {
+                width: 70px;
+                right: 10px;
+                bottom: 10px;
+            }
+
+            #chat-box {
+                right: 10px;
+                left: 10px;
+                width: auto;
+                max-width: calc(100% - 20px);
+                height: auto;
+                max-height: 70vh;
+            }
+
+            .chat-body {
+                height: auto;
+                max-height: calc(70vh - 92px);
+            }
+        }
+
+        .desktop-layout {
+            width: 100%;
+            transform-origin: top center;
+        }
+
+        @media (max-width: 991px) {
+            .desktop-layout {
+                transform: scale(0.85);
+            }
+        }
+
+        @media (max-width: 576px) {
+            .navbar-brand {
+                font-size: 1.1rem;
+            }
+
+            .navbar-toggler {
+                margin-left: auto;
+            }
+
+            .navbar-nav .nav-link {
+                padding-left: 0.5rem;
+                padding-right: 0.5rem;
+            }
+
+            .container-fluid,
+            .container {
+                padding-left: 0.5rem;
+                padding-right: 0.5rem;
+            }
+
+            main.container {
+                padding-top: 0.5rem;
+            }
+        }
     </style>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
+<div class="desktop-layout">
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
     @if(auth()->check() && auth()->user()->role === 'boss')
@@ -101,27 +220,23 @@
                     @endif
 
                     @if(auth()->user()->role === 'admin')
-                        <ul class="admin-nav">
-                            <li><a href="{{ route('admin.manage.fields') }}"><i class="bi bi-gear"></i> Quản lý sân</a></li>
-                            <li><a href="{{ route('admin.manage.bookings') }}"><i class="bi bi-clipboard-check"></i> Quản lý đặt sân</a></li>
-                            <li><a href="{{ route('admin.manage.services') }}"><i class="bi bi-grid"></i> Quản lý dịch vụ</a></li>
-                            <li><a href="{{ route('admin.user.service.history') }}"><i class="bi bi-bag-check"></i> Chi tiết mua hàng</a></li>
-                            <li><a href="{{ route('admin.manage.feedback') }}"><i class="bi bi-chat-dots"></i> Quản lý Feedback</a></li>
-                            <li><a href="{{ route('admin.invoices') }}"><i class="bi bi-file-earmark-pdf"></i> Quản lý hóa đơn</a></li>
-                            <li><a href="{{ route('admin.statistics') }}"><i class="bi bi-bar-chart"></i> Thống kê</a></li>
-                        </ul>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('admin.manage.fields') }}"><i class="bi bi-gear"></i> Quản lý sân</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('admin.manage.bookings') }}"><i class="bi bi-clipboard-check"></i> Quản lý đặt sân</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('admin.manage.services') }}"><i class="bi bi-grid"></i> Quản lý dịch vụ</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('admin.user.service.history') }}"><i class="bi bi-bag-check"></i> Chi tiết mua hàng</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('admin.manage.feedback') }}"><i class="bi bi-chat-dots"></i> Quản lý Feedback</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('admin.invoices') }}"><i class="bi bi-file-earmark-pdf"></i> Quản lý hóa đơn</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('admin.statistics') }}"><i class="bi bi-bar-chart"></i> Thống kê</a></li>
                     @endif
                     @if(auth()->user()->role === 'boss')
-                        <ul class="admin-nav">
-                            <li><a href="{{ route('boss.manage.fields') }}"><i class="bi bi-gear"></i> Quản lý sân</a></li>
-                            <li><a href="{{ route('boss.manage.bookings') }}"><i class="bi bi-clipboard-check"></i> Quản lý đặt sân</a></li>
-                            <li><a href="{{ route('boss.manage.services') }}"><i class="bi bi-grid"></i> Quản lý dịch vụ</a></li>
-                            <li><a href="{{ route('boss.user.service.history') }}"><i class="bi bi-bag-check"></i> Chi tiết mua hàng</a></li>
-                            <li><a href="{{ route('boss.manage.feedback') }}"><i class="bi bi-chat-dots"></i> Quản lý Feedback</a></li>
-                            <li><a href="{{ route('boss.invoices') }}"><i class="bi bi-file-earmark-pdf"></i> Quản lý hóa đơn</a></li>
-                            <li><a href="{{ route('boss.manage.users') }}"><i class="bi bi-people"></i> Quản lý người dùng</a></li>
-                            <li><a href="{{ route('boss.statistics') }}"><i class="bi bi-bar-chart"></i> Thống kê</a></li>
-                        </ul>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.manage.fields') }}"><i class="bi bi-gear"></i> Quản lý sân</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.manage.bookings') }}"><i class="bi bi-clipboard-check"></i> Quản lý đặt sân</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.manage.services') }}"><i class="bi bi-grid"></i> Quản lý dịch vụ</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.user.service.history') }}"><i class="bi bi-bag-check"></i> Chi tiết mua hàng</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.manage.feedback') }}"><i class="bi bi-chat-dots"></i> Quản lý Feedback</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.invoices') }}"><i class="bi bi-file-earmark-pdf"></i> Quản lý hóa đơn</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.manage.users') }}"><i class="bi bi-people"></i> Quản lý người dùng</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.statistics') }}"><i class="bi bi-bar-chart"></i> Thống kê</a></li>
                     @endif
 
                     <li class="nav-item dropdown">
@@ -132,7 +247,6 @@
                             <li><a class="dropdown-item" href="{{ route('boss.profile') }}">Hồ sơ</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ route('logout') }}">Đăng xuất</a></li>
-                            <li> 
                         </ul>
                     </li>
                 @else
@@ -150,7 +264,7 @@
         </div>
     </div>
 </nav>
-<img src="{{ asset('assets/images/chatbot.png') }}" id="mascot" alt="Mascot">
+<img class = "chatbot" src="{{ asset('assets/images/chatbot.png') }}" id="mascot" alt="Mascot">
 
 <div id="chat-box">
     <div class="chat-header">
@@ -171,6 +285,7 @@
     <div class="container-fluid px-4">
 
     @yield('content')
+    </div>
 </main>
 
 @include('partials.visitor.footer')
@@ -253,6 +368,7 @@ channel.bind('MessageSent', function(data) {
 
 });
 </script>
+</div>
 @stack('scripts')
 </body>
 </html>

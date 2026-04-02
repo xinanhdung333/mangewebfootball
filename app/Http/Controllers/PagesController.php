@@ -184,41 +184,28 @@ public function bookingdetail($id)
     return view('user.booking-detail', compact('booking'));
 }
     public function myServices()
-    {
-        $user = Auth::user();
-
-        if (!$user) {
-            return redirect()->route('login');
-        }
-
-        $orders = 
-            \App\Models\Order::with(['items.service'])
-                ->where('user_id', $user->id)
-                ->orderByDesc('id')
-                ->get();
-
-        $myServices = $orders->flatMap(function ($order) {
-            return $order->items->map(function ($item) use ($order) {
-                return [
-                    'order_id' => $order->id,
-                    'name' => $item->service->name ?? 'Unknown Service',
-                    'image' => $item->service->image ?? null,
-                    'quantity' => $item->quantity,
-                    'price' => $item->price,
-                    'status' => $order->status ?? 'pending',
-                    'created_at' => $item->created_at ?? $order->created_at,
-                ];
-            });
-        })->values();
-
-        return view('user.my-services', [
-            'myServices' => $myServices
-        ]);
-    }
-  public function fieldSchedule(Request $request)
+{
+    $myServices = \App\Models\OrderItem::with(['service', 'order'])
+        ->whereHas('order', function ($query) {
+            $query->where('user_id', auth()->id());
+        })
+        ->latest()
+        ->paginate(10);
+// dd($myServices->first()->service);
+    return view('user.my-services', compact('myServices'));
+}
+    public function fieldSchedule(Request $request)
     {
         $fields = Field::all();
-        return view('user.field-schedule', ['fields' => $fields]);
+        $bookings = Booking::where('booking_date', $request->query('date', date('Y-m-d')))
+            ->with(['field', 'user'])
+            ->get()
+            ->groupBy('field_id');
+
+        return view('user.field-schedule', [
+            'fields' => $fields,
+            'bookingMap' => $bookings,
+        ]);
     }
     public function orders(Request $request)
     {
@@ -441,60 +428,54 @@ public function updateProfile(Request $request)
 
     return back()->with('success', 'Cập nhật thành công!');
 }
-    public function feedback()
-    {
-        $userId = Auth::id();
+public function feedback()
+{
+    $userId = Auth::id();
 
-        $services = DB::table('order_items as oi')
-            ->join('orders as o', 'oi.order_id', '=', 'o.id')
-            ->join('services as s', 'oi.service_id', '=', 's.id')
-            ->leftJoin('feedbacks as f', function ($join) {
-                $join->on('f.service_id', '=', 's.id')
-                     ->on('f.user_id', '=', 'o.user_id');
-            })
-            ->where('o.user_id', $userId)
-            ->orderByDesc('oi.created_at')
-            ->select([
-                'oi.id as order_item_id',
-                's.name as service_name',
-                's.image as service_image',
-                DB::raw('(oi.price * oi.quantity) as total'),
-                'f.message as feedback_message',
-                'f.rating as feedback_rating',
-            ])
-            ->get()
-            ->map(function ($item) {
-                return (array) $item;
-            })
-            ->toArray();
+    // SERVICES PAGINATION
+    $services = DB::table('order_items as oi')
+        ->join('orders as o', 'oi.order_id', '=', 'o.id')
+        ->join('services as s', 'oi.service_id', '=', 's.id')
+        ->leftJoin('feedbacks as f', function ($join) {
+            $join->on('f.service_id', '=', 's.id')
+                 ->on('f.user_id', '=', 'o.user_id');
+        })
+        ->where('o.user_id', $userId)
+        ->orderByDesc('oi.created_at')
+        ->select([
+            'oi.id as order_item_id',
+            's.name as service_name',
+            's.image as service_image',
+            DB::raw('(oi.price * oi.quantity) as total'),
+            'f.message as feedback_message',
+            'f.rating as feedback_rating',
+        ])
+        ->paginate(5, ['*'], 'services_page'); // 👈 phân trang riêng
 
-        $bookings = DB::table('bookings as b')
-            ->join('fields as f', 'b.field_id', '=', 'f.id')
-            ->leftJoin('feedbacks as fb', function ($join) {
-                $join->on('fb.booking_id', '=', 'b.id')
-                     ->on('fb.user_id', '=', 'b.user_id');
-            })
-            ->where('b.user_id', $userId)
-            ->orderByDesc('b.created_at')
-            ->select([
-                'b.id as booking_id',
-                'f.name as field_name',
-                'f.image as field_image',
-                'b.booking_date',
-                'b.start_time',
-                'b.end_time',
-                'fb.message as feedback_message',
-                'fb.rating as feedback_rating',
-            ])
-            ->get()
-            ->map(function ($item) {
-                return (array) $item;
-            })
-            ->toArray();
 
-        return view('user.feedback', compact('services', 'bookings'));
-    }
+    // BOOKINGS PAGINATION
+    $bookings = DB::table('bookings as b')
+        ->join('fields as f', 'b.field_id', '=', 'f.id')
+        ->leftJoin('feedbacks as fb', function ($join) {
+            $join->on('fb.booking_id', '=', 'b.id')
+                 ->on('fb.user_id', '=', 'b.user_id');
+        })
+        ->where('b.user_id', $userId)
+        ->orderByDesc('b.created_at')
+        ->select([
+            'b.id as booking_id',
+            'f.name as field_name',
+            'f.image as field_image',
+            'b.booking_date',
+            'b.start_time',
+            'b.end_time',
+            'fb.message as feedback_message',
+            'fb.rating as feedback_rating',
+        ])
+        ->paginate(5, ['*'], 'bookings_page'); // 👈 phân trang riêng
 
+    return view('user.feedback', compact('services', 'bookings'));
+}
     public function sendFeedback(Request $request)
     {
         $validated = $request->validate([

@@ -36,8 +36,7 @@
                 <div class="position-relative">
                     <img id="mainImg" 
                          src="{{ !empty($service->image) ? asset('uploads/services/' . $service->image) : asset('images/default.png') }}" 
-                         alt="{{ $service->name }}"
-                         style="width: 100%; height: 500px; object-fit: contain; border: 1px solid #ddd; border-radius: 12px; background: #f9f9f9;">
+                         alt="{{ $service->name }}" class="imagdetail">
                 </div>
                 
                 <!-- Thumbnail -->

@@ -25,8 +25,8 @@
                 <div class="card-body">
                     @if(isset($bookingMap[$field->id]) && count($bookingMap[$field->id]) > 0)
                         <div class="table-responsive">
-                            <table class="table table-hover mb-0">
-                                <thead class="table-light">
+                            <table class="table table-hover table-custom mb-0">
+                                <thead>
                                     <tr>
                                         <th>Ngày đặt</th>
                                         <th>Bắt đầu</th>
@@ -39,17 +39,17 @@
                                     @foreach($bookingMap[$field->id] as $booking)
                                         <tr>
                                             <td>
-                                                <strong>{{ Carbon\Carbon::parse($booking['booking_date'])->format('d/m/Y') }}</strong>
+                                                <strong>{{ Carbon\Carbon::parse($booking->booking_date)->format('d/m/Y') }}</strong>
                                             </td>
                                             <td>
-                                                <span class="badge bg-info">{{ $booking['start_time'] }}</span>
+                                                <span class="badge bg-info">{{ $booking->start_time }}</span>
                                             </td>
                                             <td>
-                                                <span class="badge bg-info">{{ $booking['end_time'] }}</span>
+                                                <span class="badge bg-info">{{ $booking->end_time }}</span>
                                             </td>
-                                            <td>{{ $booking['user_name'] }}</td>
+                                            <td>{{ $booking->user?->name ?? 'Khách' }}</td>
                                             <td>
-                                                @if($booking['status'] === 'confirmed')
+                                                @if($booking->status === 'confirmed')
                                                     <span class="badge bg-success">
                                                         <i class="bi bi-check-circle"></i> Xác nhận
                                                     </span>
@@ -88,10 +88,6 @@
 
 .card:hover {
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15) !important;
-}
-
-.table tbody tr:hover {
-    background-color: #f9f9f9;
 }
 
 .badge {
