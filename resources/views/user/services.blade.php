@@ -24,7 +24,7 @@ style="position:absolute; top:-5px; right:-10px; background:red; color:white; fo
 
 
 <!-- SEARCH -->
-<form method="GET" class="mb-3" style="display:flex; gap:10px; flex-wrap:wrap;">
+<form id="searchForm" class="mb-3" style="display:flex; gap:10px; flex-wrap:wrap;">
 
 <input type="text"
 name="q"
@@ -53,8 +53,7 @@ Tìm kiếm
 
 
 <!-- PRODUCT GRID -->
-<div class="product-grid">
-
+<div class="product-grid" id="productList">
 @foreach($services as $service)
 
 <div class="product-card" data-service-id="{{ $service->id }}">
@@ -151,11 +150,7 @@ transform:translateY(-3px);
 box-shadow:0 6px 15px rgba(0,0,0,0.15);
 }
 
-.product-image{
-width:100% !important;
-height:140px !important;
-object-fit:cover !important;
-}
+
 
 .product-price{
 padding:8px 0;
@@ -187,7 +182,33 @@ transform:scale(1.2);
 
 </style>
 
+<script>
 
+const searchForm = document.getElementById('searchForm');
+
+searchForm.addEventListener('input', function(){
+
+    let formData = new FormData(searchForm);
+
+    let queryString = new URLSearchParams(formData).toString();
+
+    fetch("{{ route('user.services') }}?" + queryString,{
+        headers:{
+            'X-Requested-With':'XMLHttpRequest'
+        }
+    })
+
+    .then(res=>res.text())
+
+    .then(html=>{
+
+        document.getElementById('productList').innerHTML = html;
+
+    });
+
+});
+
+</script>
 <script>
 document.addEventListener('DOMContentLoaded', function(){
 

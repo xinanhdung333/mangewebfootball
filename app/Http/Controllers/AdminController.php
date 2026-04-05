@@ -12,6 +12,7 @@ use App\Models\UserSpending;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+    use App\Models\ChatbotIntent;
 
 class AdminController extends Controller
 {
@@ -644,4 +645,7 @@ class AdminController extends Controller
             return $pdf->download('hoa-don-dich-vu-' . $id . '.pdf');
         }
     }
+
+    
+
 }

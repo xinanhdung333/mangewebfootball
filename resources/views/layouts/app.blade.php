@@ -8,6 +8,8 @@
     <link rel="icon" type="image/png" sizes="256x256" href="{{ asset('assets/images/logo.jpg') }}">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <meta name="csrf-token" content="{{ csrf_token() }}">
+
     <title>{{ isset($page_title) ? $page_title . ' - ' . config('app.name') : config('app.name') }}</title>
 
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -15,11 +17,7 @@
     <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
 
     <style>
-        .chat-header {
-            background: #007bff;
-            color: white;
-            padding: 10px;
-        }
+    
         .admin-nav {
             display: flex;
             gap: 10px;
@@ -57,44 +55,7 @@
             overflow-x: hidden;
         }
 
-        #chat-box {
-            position: fixed;
-            bottom: 80px;
-            right: 20px;
-            width: 300px;
-            max-width: 90vw;
-            height: 400px;
-            background: white;
-            border: 1px solid #ccc;
-            display: none;
-            z-index: 9999;
-        }
-
-        .chat-body {
-            height: calc(100% - 92px);
-            overflow-y: auto;
-            padding: 12px;
-        }
-
-        #message,
-        #chat-box button {
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-        #message {
-            margin: 0;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-top: none;
-        }
-
-        #chat-box button {
-            border: none;
-            background: #007bff;
-            color: #fff;
-            padding: 10px;
-        }
+     
 
         @media (max-width: 991px) {
             .navbar-nav {
@@ -123,30 +84,13 @@
                 padding-right: 0.75rem;
             }
 
-            #mascot {
-                width: 70px;
-                right: 10px;
-                bottom: 10px;
-            }
-
-            #chat-box {
-                right: 10px;
-                left: 10px;
-                width: auto;
-                max-width: calc(100% - 20px);
-                height: auto;
-                max-height: 70vh;
-            }
-
-            .chat-body {
-                height: auto;
-                max-height: calc(70vh - 92px);
-            }
-        }
+     
 
         .desktop-layout {
             width: 100%;
-            transform-origin: top center;
+         
+             position: relative;
+   transform-origin: top center;
         }
 
         @media (max-width: 991px) {
@@ -181,6 +125,123 @@
         }
     </style>
 
+<style>
+/* Floating chat button (Shopee style) */
+#mascot {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    cursor: pointer;
+    z-index: 9999;
+}
+
+/* Chat container */
+#chat-box {
+    position: fixed;
+    bottom: 100px;
+    right: 24px;
+    width: 360px;
+    height: 480px;
+    background: #fff;
+    border-radius: 18px;
+    overflow: hidden;
+    display: none;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    font-family: Arial, sans-serif;
+        z-index: 999999;
+}
+
+/* Header */
+.chat-header {
+    background: linear-gradient(90deg,#ee4d2d,#ff7337);
+    color: white;
+    padding: 14px;
+    font-weight: 600;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#close-chat {
+    cursor: pointer;
+    font-size: 18px;
+}
+
+/* Chat body */
+.chat-body {
+    height: calc(100% - 120px);
+    overflow-y: auto;
+    padding: 14px;
+    background: #f6f6f6;
+}
+
+.message-user {
+    background: #ee4d2d;
+    color: white;
+    padding: 10px 14px;
+    border-radius: 16px;
+    margin-bottom: 8px;
+    max-width: 70%;
+    margin-left: auto;
+}
+
+.message-bot {
+    background: white;
+    padding: 10px 14px;
+    border-radius: 16px;
+    margin-bottom: 8px;
+    max-width: 70%;
+    border: 1px solid #eee;
+}
+
+/* Footer */
+.chat-footer {
+    position: absolute;
+    bottom: 0;
+    width: 100%;
+    padding: 12px;
+    border-top: 1px solid #eee;
+    background: white;
+}
+
+.chat-input {
+    display: flex;
+    gap: 8px;
+}
+
+.chat-input input {
+    flex: 1;
+    border-radius: 20px;
+    border: 1px solid #ddd;
+    padding: 10px;
+}
+
+.chat-input button {
+    background: #ee4d2d;
+    border: none;
+    color: white;
+    padding: 10px 16px;
+    border-radius: 20px;
+}
+
+.chat-input button:hover {
+    background: #d84327;
+}
+
+/* Mobile responsive */
+@media (max-width:768px) {
+    #chat-box {
+        right: 10px;
+        left: 10px;
+        width: auto;
+        height: 70vh;
+    }
+}
+</style>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </head>
 <body>
@@ -226,6 +287,7 @@
                         <li class="nav-item"><a class="nav-link" href="{{ route('admin.user.service.history') }}"><i class="bi bi-bag-check"></i> Chi tiết mua hàng</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('admin.manage.feedback') }}"><i class="bi bi-chat-dots"></i> Quản lý Feedback</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('admin.invoices') }}"><i class="bi bi-file-earmark-pdf"></i> Quản lý hóa đơn</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('admin.chatbot.index') }}"><i class="bi bi-robot"></i> Quản lý Chatbot</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('admin.statistics') }}"><i class="bi bi-bar-chart"></i> Thống kê</a></li>
                     @endif
                     @if(auth()->user()->role === 'boss')
@@ -264,23 +326,32 @@
         </div>
     </div>
 </nav>
-<img class = "chatbot" src="{{ asset('assets/images/chatbot.png') }}" id="mascot" alt="Mascot">
+</div>
 
+
+<!-- Chat button -->
+<img class = "chatbot" src="{{ asset('assets/images/chatbot.png') }}" id="mascot" alt="Mascot">
+<!-- Chat box -->
 <div id="chat-box">
+
     <div class="chat-header">
         Chat hỗ trợ
-        <span id="close-chat">✖</span>
+        <span id="close-chat">✕</span>
     </div>
 
     <div class="chat-body" id="chat-body">
-    Xin chào 👋
-</div>
+        <div class="message-bot">Xin chào 👋 Tôi có thể giúp gì cho bạn?</div>
+    </div>
 
-<input type="text" id="message">
-
-<button onclick="sendMessage()">Gửi</button>
-</div>
-
+    <div class="chat-footer">
+        <div class="chat-input">
+            <input type="text" id="message" placeholder="Nhập tin nhắn...">
+            <button onclick="sendMessage()">Gửi</button>
+        </div>
+    </div>
+          <p id="reply"></p>
+     </div>
+ 
 <main class="container mt-4">
     <div class="container-fluid px-4">
 
@@ -289,6 +360,57 @@
 </main>
 
 @include('partials.visitor.footer')
+
+<script>
+
+async function sendMessage() {
+
+    let input = document.getElementById("message");
+    let text = input.value.trim();
+
+    if(!text) return;
+
+    let chatBody = document.getElementById("chat-body");
+
+    chatBody.innerHTML += `<div class="message-user">${text}</div>`;
+
+    input.value = "";
+
+    let response = await fetch("{{ route('user.chatbot.message') }}", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify({ message: text })
+    });
+
+    let data = await response.json();
+
+    chatBody.innerHTML += `<div class="message-bot">${data.reply}</div>`;
+
+    chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+
+// xử lý Enter gửi tin nhắn
+const inputMessage = document.getElementById("message");
+
+inputMessage.addEventListener("keydown", function(e) {
+    if (e.key === "Enter") {
+        e.preventDefault();
+        sendMessage();
+    }
+});
+
+
+// open chat
+mascot.onclick = () => chatBox.style.display = "block";
+
+// close chat
+closeChat.onclick = () => chatBox.style.display = "none";
+
+</script>
 
 <script>
 const mascot = document.getElementById('mascot');
@@ -328,30 +450,8 @@ closeChat.addEventListener('click', () => {
     chatBox.style.display = 'none';
 });
 </script>
-<script>
-function sendMessage()
-{
-    fetch('/chat/send', {
-
-        method:'POST',
-
-        headers:{
-            'Content-Type':'application/json',
-            'X-CSRF-TOKEN':'{{ csrf_token() }}'
-        },
-
-        body:JSON.stringify({
-
-            conversation_id:1,
-            message:document.getElementById('message').value
-
-        })
-
-    });
-}
-</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pusher/8.2.0/pusher.min.js"></script>
-<script>
+/* <script>
 Pusher.logToConsole = true;
 
 var pusher = new Pusher("{{ config('broadcasting.connections.pusher.key') }}", {
@@ -367,8 +467,7 @@ channel.bind('MessageSent', function(data) {
         `<div>${data.message.message}</div>`;
 
 });
-</script>
-</div>
+</script> */
 @stack('scripts')
 </body>
 </html>

@@ -12,6 +12,8 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\BossController;
 use App\Http\Controllers\VisitorController;
+use App\Http\Controllers\ChatbotController;
+use App\Http\Controllers\ChatbotIntentController;
 
 // Home
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -74,7 +76,50 @@ Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function(){
     Route::get('/user_service_history', [AdminController::class, 'userServiceHistory'])->name('user.service.history');
     Route::get('/statistics', [AdminController::class, 'statistics'])->name('statistics');
     Route::get('/manage-feedback', [AdminController::class, 'manageFeedback'])->name('manage.feedback');
+//generate chatbot rules
+
+    Route::get('/', [ChatbotIntentController::class,'index'])->name('chatbot.index');
+
+    Route::post('/intent/store', [ChatbotIntentController::class,'storeIntent'])
+        ->name('chatbot.intent.store');
+
+    Route::post('/keyword/store', [ChatbotIntentController::class,'storeKeyword'])
+        ->name('chatbot.keyword.store');
+
+    Route::post('/response/store', [ChatbotIntentController::class,'storeResponse'])
+        ->name('chatbot.response.store');
+
+    Route::post('/generate', [ChatbotIntentController::class,'generateRules'])
+        ->name('chatbot.generate');
+
+Route::put('/intent/{id}',
+[ChatbotIntentController::class,'update'])
+->name('chatbot.intent.update');
+
+Route::delete('/intent/{id}',
+[ChatbotIntentController::class,'destroy'])
+->name('chatbot.intent.delete');
+
+
+Route::put('/keyword/{id}',
+[ChatbotKeywordController::class,'update'])
+->name('chatbot.keyword.update');
+
+Route::delete('/keyword/{id}',
+[ChatbotKeywordController::class,'destroy'])
+->name('chatbot.keyword.delete');
+
+
+Route::put('/response/{id}',
+[ChatbotResponseController::class,'update'])
+->name('chatbot.response.update');
+
+Route::delete('/response/{id}',
+[ChatbotResponseController::class,'destroy'])
+->name('chatbot.response.delete');
+
 });
+
 
 // Boss
 Route::prefix('boss')->name('boss.')->middleware(['auth'])->group(function(){
@@ -116,6 +161,10 @@ Route::post('/check-booking', [PagesController::class, 'checkBooking'])
     
 
     // Fields & Services
+    Route::get(
+    '/user/services/search',
+    [PagesController::class, 'searchServices']
+)->name('services.search');
     Route::get('/fields', [PagesController::class, 'fields'])->name('fields');
     Route::get('/services', [PagesController::class, 'services'])->name('services');
     Route::get('/service/{id}', [PagesController::class, 'serviceDetail'])->name('serviceDetail');
@@ -126,6 +175,7 @@ Route::post('/check-booking', [PagesController::class, 'checkBooking'])
     Route::post('/profile/update', [PagesController::class, 'updateProfile'])->name('profile.update');
     
     // Booking
+    Route::get('/my-bookings-fetch', [PagesController::class, 'myBookingsFetch'])->name('myBookings.fetch');
     Route::get('/bookingcreate', [PagesController::class, 'bookingcreate'])->name('bookingcreate');
     Route::post('/booking', [PagesController::class, 'storeBooking'])->name('bookingstore');
     Route::get('/booking/{id}', [PagesController::class, 'bookingdetail'])->name('bookingdetail');
@@ -165,9 +215,22 @@ Route::post('/check-booking', [PagesController::class, 'checkBooking'])
     // Feedback
     Route::get('/feedback', [PagesController::class, 'feedback'])->name('feedback');
     Route::post('/feedback', [PagesController::class, 'sendFeedback'])->name('sendFeedback');
+    // Chatbot
+  Route::post('/chatbot/message', [ChatbotController::class, 'reply'])->name('chatbot.message');
+// Route::get('/chatbot', function () {
+//     return view('ap');
+//});
 });
 Route::match(['GET','POST'], '/momo/ipn',
     [MomoController::class, 'ipnUrl']
 )->name('momo.ipn');
-Route::get('/chat/{id}', [ChatController::class,'index']);
-Route::post('/chat/send', [ChatController::class,'sendMessage']);
+//Route::get('/chat/{id}', [ChatController::class,'index']);
+//Route::post('/chat/send', [ChatController::class,'sendMessage']);  
+
+Route::get('/generate-chatbot-json', function () {
+
+    app(\App\Http\Controllers\AdminController::class)
+        ->generateRules();
+
+    return "Generated OK";
+});

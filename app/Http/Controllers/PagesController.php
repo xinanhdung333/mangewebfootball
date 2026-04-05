@@ -19,6 +19,7 @@ use App\Http\Controllers\Concerns\UsesServiceQuery;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 
+
 class PagesController extends Controller
 {
     use UsesServiceQuery;
@@ -76,6 +77,25 @@ public function myBookings(Request $request)
         'bookings' => $bookings,
         'filterStatus' => $filterStatus
     ]);
+}public function myBookingsFetch(Request $request)
+{
+    $user = Auth::user();
+
+    $filterStatus = $request->status;
+
+    $query = Booking::where('user_id', $user->id)
+        ->with(['field', 'services'])
+        ->orderByDesc('id');
+
+    if ($filterStatus) {
+        $query->where('status', $filterStatus);
+    }
+
+    $bookings = $query
+        ->paginate(10)
+        ->appends(['status' => $filterStatus]);
+
+    return view('user.booking-table', compact('bookings'))->render();
 }
 public function checkBooking(Request $request)
 {
@@ -185,14 +205,22 @@ public function bookingdetail($id)
 }
     public function myServices()
 {
+    $filterStatus = request()->query('status');
     $myServices = \App\Models\OrderItem::with(['service', 'order'])
         ->whereHas('order', function ($query) {
             $query->where('user_id', auth()->id());
         })
+        ->when($filterStatus, function ($query, $status) {
+            $query->where('status', $status);
+        })
         ->latest()
         ->paginate(10);
 // dd($myServices->first()->service);
-    return view('user.my-services', compact('myServices'));
+   return view(
+    'user.my-services',
+    compact('myServices', 'filterStatus')
+);
+
 }
     public function fieldSchedule(Request $request)
     {
@@ -517,16 +545,17 @@ public function feedback()
     }
 
 
+
 public function services(Request $request)
 {
     $query = Service::withRatings();
 
-    // Search
+    // Search theo tên
     if ($request->q) {
         $query->where('services.name', 'like', '%' . $request->q . '%');
     }
 
-    // Price filter
+    // Filter giá
     if ($request->min) {
         $query->where('services.price', '>=', $request->min);
     }
@@ -537,13 +566,28 @@ public function services(Request $request)
 
     $services = $query->get();
 
+    // Nếu request từ AJAX → chỉ trả list HTML
+    if ($request->ajax()) {
+
+        return view(
+            'user.service_list',
+            compact('services')
+        )->render();
+
+    }
+
     // Cart session
     $cart = session()->get('cart', []);
-    $totalItems = array_sum(array_column($cart, 'quantity'));
 
-    return view('user.services', compact('services', 'totalItems'));
+    $totalItems = array_sum(
+        array_column($cart, 'quantity')
+    );
+
+    return view(
+        'user.services',
+        compact('services', 'totalItems')
+    );
 }
-
     public function serviceDetail($id)
     {
         $service = Service::findOrFail($id);
@@ -639,6 +683,37 @@ public function cart()
         return redirect()->route('user.cart')->with('success', 'Đã thêm vào giỏ hàng');
     }
 
+
+
+public function searchServices(Request $request)
+{
+    $query = OrderItem::with(['service', 'order'])
+        ->whereHas('order', function ($q) {
+            $q->where('user_id', auth()->id());
+        });
+
+    if ($request->keyword) {
+        $query->whereHas('service', function ($q) use ($request) {
+            $q->where('name', 'like', '%' . $request->keyword . '%');
+        });
+    }
+
+    if ($request->status) {
+        $query->whereHas('order', function ($q) use ($request) {
+            $q->where('status', $request->status);
+        });
+    }
+
+    $myServices = $query->latest()->paginate(10);
+
+    if ($request->ajax()) {
+        return view('user.service-table', compact('myServices'))->render();
+    }
+
+    $filterStatus = $request->status ?? null;
+
+    return view('user.my-services', compact('myServices', 'filterStatus'));
+}
 public function removeFromCart(Request $request)
 {
     $id = $request->input('cart_item_id');

@@ -3,22 +3,6 @@
 </div>
 </main>
 
-@if(strpos($url, 'login') !== false || strpos($url, 'register') !== false || strpos($url, 'admin') !== false)
-
-    <!-- FOOTER ĐƠN GIẢN -->
-    <div class="footer-bottom mt-4 pt-3 border-top border-secondary">
-        <div class="row">
-            <div class="col-md-6">
-                <p class="mb-0 small">&copy; {{ date('Y') }} {{ config('app.name') }}. All rights reserved.</p>
-            </div>
-            <div class="col-md-6 text-md-end">
-                <a href="{{ url('/pages/terms.php') }}" class="small text-light me-3">Điều khoản</a>
-                <a href="{{ url('/pages/privacy.php') }}" class="small text-light">Chính sách bảo mật</a>
-            </div>
-        </div>
-    </div>
-
-@else
 
     <footer class="site-footer bg-dark text-light pt-5">
         <div class="container">
@@ -83,7 +67,7 @@
         </div>
     </footer>
 
-@endif
+
 
 </body>
 

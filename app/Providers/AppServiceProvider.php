@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Providers;
-
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\ServiceProvider;
 use App\Helpers\Formatter;
         use Illuminate\Support\Facades\URL;
@@ -21,6 +21,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        Paginator::useBootstrap();
         // Register helper functions
         if (!function_exists('formatCurrency')) {
             function formatCurrency($amount) {

@@ -7,79 +7,60 @@
             <h1><i class="bi bi-bag-check"></i> Dịch vụ của bạn</h1>
         </div>
     </div>
+<div class="row mb-3">
 
-    @if($myServices && count($myServices) > 0)
-        <div class="table-responsive">
-            <table class="table table-striped table-hover">
-                <thead class="table-light">
-                    <tr>
-                        <th>Ảnh</th>
-                        <th>Dịch vụ</th>
-                        <th>Số lượng</th>
-                        <th>Thành tiền</th>
-                        <th>Ngày mua</th>
-                        <th>Trạng thái</th>
-                        <th>Thao tác</th>
-                    </tr>
-                </thead>
-                <tbody>             
-                    @foreach($myServices as $service)
-                        <tr>
-                            <td>
-                                <img src="{{ !empty($service->service->image) ? asset('uploads/services/' . $service->service->image) : asset('images/default.png') }}" 
-                                     alt="{{ $service->service->name ?? 'Dịch vụ' }}"
-                                     class="imgservice"
-                                     style="border-radius: 6px; object-fit: cover;">
-                            </td>
-                            <td><strong>{{ $service->service->name ?? 'Dịch vụ' }}</strong></td>
-                            <td>{{ $service->quantity }}</td>
-                            <td>
-                                <span class="fw-bold text-success">
-                                    {{ number_format($service->quantity * $service->service->price, 0, ',', '.') }} VNĐ
-                                </span>
-                            </td>
-                            <td>{{ Carbon\Carbon::parse($service->created_at)->format('d/m/Y H:i') }}</td>
-                            <td>
-                                @php
-                                    $statusColors = [
-                                        'pending' => 'secondary',
-                                        'confirmed' => 'info',
-                                        'processing' => 'primary',
-                                        'completed' => 'success',
-                                        'cancelled' => 'danger'
-                                    ];
-                                    $statusTexts = [
-                                        'pending' => 'Chờ xử lý',
-                                        'confirmed' => 'Đã xác nhận',
-                                        'processing' => 'Đang xử lý',
-                                        'completed' => 'Hoàn tất',
-                                        'cancelled' => 'Đã hủy'
-                                    ];
-                                @endphp
-                                <span class="badge bg-{{ $statusColors[$service['status']] ?? 'dark' }}">
-                                    {{ $statusTexts[$service['status']] ?? 'Không xác định' }}
-                                </span>
-                            </td>
-                            <td>
-                                <a href="{{ route('user.orderDetail', ['id' => $service['order_id']]) }}" 
-                                   class="btn btn-sm btn-info">
-                                    <i class="bi bi-eye"></i> Xem chi tiết
-                                </a>
-                            </td>
-                        </tr>
-                    @endforeach
-                </tbody>
-            </table>
-        </div>
-        <div class="mt-3">
-               {{ $myServices->links('pagination::bootstrap-5') }}
-               </div>
-    @else
-        <div class="alert alert-info text-center py-5">
-            <i class="bi bi-info-circle" style="font-size: 3rem;"></i>
-            <p class="mt-3">Bạn chưa mua dịch vụ nào. <a href="{{ route('user.services') }}">Khám phá dịch vụ</a></p>
-        </div>
-    @endif
+    <div class="col-md-4">
+        <input type="text"
+               id="search-input"
+               class="form-control"
+               placeholder="Tìm dịch vụ...">
+    </div>
+
+    <div class="col-md-3">
+        <select id="status-filter" class="form-select">
+            <option value="">Tất cả trạng thái</option>
+            <option value="pending">Chờ xử lý</option>
+            <option value="paid">Đã thanh toán</option>
+            <option value="cancelled">Đã huỷ</option>
+        </select>
+    </div>
+
 </div>
 
+
+  <div id="service-table-area">
+
+<!-- @include('user.service-table') -->
+
+</div>
+<script>
+function loadServices(url = null) {
+    const keyword = document.getElementById('search-input').value;
+    const status = document.getElementById('status-filter').value;
+
+    if (!url) {
+        url = `{{ route('user.services.search') }}?keyword=${keyword}&status=${status}`;
+    }
+
+    fetch(url)
+        .then(res => res.text())
+        .then(data => {
+            document.getElementById('service-table-area').innerHTML = data;
+
+            // gán lại click cho pagination links
+            document.querySelectorAll('#service-table-area .pagination a').forEach(link => {
+                link.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    loadServices(this.href);
+                });
+            });
+        });
+}
+
+document.getElementById('search-input').addEventListener('keyup', () => loadServices());
+document.getElementById('status-filter').addEventListener('change', () => loadServices());
+
+// gọi lần đầu nếu muốn
+loadServices();
+</script>
 @endsection
