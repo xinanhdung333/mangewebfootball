@@ -22,6 +22,9 @@ class AppServiceProvider extends ServiceProvider
     public function boot(): void
     {
         Paginator::useBootstrap();
+ if (config('app.env') !== 'local') {
+        URL::forceScheme('https');
+    }
         // Register helper functions
         if (!function_exists('formatCurrency')) {
             function formatCurrency($amount) {

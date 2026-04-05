@@ -11,8 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('feedbacks', function (Blueprint $table) {
-            $table->timestamp('updated_at')->nullable()->default(DB::raw('CURRENT_TIMESTAMP'))->after('created_at');
+        Schema::create('chatbot_logs', function (Blueprint $table) {
+            $table->integer('id', true);
+            $table->text('message');
+            $table->string('matched_intent')->nullable();
+            $table->timestamp('created_at')->useCurrent();
         });
     }
 
@@ -21,8 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('feedbacks', function (Blueprint $table) {
-            $table->dropColumn('updated_at');
-        });
+        Schema::dropIfExists('chatbot_logs');
     }
 };

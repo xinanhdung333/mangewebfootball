@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('feedbacks', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::create('booking_services', function (Blueprint $table) {
+            $table->integer('id', true);
+            $table->integer('booking_id')->index('idx_booking');
+            $table->integer('service_id')->index('idx_service');
+            $table->integer('quantity')->default(1);
         });
     }
 
@@ -22,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('feedbacks');
+        Schema::dropIfExists('booking_services');
     }
 };

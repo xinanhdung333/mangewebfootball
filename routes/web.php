@@ -162,7 +162,7 @@ Route::post('/check-booking', [PagesController::class, 'checkBooking'])
 
     // Fields & Services
     Route::get(
-    '/user/services/search',
+    '/services/search',
     [PagesController::class, 'searchServices']
 )->name('services.search');
     Route::get('/fields', [PagesController::class, 'fields'])->name('fields');

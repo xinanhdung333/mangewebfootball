@@ -684,7 +684,6 @@ public function cart()
     }
 
 
-
 public function searchServices(Request $request)
 {
     $query = OrderItem::with(['service', 'order'])
@@ -704,7 +703,21 @@ public function searchServices(Request $request)
         });
     }
 
-    $myServices = $query->latest()->paginate(10);
+    $myServices = $query->latest()
+        ->paginate(10)
+        ->withQueryString()
+        ->withPath(route('user.services.search'));
+
+    // thêm ảnh + tổng tiền
+    $myServices->getCollection()->transform(function ($item) {
+
+        $item->image = $item->service->image ?? null;
+
+        $item->total_amount = 
+            ($item->price ?? 0) * ($item->quantity ?? 1);
+
+        return $item;
+    });
 
     if ($request->ajax()) {
         return view('user.service-table', compact('myServices'))->render();

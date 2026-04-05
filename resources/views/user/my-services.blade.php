@@ -42,25 +42,37 @@ function loadServices(url = null) {
         url = `{{ route('user.services.search') }}?keyword=${keyword}&status=${status}`;
     }
 
-    fetch(url)
-        .then(res => res.text())
-        .then(data => {
-            document.getElementById('service-table-area').innerHTML = data;
-
-            // gán lại click cho pagination links
-            document.querySelectorAll('#service-table-area .pagination a').forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    loadServices(this.href);
-                });
-            });
-        });
+    fetch(url, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
+    .then(res => res.text())
+    .then(data => {
+        document.getElementById('service-table-area').innerHTML = data;
+    });
 }
+
+
+// delegation click pagination (quan trọng)
+document.addEventListener('click', function(e) {
+    const link = e.target.closest('#service-table-area .pagination a');
+
+    if (link) {
+        e.preventDefault();
+
+        const url = new URL(link.href);
+        url.searchParams.set('keyword', document.getElementById('search-input').value);
+        url.searchParams.set('status', document.getElementById('status-filter').value);
+
+        loadServices(url.toString());
+    }
+});
 
 document.getElementById('search-input').addEventListener('keyup', () => loadServices());
 document.getElementById('status-filter').addEventListener('change', () => loadServices());
 
-// gọi lần đầu nếu muốn
+// load lần đầu
 loadServices();
 </script>
 @endsection

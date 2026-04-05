@@ -11,9 +11,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('home_settings', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::create('cart', function (Blueprint $table) {
+            $table->integer('id', true);
+            $table->integer('user_id')->index('idx_user');
+            $table->dateTime('created_at')->useCurrent();
+            $table->dateTime('updated_at')->useCurrentOnUpdate()->useCurrent();
         });
     }
 
@@ -22,6 +24,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('home_settings');
+        Schema::dropIfExists('cart');
     }
 };
