@@ -32,17 +32,15 @@ value="{{ request('q') }}"
 placeholder="Tìm theo tên..."
 style="flex:1; padding:8px; border:1px solid #ccc; border-radius:4px;">
 
-<input type="number"
-name="min"
-value="{{ request('min') }}"
-placeholder="Giá tối thiểu"
-style="width:150px; padding:8px; border:1px solid #ccc; border-radius:4px;">
+<select id="serviceSort"
+style="padding:8px; border:1px solid #ccc; border-radius:4px;">
 
-<input type="number"
-name="max"
-value="{{ request('max') }}"
-placeholder="Giá tối đa"
-style="width:150px; padding:8px; border:1px solid #ccc; border-radius:4px;">
+<option value="name">Sắp xếp theo tên</option>
+<option value="priceAsc">Giá thấp đến cao</option>
+<option value="priceDesc">Giá cao đến thấp</option>
+<option value="rating">Đánh giá cao nhất</option>
+
+</select>
 
 <button type="submit"
 style="padding:8px 15px; background:#007bff; color:white; border:none; border-radius:4px; cursor:pointer;">
@@ -56,8 +54,10 @@ Tìm kiếm
 <div class="product-grid" id="productList">
 @foreach($services as $service)
 
-<div class="product-card" data-service-id="{{ $service->id }}">
-
+<div class="product-card"
+data-service-id="{{ $service->id }}"
+data-price="{{ $service->price }}"
+data-rating="{{ $service->avg_rating ?? 0 }}">
 <a href="{{ route('user.serviceDetail', $service->id) }}">
 
 <img
@@ -75,12 +75,10 @@ class="product-image">
 {{ formatCurrency($service->price) }}
 </div>
 
-
 @php
 $avg = $service->avg_rating ? number_format($service->avg_rating,1) : 0;
 $total = $service->total_reviews ?? 0;
 @endphp
-
 
 <div class="mb-2">
 
@@ -207,9 +205,6 @@ searchForm.addEventListener('input', function(){
     });
 
 });
-
-</script>
-<script>
 document.addEventListener('DOMContentLoaded', function(){
 
     document.querySelectorAll('.btn-add-cart').forEach(btn => {
@@ -270,6 +265,40 @@ setTimeout(()=>{
     });
 
 });
+document.getElementById('serviceSort').addEventListener('change', function(){
+
+let type = this.value;
+
+let container = document.getElementById('productList');
+
+let items = Array.from(document.querySelectorAll('.product-card'));
+
+items.sort(function(a,b){
+
+let nameA = a.querySelector('.product-desc').innerText.toLowerCase();
+let nameB = b.querySelector('.product-desc').innerText.toLowerCase();
+
+let priceA = parseInt(a.dataset.price);
+let priceB = parseInt(b.dataset.price);
+
+let ratingA = parseFloat(a.dataset.rating);
+let ratingB = parseFloat(b.dataset.rating);
+
+if(type==="name") return nameA.localeCompare(nameB);
+
+if(type==="priceAsc") return priceA-priceB;
+
+if(type==="priceDesc") return priceB-priceA;
+
+if(type==="rating") return ratingB-ratingA;
+
+});
+
+items.forEach(item=>container.appendChild(item));
+
+});
+
+
 </script>
 
 @endsection

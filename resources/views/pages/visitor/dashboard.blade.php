@@ -118,9 +118,7 @@ footer {
 .between-img:hover {
     filter: drop-shadow(-18px 16px 38px rgba(0,0,0,0.5));
 }
-
-
-    </style>            
+ </style>            
 
     <section class="hero-modern">
         <div class="hero-content-modern">
@@ -202,7 +200,7 @@ footer {
                 <div class="section-block">
                     <h3><i class="bi bi-newspaper"></i> Tin mới</h3>
                     <div class="news-grid">
-                        <!-- @foreach(array_slice($news, 0, 3) as $article) -->
+                        @foreach(array_slice($news, 0, 3) as $article)
                             <div class="news-card">
                                 <img src="{{ $article['urlToImage'] }}" alt="">
                                 <div class="body">

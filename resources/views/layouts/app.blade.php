@@ -410,7 +410,7 @@ mascot.onclick = () => chatBox.style.display = "block";
 // close chat
 closeChat.onclick = () => chatBox.style.display = "none";
 
-</script>
+</script> 
 
 <script>
 const mascot = document.getElementById('mascot');

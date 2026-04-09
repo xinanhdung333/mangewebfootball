@@ -138,6 +138,8 @@
    target="_blank"
    class="btn btn-danger w-100">
    <i class="bi bi-file-pdf"></i> Xuất hóa đơn
+
+   
 </a>
                     @endif
                 </div>

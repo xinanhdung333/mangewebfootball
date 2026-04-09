@@ -203,70 +203,14 @@ public function bookingdetail($id)
 
     return view('user.booking-detail', compact('booking'));
 }
-    public function myServices()
+        public function myServices()
 {
     $filterStatus = request()->query('status');
-    $myServices = \App\Models\OrderItem::with(['service', 'order'])
-        ->whereHas('order', function ($query) {
-            $query->where('user_id', auth()->id());
-        })
-        ->when($filterStatus, function ($query, $status) {
-            $query->where('status', $status);
-        })
-        ->latest()
-        ->paginate(10);
-// dd($myServices->first()->service);
-   return view(
-    'user.my-services',
-    compact('myServices', 'filterStatus')
-);
 
-}
-    public function fieldSchedule(Request $request)
-    {
-        $fields = Field::all();
-        $bookings = Booking::where('booking_date', $request->query('date', date('Y-m-d')))
-            ->with(['field', 'user'])
-            ->get()
-            ->groupBy('field_id');
-
-        return view('user.field-schedule', [
-            'fields' => $fields,
-            'bookingMap' => $bookings,
-        ]);
-    }
-    public function orders(Request $request)
-    {
-        $user = Auth::user();
-        $query = Order::with('items.service')->where('user_id', $user->id)->orderByDesc('id');
-        if ($request->status) {
-            $query->where('status', $request->status);
-        }
-        $orders = $query->paginate(10);
-        return view('user.orders', compact('orders'));
-    }
-public function orderDetail($id)
-{
-    $userId = auth()->id();
-
-    $order = Order::where('user_id', $userId)
-        ->where('id', $id)
-        ->firstOrFail();
-
-    $orderItems = OrderItem::where('order_id', $id)
-        ->join('services','order_items.service_id','=','services.id')
-        ->select(
-            'services.name',
-            'services.image',
-            'order_items.quantity',
-            'order_items.price'
-        )
-        ->get();
-
-    return view('user.order-detail', [
-        'order' => $order,
-        'orderItems' => $orderItems
-    ]);
+    return view(
+        'user.my-services',
+        compact('filterStatus')
+    );
 }
 public function addAjax(Request $request)
 {
@@ -372,7 +316,8 @@ public function exportInvoicebooking($id)
        public function fields()
     {
         // use the Eloquent scope to include ratings
-        $fields = Field::withRatings()->get();
+        $fields = Field::get();
+
         return view('user.fields', ['fields' => $fields]);
     }
 
@@ -548,21 +493,13 @@ public function feedback()
 
 public function services(Request $request)
 {
-    $query = Service::withRatings();
-
+$query = Service::query();
     // Search theo tên
     if ($request->q) {
         $query->where('services.name', 'like', '%' . $request->q . '%');
     }
 
-    // Filter giá
-    if ($request->min) {
-        $query->where('services.price', '>=', $request->min);
-    }
 
-    if ($request->max) {
-        $query->where('services.price', '<=', $request->max);
-    }
 
     $services = $query->get();
 
@@ -719,7 +656,7 @@ public function searchServices(Request $request)
         return $item;
     });
 
-    if ($request->ajax()) {
+    if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
         return view('user.service-table', compact('myServices'))->render();
     }
 

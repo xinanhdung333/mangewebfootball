@@ -34,9 +34,8 @@
             <!-- LEFT: IMAGE -->
             <div class="col-lg-7">
                 <div class="position-relative">
-                    <img id="mainImg" 
-                         src="{{ !empty($service->image) ? asset('uploads/services/' . $service->image) : asset('images/default.png') }}" 
-                         alt="{{ $service->name }}" class="imagdetail">
+                    <img id="mainImg" src="{{ !empty($service->image) ? asset('uploads/services/' . $service->image) : asset('images/default.png') }}" 
+                         alt="{{ $service->name }}" class="imageservicedetail">
                 </div>
                 
                 <!-- Thumbnail -->

@@ -4,19 +4,27 @@
 <div class="row mb-4">
     <div class="col-md-12">
         <h1><i class="bi bi-grid"></i> Danh sách sân bóng</h1>
-
-        <!-- Thanh tìm kiếm + nút lịch đặt -->
+<!-- Thanh tìm kiếm + nút lịch đặt -->
         <div class="d-flex align-items-center mt-3">
             <input type="text" id="searchField" class="form-control me-2" placeholder="Tìm kiếm sân..." 
                    style="background: rgba(255,255,255,0.8); border:1px solid #ccc;">
+<select id="priceSort" class="form-select ms-2" style="max-width:220px;">
+    <option value="name">Sắp xếp theo tên</option>
+    <option value="priceAsc">Giá thấp đến cao</option>
+    <option value="priceDesc">Giá cao đến thấp</option>
+    <option value="rating">Đánh giá cao nhất</option>
+</select>
 
+<select id="distanceSort" class="form-select ms-2" style="max-width:220px;">
+    <option value="nearest">Gần nhất</option>
+    <option value="farthest">Xa nhất</option>
+</select>
             <a href="{{  route('user.fieldSchedule') }}" class="btn btn-info">
                 <i class="bi bi-calendar-check"></i> KHUNG GIỜ ĐÃ ĐƯỢC ĐẶT
             </a>
         </div>
     </div>
 </div>
-
 <div class="row" id="fieldList">
     @if($fields && count($fields) > 0)
         @foreach($fields as $field)
@@ -108,5 +116,72 @@
             item.style.display = name.includes(query) || location.includes(query) ? 'block' : 'none';
         });
     });
+    
+
+document.getElementById('priceSort').addEventListener('change', function () {
+
+    let type = this.value;
+
+    let container = document.getElementById('fieldList');
+
+    let items = Array.from(document.querySelectorAll('.field-item'));
+
+    items.sort(function (a, b) {
+
+        let nameA = a.querySelector('.card-title').innerText.toLowerCase();
+        let nameB = b.querySelector('.card-title').innerText.toLowerCase();
+
+        let priceA = parseInt(a.querySelector('.text-success').innerText.replace(/\D/g, ""));
+        let priceB = parseInt(b.querySelector('.text-success').innerText.replace(/\D/g, ""));
+let ratingA = parseFloat(
+    a.querySelector('.mb-2 .text-muted').innerText.match(/\((.*?)\s\/\s5/)[1]
+);
+
+let ratingB = parseFloat(
+    b.querySelector('.mb-2 .text-muted').innerText.match(/\((.*?)\s\/\s5/)[1]
+);
+
+        if (type === "name") return nameA.localeCompare(nameB);
+
+        if (type === "priceAsc") return priceA - priceB;
+
+        if (type === "priceDesc") return priceB - priceA;
+
+        if (type === "rating") return ratingB - ratingA;
+
+    });
+
+    items.forEach(item => container.appendChild(item));
+
+});
+document.getElementById('distanceSort').addEventListener('change', function () {
+
+    let type = this.value;
+
+    let container = document.getElementById('fieldList');
+
+    let items = Array.from(document.querySelectorAll('.field-item'));
+
+    items.sort(function (a, b) {
+
+        let locationA = a.querySelector('.text-muted').innerText;
+        let locationB = b.querySelector('.text-muted').innerText;
+
+        if (type === "nearest") return locationA.localeCompare(locationB);
+
+        if (type === "farthest") return locationB.localeCompare(locationA);
+
+    });
+
+    items.forEach(item => container.appendChild(item));
+
+});
+
+const urlParams = new URLSearchParams(window.location.search);
+const sort = urlParams.get('sort');
+
+if(sort){
+    document.getElementById('sort').value = sort;
+}
 </script>
 @endsection

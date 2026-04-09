@@ -1,8 +1,9 @@
 <!DOCTYPE html>
 <html lang="vi">
-    <link rel="icon" type="image/png" sizes="256x256" href="{{ url('/') }}/assets/images/logo.jpg">
 
 <head>
+        <link rel="icon" type="image/png" sizes="256x256" href="{{ url('/') }}/assets/images/logo.jpg">
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{ isset($page_title) ? $page_title . ' - ' . config('app.name') : config('app.name') }}</title>

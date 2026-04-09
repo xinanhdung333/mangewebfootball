@@ -135,7 +135,7 @@ public function returnUrl(Request $request)
             ->update(['status' => 'confirmed']);
 
   $order = Order::find($orderId);
-
+ 
 $serviceIds = OrderItem::where('order_id', $orderId)
     ->pluck('service_id');
 

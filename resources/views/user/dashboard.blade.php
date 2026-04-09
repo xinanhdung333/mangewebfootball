@@ -127,8 +127,9 @@ footer {
             <h1 class="hero-title">Chào mừng {{ Auth::user()->name }} — Đặt sân nhanh, chơi đã</h1>
             <p class="hero-subtitle">Nhanh chóng chọn sân, giờ, và dịch vụ. Trải nghiệm đặt sân mượt mà trên mọi thiết bị.</p>
             <div class="hero-ctas">
-                <a href="{{ route('user.fields') }}" class="hero-btn primary"><i class="bi bi-geo-alt-fill"></i> Tìm sân gần bạn</a>
-                <a href="{{ route('user.services') }}" class="hero-btn ghost"><i class="bi bi-bag"></i> Dịch vụ & đồ ăn</a>
+<a href="{{ route('user.fields', ['sort' => 'nearest']) }}" class="hero-btn primary">
+Tìm sân gần bạn
+</a>                <a href="{{ route('user.services') }}" class="hero-btn ghost"><i class="bi bi-bag"></i> Dịch vụ & đồ ăn</a>
             </div>
         </div>
     </section>
