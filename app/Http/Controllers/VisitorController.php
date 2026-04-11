@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Service;
 use App\Models\Field;
+use App\Models\OrderItem;
 use App\Http\Controllers\Concerns\UsesServiceQuery;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http; // thêm dòng này
@@ -109,9 +110,39 @@ return view('pages.visitor.feedback', compact('serviceFeedbacks', 'bookingFeedba
         return view('pages.visitor.Services-detail');
     }
 
-    public function myServices()
-    {
-        $data = $this->getServicesForRequest();
-        return view('pages.visitor.services', $data);
+   
+public function services(Request $request)
+{
+$query = Service::query();
+    // Search theo tên
+    if ($request->q) {
+        $query->where('services.name', 'like', '%' . $request->q . '%');
     }
+
+
+
+    $services = $query->get();
+
+    // Nếu request từ AJAX → chỉ trả list HTML
+    if ($request->ajax()) {
+
+        return view(
+            'pages.visitor.service_list',
+            compact('services')
+        )->render();
+
+    }
+
+    // Cart session
+    $cart = session()->get('cart', []);
+
+    $totalItems = array_sum(
+        array_column($cart, 'quantity')
+    );
+
+    return view(
+        'pages.visitor.services',
+        compact('services', 'totalItems')
+    );
+}
 }

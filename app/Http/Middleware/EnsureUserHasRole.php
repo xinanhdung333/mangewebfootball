@@ -16,4 +16,12 @@ class EnsureUserHasRole
         }
         return $next($request);
     }
+    protected function redirectTo($request)
+{
+    if (!$request->expectsJson()) {
+        return route('login');
+    }
+
+    return route('login');
+}
 }

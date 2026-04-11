@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
-
+use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Service;
@@ -10,7 +10,7 @@ use App\Models\Feedback;
 use App\Models\Cart;
 use App\Models\CartItem;
 use Barryvdh\DomPDF\Facade\Pdf; 
-
+use Illuminate\Support\Facades\Hash;
 use App\Models\Order;
 use App\Models\OrderItem;
 
@@ -753,6 +753,11 @@ public function checkoutMultiple(Request $request)
 }
 
 
+ public function fieldSchedule(Request $request)
+    {
+        $fields = Field::all();
+        return view('user.field-schedule', ['fields' => $fields]);
+    }
 
 public function checkoutSelected(Request $request)
 {
@@ -789,6 +794,18 @@ public function checkoutSelected(Request $request)
         DB::rollback();
         dd($e->getMessage());
     }
+}
+public function orderDetail($id)
+{
+    $order = \App\Models\Order::with('items.service')
+        ->findOrFail($id);
+
+    $orderItems = $order->items;
+
+    return view(
+        'user.order-detail',
+        compact('order','orderItems')
+    );
 }
 // taoj payment
 

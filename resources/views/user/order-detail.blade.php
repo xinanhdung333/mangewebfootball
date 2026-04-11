@@ -1,6 +1,5 @@
 @extends('layouts.app')
 @section('content')
-
 <div class="container-fluid py-4">
     <div class="row mb-4">
         <div class="col-md-12">
@@ -68,17 +67,18 @@
                     @if($orderItems && count($orderItems) > 0)
                         <div class="row g-3">
                             @foreach($orderItems as $item)
+
                                 <div class="col-12">
                                     <div class="card border-light">
                                         <div class="card-body">
                                             <div class="row align-items-center">
                                                 <div class="col-auto">
-                                                    <img src="{{ !empty($item['image']) ? asset('uploads/services/' . $item['image']) : asset('images/default.png') }}" 
-                                                         alt="{{ $item['name'] }}" 
+                                                    <img src="{{ !empty($item->service->image) ? asset('uploads/services/' .$item->service->image) : asset('images/default.png') }}" 
+                                                         alt="{{ $item->service->name }}" 
                                                          style="width: 100px; height: 100px; object-fit: cover; border-radius: 8px;">
                                                 </div>
                                                 <div class="col">
-                                                    <h6 class="card-title mb-2">{{ $item['name'] }}</h6>
+                                                    <h6 class="card-title mb-2">{{ $item->service->name }}</h6>
                                                     <p class="card-text mb-1">
                                                         <strong>Số lượng:</strong> {{ $item['quantity'] }}
                                                     </p>
