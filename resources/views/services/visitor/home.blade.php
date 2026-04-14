@@ -74,7 +74,7 @@
                         <a href="{{ url('login') }}" class="btn btn-primary btn-lg">
                             <i class="bi bi-box-arrow-in-right"></i> Đăng nhập
                         </a>
-                        <a href="{{ url('register') }}" class="btn btn-outline-primary btn-lg ms-2">
+                        <a href="{{ route('register') }}" class="btn btn-outline-primary btn-lg ms-2">
                             <i class="bi bi-person-plus"></i> Đăng ký
                         </a>
                 </div>

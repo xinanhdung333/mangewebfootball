@@ -262,29 +262,7 @@ foreach ($cartItems as $item){
     DB::beginTransaction();
 
     try {
-
-// $order = Order::where('user_id', $user->id)
-//     ->where('status', 'pending')
-//     ->latest()
-//     ->first();
-
-//if (!$order) {
     $order = $this->createOrderFromItems($items, $user);
-//}
-        // kiểm tra payment pending còn hiệu lực
-        // $payment = Payment::where('order_id', $order->id)
-        //     ->where('status', 'pending')
-        //     ->where('created_at', '>', now()->subMinutes(15))
-        //     ->first();
-
-        // if (!$payment) {
- 
-            // expire pending cũ nếu tồn tại
-            // Payment::where('order_id', $order->id)
-            //     ->where('status', 'pending')
-            //     ->update([
-            //         'status' => 'failed'
-            //     ]);
 
             // tạo pending mới
             $payment = Payment::create([
@@ -292,7 +270,7 @@ foreach ($cartItems as $item){
                 'amount' => $order->total_amount,
                 'status' => 'pending'
             ]);
-        // }
+     
 DB::commit();
 
         return redirect()->route('user.momo.pay', [
@@ -309,14 +287,18 @@ DB::commit();
 }
 public function checkoutBuyNow(Request $request)
 {
+    $request->validate([
+        'service_id' => 'required|exists:services,id',
+        'quantity' => 'required|integer|min:1'
+    ]);
+
     $user = $request->user();
 
     $service = Service::findOrFail($request->service_id);
 
-    // tạo object giống CartItem
     $item = new \stdClass();
     $item->service_id = $service->id;
-    $item->quantity = $request->quantity ?? 1;
+    $item->quantity = $request->quantity;
     $item->price = $service->price;
 
     DB::beginTransaction();
@@ -328,17 +310,17 @@ public function checkoutBuyNow(Request $request)
             $user
         );
 
-        DB::commit();
-$order->load('items');
-     return view('user.checkout', [
-    'createdOrders' => [
-        [
+        Payment::create([
             'order_id' => $order->id,
-            'name' => $service->name,
-            'total' => $service->price * ($request->quantity ?? 1)
-        ]
-    ]
-]);
+            'amount' => $order->total_amount,
+            'status' => 'pending'
+        ]);
+
+        DB::commit();
+
+        return redirect()->route('user.momo.pay', [
+            'order_id' => $order->id
+        ]);
 
     } catch (\Exception $e) {
 

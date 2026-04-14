@@ -493,24 +493,49 @@ class AdminController extends Controller
     /**
      * Manage feedback
      */
-    public function manageFeedback()
-    {
-        $services_feedback = Feedback::with(['user', 'service'])
-            ->where('service_id', '!=', null)
-            ->orderBy('id', 'desc')
-            ->get();
+   public function manageFeedback() 
+{ 
+    // Feedback dịch vụ
+    $serviceFeedbacks = DB::table('feedbacks as f')
+        ->join('services as s', 's.id', '=', 'f.service_id')
+        ->join('users as u', 'u.id', '=', 'f.user_id')
+        ->whereNotNull('f.service_id')
+        ->select([
+            'f.id as feedback_id',
+            'u.name as user_name',
+            's.id as service_id',
+            's.name as service_name',
+            's.image as service_image',
+            'f.message as feedback_message',
+            'f.rating as feedback_rating',
+            'f.created_at'
+        ])
+        ->orderByDesc('f.id')
+        ->get();
 
-        $bookings_feedback = Feedback::with(['user', 'booking.field'])
-            ->where('booking_id', '!=', null)
-            ->orderBy('id', 'desc')
-            ->get();
-
-        return view('admin.manage-feedback', [
-            'serviceFeedbacks' => $services_feedback,
-            'bookingFeedbacks' => $bookings_feedback,
-        ]);
-    }
-
+    // Feedback booking
+    $bookingFeedbacks = DB::table('feedbacks as fb')
+        ->join('bookings as b', 'b.id', '=', 'fb.booking_id')
+        ->join('users as u', 'u.id', '=', 'fb.user_id')
+        ->join('fields as f', 'f.id', '=', 'b.field_id')
+        ->select([
+            'fb.id as feedback_id',
+            'b.id as booking_id',
+            'u.name as user_name',
+            'f.name as field_name',
+            'f.image as field_image',
+            'b.booking_date',
+            'b.start_time',
+            'b.end_time',
+            'fb.message as feedback_message',
+            'fb.rating as feedback_rating',
+            'fb.created_at'
+        ])
+        ->orderByDesc('fb.id')
+        ->get();
+    
+    return view('admin.manage-feedback', compact('serviceFeedbacks', 'bookingFeedbacks')); 
+}
     /**
      * Invoices
      */

@@ -2,59 +2,85 @@
 
 @section('content')
 
-<div class="row mb-4">
-    <div class="col-md-12">
-        <h1><i class="bi bi-calendar"></i> Đặt sân của tôi</h1>
+
+    <!-- TITLE -->
+    <div class="row mb-3">
+        <div class="col-md-12">
+            <h3>📅 Sân đã đặt</h3>
+        </div>
     </div>
-</div>
 
-<div class="row mb-3">
-    <div class="col-md-12">
+    <!-- SEARCH + FILTER -->
+    <div class="row mb-3">
 
-        <div class="btn-group">
+        <div class="col-md-4">
+            <input type="text"
+                   id="search-input"
+                   class="form-control"
+                   placeholder="Tìm theo tên sân...">
+        </div>
 
-            <button onclick="filterStatus('')" class="btn btn-primary">
-                Tất cả
-            </button>
-
-            <button onclick="filterStatus('pending')" class="btn btn-warning">
-                Chờ xác nhận
-            </button>
-
-            <button onclick="filterStatus('confirmed')" class="btn btn-success">
-                Xác nhận
-            </button>
-
-            <button onclick="filterStatus('cancelled')" class="btn btn-danger">
-                Hủy
-            </button>
-
+        <div class="col-md-3">
+            <select id="status-filter" class="form-select">
+                <option value="">Tất cả trạng thái</option>
+                <option value="pending">Chờ xử lý</option>
+                <option value="paid">Đã thanh toán</option>
+                <option value="cancelled">Đã huỷ</option>
+            </select>
         </div>
 
     </div>
-</div>
 
-<div id="booking-table">
-    @include('user.booking-table')
-</div>
+    <!-- CONTENT LOAD AJAX -->
+ 
+
+            <div id="booking-table-area">
+                ///data
+            </div>
+
+
+       
 <script>
-window.filterStatus = function(status)
-{
-    console.log("clicked:", status);
+function loadBookings(url = null) {
+    const keyword = document.getElementById('search-input').value;
+    const status = document.getElementById('status-filter').value;
 
-    let url = "/user/my-bookings-fetch";
-
-    if(status)
-    {
-        url += "?status=" + status;
+    if (!url) {
+        url = `{{ route('user.search.Booking') }}?keyword=${keyword}&status=${status}`;
     }
 
-    fetch(url)
+    fetch(url, {
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest'
+        }
+    })
     .then(res => res.text())
-    .then(html =>
-    {
-        document.getElementById("booking-table").innerHTML = html;
+    .then(data => {
+        document.getElementById('booking-table-area').innerHTML = data;
     });
 }
+
+
+// delegation click pagination (quan trọng)
+document.addEventListener('click', function(e) {
+    const link = e.target.closest('#booking-table-area .pagination a');
+
+    if (link) {
+        e.preventDefault();
+
+        const url = new URL(link.href);
+        url.searchParams.set('keyword', document.getElementById('search-input').value);
+        url.searchParams.set('status', document.getElementById('status-filter').value);
+
+        loadBookings(url.toString());
+    }
+});
+
+document.getElementById('search-input').addEventListener('keyup', () => loadBookings());
+document.getElementById('status-filter').addEventListener('change', () => loadBookings());
+
+// load lần đầu
+loadBookings();
 </script>
+
 @endsection

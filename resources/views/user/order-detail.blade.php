@@ -133,7 +133,7 @@
                     <hr>
 
                     <!-- XUẤT HÓA ĐƠN CHO ĐƠN HÀNG ĐÃ HOÀN THÀNH -->
-                    @if($order->status === 'completed')
+                    @if($order->status === 'confirmed')
                        <a href="{{ route('user.exportInvoice',$order->id) }}"
    target="_blank"
    class="btn btn-danger w-100">

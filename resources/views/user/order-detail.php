@@ -61,7 +61,7 @@ function statusText($status){
 
 <div class="order-container">
 
-    <a href="cart.php" class="back-link">← Quay lại</a>
+    <a href="my-services.php" class="back-link">← Quay lại</a>
 
     <h2>Chi tiết đơn hàng #<?= $order_id; ?></h2>
 

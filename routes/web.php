@@ -1,5 +1,6 @@
 <?php
-
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\HomeController;
 use App\Http\Controllers\MomoController;
@@ -14,11 +15,31 @@ use App\Http\Controllers\BossController;
 use App\Http\Controllers\VisitorController;
 use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\ChatbotIntentController;
+use App\Http\Controllers\BookingMomoController;
+use App\Http\Controllers\ForgotPasswordController;
+use App\Http\Controllers\Auth\PasswordResetLinkController;
 
+require __DIR__.'/auth.php';
+
+
+
+// Route::post('/forgot-password', function (Request $request) {
+//     $request->validate(['email' => 'required|email']);
+
+//     $status = Password::sendResetLink(
+//         $request->only('email')
+//     );
+
+//     return $status === Password::RESET_LINK_SENT
+//         ? back()->with(['status' => __($status)])
+//         : back()->withErrors(['email' => __($status)]);
+// });
 // Home
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Auth
+// Route::get('/forgot-password', [ForgotPasswordController::class, 'showForm'])->name('forgot');
+// Route::post('/forgot-password', [ForgotPasswordController::class, 'sendMail'])->name('forgot.post');
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
@@ -123,7 +144,7 @@ Route::delete('/response/{id}',
 
 
 // Boss
-Route::prefix('boss')->name('boss.')->middleware(['auth'])->group(function(){
+Route::prefix('boss')->name('boss.')->middleware(['auth','boss'])->group(function(){
     Route::get('/home', [HomeController::class, 'indexboss'])->name('home');
 
     Route::get('/profile', [BossController::class, 'profile'])->name('profile');
@@ -155,7 +176,8 @@ Route::prefix('boss')->name('boss.')->middleware(['auth'])->group(function(){
 // User Pages - Protected Routes
 Route::middleware(['auth'])->prefix('user')->name('user.')->group(function(){
     // Dashboard & Main Pages
-Route::post('/check-booking', [PagesController::class, 'checkBooking'])
+    Route::get('/home', [HomeController::class, 'indexuser'])->name('home');
+    Route::post('/check-booking', [PagesController::class, 'checkBooking'])
     ->name('check.booking');
     Route::get('/dashboard', [PagesController::class, 'dashboard'])->name('dashboard');
     Route::get('/about', [PagesController::class, 'about'])->name('about');
@@ -182,7 +204,8 @@ Route::post('/check-booking', [PagesController::class, 'checkBooking'])
     Route::get('/booking/{id}', [PagesController::class, 'bookingdetail'])->name('bookingdetail');
     Route::post('/booking/{id}/cancel', [PagesController::class, 'cancelBooking'])->name('cancelBooking');
     Route::get('/my-bookings', [PagesController::class, 'myBookings'])->name('myBookings');
-    Route::get('/field-schedule', [PagesController::class, 'fieldSchedule'])->name('fieldSchedule');
+    Route::get('/field-schedule', [PagesController::class, 'fieldSchedule']) ->name('fieldSchedule');
+    Route::get('/booking/search', [BookingController::class, 'searchBooking'])->name('search.Booking');
         Route::get('/booking/{id}/export', [PagesController::class, 'exportInvoicebooking'])->name('exportInvoicebooking');
 
     
@@ -221,7 +244,16 @@ Route::post('/check-booking', [PagesController::class, 'checkBooking'])
 // Route::get('/chatbot', function () {
 //     return view('ap');
 //});
+
+Route::get('/booking/momo/{booking_id}',
+    [BookingMomoController::class, 'createPayment']
+)->name('booking.momo');
+
+
 });
+
+Route::get('/booking/momo/return', [BookingMomoController::class, 'returnUrl'])
+->name('booking.momo.return');
 Route::match(['GET','POST'], '/momo/ipn',
     [MomoController::class, 'ipnUrl']
 )->name('momo.ipn');

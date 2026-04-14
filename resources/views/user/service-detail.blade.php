@@ -102,7 +102,7 @@
 
                     <!-- BUY NOW -->
                     <div class="col-6">
-                        <form method="POST" action="{{ route('user.add.checkoutBuyNow') }}">
+<form method="POST" action="{{ route('user.add.checkoutBuyNow') }}">
     @csrf
     <input type="hidden" name="type" value="buy_now">
     <input type="hidden" name="service_id" value="{{ $service->id }}">
@@ -194,7 +194,6 @@ document.addEventListener('DOMContentLoaded', function() {
             const data = await response.json();
             
             if (data.success) {
-                alert('Thêm giỏ thành công!');
                 window.location.href = '{{ route("user.cart") }}';
             } else {
                 alert(data.error || 'Không thể thêm vào giỏ');

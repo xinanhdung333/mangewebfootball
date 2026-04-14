@@ -81,7 +81,7 @@
                                     <button class="btn btn-sm btn-primary"
                                             data-bs-toggle="modal"
                                             data-bs-target="#editServiceModal"
-                                            onclick="editService(@json($service))">
+                                            onclick='editService(@json($service))'>
                                         <i class="bi bi-pencil"></i> Sửa
                                     </button>
                                     <form method="POST" action="{{ route('boss.delete.service') }}" style="display:inline;">

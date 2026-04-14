@@ -38,6 +38,7 @@
 
                         <button type="submit" class="btn btn-primary btn-lg w-100 fw-semibold">Đăng nhập</button>
                     </form>
+                    <a style="float:right" href="{{ route('password.request') }}">Quên mật khẩu?</a>
 
                     <hr class="my-4">
 

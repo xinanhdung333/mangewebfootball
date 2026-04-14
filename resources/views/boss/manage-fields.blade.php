@@ -83,7 +83,7 @@
                                     <button class="btn btn-sm btn-primary"
                                             data-bs-toggle="modal"
                                             data-bs-target="#editFieldModal"
-                                            onclick="editField(@json($field))">
+                                            onclick='editField(@json($field))'>
                                         <i class="bi bi-pencil"></i> Sửa
                                     </button>
                                     <form method="POST" action="{{ route('boss.delete.field') }}" style="display:inline;">

@@ -16,6 +16,11 @@ return Application::configure(basePath: dirname(__DIR__))
         'user/momo/ipn',
     ]);
 
+    // thêm dòng này
+    $middleware->alias([
+        'boss' => \App\Http\Middleware\BossMiddleware::class,
+    ]);
+
 })
     ->withExceptions(function (Exceptions $exceptions): void {
         //

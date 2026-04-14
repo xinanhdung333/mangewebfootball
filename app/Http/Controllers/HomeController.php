@@ -15,6 +15,11 @@ class HomeController extends Controller
         $user = Auth::user();
         return view('services.visitor.home', ['user' => $user]);
     }
+    public function indexuser(Request $request)
+    {
+        $user = Auth::user();
+        return view('services.user.home', ['user' => $user]);
+    }
     public function indexadmin(Request $request)
     {
         $user = Auth::user();

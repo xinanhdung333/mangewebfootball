@@ -3,6 +3,7 @@
 
 <head>
         <link rel="icon" type="image/png" sizes="256x256" href="{{ url('/') }}/assets/images/logo.jpg">
+        
 
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -76,7 +77,7 @@ document.addEventListener('mousemove', (e) => {
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
       <a class="navbar-brand" href="{{ url('/') }}">
-    <i class="bi bi-dribbble"></i> {{ config('app.name') }}
+    <i class="bi bi-dribbble"></i>    Football Booking
 </a>
 
 

@@ -23,7 +23,7 @@ class AppServiceProvider extends ServiceProvider
     {
         Paginator::useBootstrap();
  if (config('app.env') !== 'local') {
-        URL::forceScheme('https');
+      //  URL::forceScheme('https');
     }
         // Register helper functions
         if (!function_exists('formatCurrency')) {
@@ -39,7 +39,7 @@ class AppServiceProvider extends ServiceProvider
         }
 
 
-    URL::forceScheme('https');
+   // URL::forceScheme('https');
 
     }
 }

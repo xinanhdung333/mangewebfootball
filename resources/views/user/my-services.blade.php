@@ -4,7 +4,7 @@
 <div class="container-fluid py-4">
     <div class="row mb-4">
         <div class="col-md-12">
-            <h1><i class="bi bi-bag-check"></i> Dịch vụ của bạn</h1>
+            <h1><i class="bi bi-bag-check"></i> Dịch vụ đã đặt</h1>
         </div>
     </div>
 <div class="row mb-3">
@@ -20,7 +20,7 @@
         <select id="status-filter" class="form-select">
             <option value="">Tất cả trạng thái</option>
             <option value="pending">Chờ xử lý</option>
-            <option value="paid">Đã thanh toán</option>
+            <option value="confirmed">Đã thanh toán</option>
             <option value="cancelled">Đã huỷ</option>
         </select>
     </div>
@@ -28,7 +28,7 @@
 </div>
 
 
-  <div id="service-table-area">
+  <div id="service-table-area" class ="py-4">
 
 <!-- @include('user.service-table') -->
 

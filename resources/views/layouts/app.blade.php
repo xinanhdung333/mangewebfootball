@@ -123,7 +123,15 @@
                 padding-top: 0.5rem;
             }
         }
+
+
+
+}
     </style>
+
+
+
+
 
 <style>
 /* Floating chat button (Shopee style) */
@@ -257,7 +265,7 @@
     <i class="bi bi-dribbble"></i> Football Booking
 </a>
     @else
-      <a class="navbar-brand" href="{{ route('home') }}">
+      <a class="navbar-brand" href="{{ route('user.home') }}">
     <i class="bi bi-dribbble"></i> Football Booking
 </a>
    @endif
@@ -356,8 +364,7 @@
     <div class="container-fluid px-4">
 
     @yield('content')
-    </div>
-</main>
+
 
 @include('partials.visitor.footer')
 

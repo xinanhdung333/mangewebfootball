@@ -18,6 +18,7 @@ use App\Models\Booking;
 use App\Http\Controllers\Concerns\UsesServiceQuery;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use App\Models\BookingPayment;
 
 
 class PagesController extends Controller
@@ -115,78 +116,96 @@ public function checkBooking(Request $request)
         'available' => !$exists
     ]);
 }
-    public function storeBooking(Request $request)
-    {
-        
-        $data = $request->validate([
-            'field_id' => 'required|exists:fields,id',
-            'booking_date' => 'required|date|after_or_equal:today',
-            'start_time' => 'required',
-            'end_time' => 'required|after:start_time',
-            'services' => 'array',
-        ]);
+//thanh toán momo
+public function storeBooking(Request $request)
+{
+    $data = $request->validate([
+        'field_id' => 'required|exists:fields,id',
+        'booking_date' => 'required|date|after_or_equal:today',
+        'start_time' => 'required',
+        'end_time' => 'required|after:start_time',
+        'services' => 'array',
+    ]);
 
-        $user = Auth::user();
-        if (!$user) {
-            return redirect()->route('login')->with('error', 'Bạn cần đăng nhập để đặt sân.');
-        }
-$exists = Booking::where('field_id', $data['field_id'])
-    ->where('booking_date', $data['booking_date'])
-    ->where(function ($query) use ($data) {
-        $query->whereBetween('start_time', [$data['start_time'], $data['end_time']])
+    $user = Auth::user();
+
+    if (!$user) {
+        return redirect()->route('login');
+    }
+
+    // check trùng giờ
+    $exists = Booking::where('field_id', $data['field_id'])
+        ->where('booking_date', $data['booking_date'])
+        ->where(function ($q) use ($data) {
+            $q->whereBetween('start_time', [$data['start_time'], $data['end_time']])
               ->orWhereBetween('end_time', [$data['start_time'], $data['end_time']])
-              ->orWhere(function ($q) use ($data) {
-                  $q->where('start_time', '<=', $data['start_time'])
-                    ->where('end_time', '>=', $data['end_time']);
+              ->orWhere(function ($q2) use ($data) {
+                  $q2->where('start_time', '<=', $data['start_time'])
+                     ->where('end_time', '>=', $data['end_time']);
               });
-    })
-    ->exists();
+        })
+        ->exists();
 
-if ($exists) {
-    return back()->with('error', 'Khung giờ này đã có người đặt.');
-}
-        DB::transaction(function () use ($data, $user, $request) {
-            $field = Field::findOrFail($data['field_id']);
-            $totalPrice = $field->price_per_hour * (strtotime($data['end_time']) - strtotime($data['start_time'])) / 3600;
+    if ($exists) {
+        return back()->with('error', 'Khung giờ đã có người đặt');
+    }
 
-            $booking = Booking::create([
-                'user_id' => $user->id,
-                'field_id' => $field->id,
-                'booking_date' => $data['booking_date'],
-                'start_time' => $data['start_time'],
-                'end_time' => $data['end_time'],
-                'total_price' => max(0, $totalPrice),
-                'status' => 'pending',
-            ]);
+    $booking = DB::transaction(function () use ($data, $user, $request) {
 
-         foreach ($request->input('services', []) as $serviceId => $qty) {
-    $qty = (int) $qty;
+        $field = \App\Models\Field::findOrFail($data['field_id']);
 
-    if ($qty > 0) {
+        $hours = (strtotime($data['end_time']) - strtotime($data['start_time'])) / 3600;
 
-        $service = Service::find($serviceId);
+        $totalPrice = $field->price_per_hour * $hours;
 
-        // kiểm tra tồn kho
-        if ($service->quantity < $qty) {
-            throw new \Exception("Dịch vụ {$service->name} không đủ số lượng");
-        }
-
-        // lưu booking service
-        DB::table('booking_services')->insert([
-            'booking_id' => $booking->id,
-            'service_id' => $serviceId,
-            'quantity' => $qty,
+        $booking = Booking::create([
+            'user_id' => $user->id,
+            'field_id' => $field->id,
+            'booking_date' => $data['booking_date'],
+            'start_time' => $data['start_time'],
+            'end_time' => $data['end_time'],
+            'total_price' => max(0, $totalPrice),
+            'status' => 'pending',
         ]);
 
-        // trừ kho
-        $service->decrement('quantity', $qty);
-    }
-}
-        });
+        foreach ($request->input('services', []) as $serviceId => $qty) {
 
-        return redirect()->route('user.bookingcreate', ['field_id' => $data['field_id']])->with('success', 'Đặt sân thành công.');
-    }
-     public function bookingcreate(Request $request)
+            $qty = (int) $qty;
+
+            if ($qty > 0) {
+
+                $service = Service::find($serviceId);
+
+                if ($service && $service->quantity >= $qty) {
+
+                    DB::table('booking_services')->insert([
+                        'booking_id' => $booking->id,
+                        'service_id' => $serviceId,
+                        'quantity' => $qty,
+                    ]);
+
+                    $service->decrement('quantity', $qty);
+                }
+            }
+        }
+
+        return $booking;
+    });
+
+    // tạo payment
+    BookingPayment::create([
+        'booking_id' => $booking->id,
+        'amount' => $booking->total_price,
+        'status' => 'pending'
+    ]);
+
+    // redirect momo
+   
+return redirect()->route('user.booking.momo', [
+    'booking_id' => $booking->id
+]);
+}
+       public function bookingcreate(Request $request)
     {
         $fieldId = $request->query('field_id');
         $field = $fieldId ? Field::find($fieldId) : null;
@@ -233,6 +252,7 @@ public function addAjax(Request $request)
         ]);
 
     }
+$qty = $request->quantity ?? 1;
 
     $item = CartItem::where([
         'cart_id' => $cart->id,
@@ -241,14 +261,14 @@ public function addAjax(Request $request)
 
     if ($item) {
 
-        $item->increment('quantity', 1);
+        $item->increment('quantity',$qty);
 
     } else {
 
         CartItem::create([
             'cart_id' => $cart->id,
             'service_id' => $request->service_id,
-            'quantity' => 1,
+            'quantity' => $qty,
             'price' => Service::find($request->service_id)->price
         ]);
 
@@ -759,40 +779,150 @@ public function checkoutMultiple(Request $request)
         return view('user.field-schedule', ['fields' => $fields]);
     }
 
-public function checkoutSelected(Request $request)
+public function checkoutAll(Request $request)
 {
     $user = $request->user();
+
+    $cartItems = CartItem::where(
+        'cart_id',
+        $user->cart->id ?? null
+    )->get();
+    if ($cartItems->isEmpty()) {
+        return redirect()
+            ->route('user.cart')
+            ->with('error', 'Giỏ hàng trống');
+    }
+
+    DB::beginTransaction();
+
+    try {
+
+        $order = $this->createOrderFromItems(
+            $cartItems,
+            $user
+        );
+        $createdOrders = [];
+
+foreach ($cartItems as $item){
+        $serviceId = $item->service_id;
+
+    $service = Service::find($serviceId);
+
+    $createdOrders[] = [
+        'order_id' => $order->id,
+        'name' => $service->name,
+        'total' => $service->price * $item->quantity
+    ];
+}
+
+        CartItem::whereIn(
+            'id',
+            $cartItems->pluck('id')
+        )->delete();
+
+        DB::commit();
+
+       return view('user.checkout', [
+    'createdOrders' => $createdOrders
+]);
+
+  }catch (\Exception $e) {
+
+    DB::rollback();
+
+    dd($e->getMessage());
+
+}
+}
+public function checkoutSelected(Request $request)
+{
+    $request->validate([
+        'selected_items' => 'required'
+    ]);
+
+    $user = $request->user();
+
     $ids = $request->selected_items;
 
     if (!is_array($ids)) {
         $ids = explode(',', $ids);
     }
 
-    $items = CartItem::whereIn('id', $ids)->get();
+    $items = CartItem::whereIn('id', $ids)
+        ->whereHas('cart', function ($q) use ($user) {
+            $q->where('user_id', $user->id);
+        })
+        ->get();
+
     if ($items->isEmpty()) {
         return back()->with('error', 'Chưa chọn sản phẩm');
     }
 
     DB::beginTransaction();
+
     try {
-        $order = $this->createOrderFromItems($items, $user);
-        Payment::create([
-            'order_id' => $order->id,
-            'amount' => $order->total_amount,
-            'status' => 'pending'
-        ]);
+    $order = $this->createOrderFromItems($items, $user);
 
-        CartItem::whereIn('id', $ids)->delete();
-        DB::commit();
+            // tạo pending mới
+            $payment = Payment::create([
+                'order_id' => $order->id,
+                'amount' => $order->total_amount,
+                'status' => 'pending'
+            ]);
+     
+DB::commit();
 
-        // Trả về view MoMo để auto POST
-        return response()->view('momo.redirect', [
+        return redirect()->route('user.momo.pay', [
             'order_id' => $order->id
         ]);
 
     } catch (\Exception $e) {
+
         DB::rollback();
-        dd($e->getMessage());
+
+        return back()->with('error', 'Thanh toán thất bại');
+
+    }
+}
+public function checkoutBuyNow(Request $request)
+{
+    $user = $request->user();
+
+    $service = Service::findOrFail($request->service_id);
+
+    // tạo object giống CartItem
+    $item = new \stdClass();
+    $item->service_id = $service->id;
+    $item->quantity = $request->quantity ?? 1;
+    $item->price = $service->price;
+
+    DB::beginTransaction();
+
+    try {
+
+        $order = $this->createOrderFromItems(
+            collect([$item]),
+            $user
+        );
+
+        DB::commit();
+$order->load('items');
+     return view('user.checkout', [
+    'createdOrders' => [
+        [
+            'order_id' => $order->id,
+            'name' => $service->name,
+            'total' => $service->price * ($request->quantity ?? 1)
+        ]
+    ]
+]);
+
+    } catch (\Exception $e) {
+
+        DB::rollback();
+
+        return back()->with('error', 'Thanh toán thất bại');
+
     }
 }
 public function orderDetail($id)

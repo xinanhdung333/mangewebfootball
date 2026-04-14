@@ -62,20 +62,94 @@ class BookingController extends Controller
 
         return redirect()->route('booking.create', ['field_id' => $data['field_id']])->with('success', 'Đặt sân thành công.');
     }
+public function searchBookings(Request $request)
+{
+    $query = Booking::with(['service', 'order'])
+        ->whereHas('order', function ($q) {
+            $q->where('user_id', auth()->id());
+        });
 
+    // tìm theo tên service
+    if ($request->keyword) {
+        $query->whereHas('service', function ($q) use ($request) {
+            $q->where('name', 'like', '%' . $request->keyword . '%');
+        });
+    }
+
+    // lọc theo trạng thái order
+    if ($request->status) {
+        $query->whereHas('order', function ($q) use ($request) {
+            $q->where('status', $request->status);
+        });
+    }
+
+    $myBookings = $query->latest()
+        ->paginate(10)
+        ->withQueryString()
+        ->withPath(route('user.bookings.search'));
+
+    // thêm ảnh + tổng tiền
+    $myBookings->getCollection()->transform(function ($item) {
+
+        $item->image = $item->service->image ?? null;
+
+        $item->total_amount =
+            ($item->price ?? 0) * ($item->quantity ?? 1);
+
+        return $item;
+    });
+
+    // ajax render table
+    if ($request->ajax() || 
+        $request->header('X-Requested-With') === 'XMLHttpRequest') {
+
+        return view('user.booking-table', compact('myBookings'))->render();
+    }
+
+    $filterStatus = $request->status ?? null;
+
+    return view('user.my-bookings', compact('myBookings', 'filterStatus'));
+}
    public function bookingdetail($id)
 {
     return view('user.booking-detail', compact('id'));
 }
 
-    public function fieldSchedule(Request $request)
-    {
-        $fields = Field::all();
-        return view('user.field-schedule', ['fields' => $fields]);
-    }
-
+   
     public function myBookings(Request $request)
     {
         return view('user.my-bookings');
     }
+    public function searchBooking(Request $request)
+{
+    $keyword = $request->keyword;
+    $status = $request->status;
+
+    $query = Booking::with(['order', 'field']);
+
+    // 🔎 tìm theo tên sân (service bên dịch vụ)
+    if ($keyword) {
+        $query->whereHas('field', function ($q) use ($keyword) {
+            $q->where('name', 'like', '%' . $keyword . '%');
+        });
+    }
+
+    // 🔎 lọc theo trạng thái order
+    if ($status) {
+        $query->whereHas('order', function ($q) use ($status) {
+            $q->where('status', $status);
+        });
+    }
+
+    $myBookings = $query
+        ->where('user_id', auth()->id()) // 👈 QUAN TRỌNG: chỉ lấy booking của user
+        ->orderByDesc('created_at')
+        ->paginate(5);
+
+    if ($request->ajax()) {
+        return view('user.booking-table', compact('myBookings'));
+    }
+
+    return view('user.my-bookings', compact('myBookings'));
+}
 }

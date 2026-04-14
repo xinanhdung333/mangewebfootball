@@ -83,7 +83,7 @@
                                     <button class="btn btn-sm btn-primary"
                                             data-bs-toggle="modal"
                                             data-bs-target="#editFieldModal"
-                                            onclick="editField(@json($field))">
+                                            onclick='editField(@json($field))'>
                                         <i class="bi bi-pencil"></i> Sửa
                                     </button>
                                     <form method="POST" action="{{ route('boss.delete.field') }}" style="display:inline;">
@@ -226,26 +226,35 @@
 
 <script>
 function editField(field) {
-    document.getElementById('edit_id').value = field.id;
-    document.getElementById('edit_name').value = field.name;
-    document.getElementById('edit_location').value = field.location;
-    document.getElementById('edit_description').value = field.description;
-    document.getElementById('edit_price').value = field.price_per_hour;
-    document.getElementById('edit_status').value = field.status;
 
-    document.getElementById('edit_preview').src = field.image
-        ? "{{ asset('uploads/fields/') }}/" + field.image + "?t=" + new Date().getTime()
-        : "";
+    document.getElementById('edit_id').value = field.id ?? '';
+    document.getElementById('edit_name').value = field.name ?? '';
+    document.getElementById('edit_location').value = field.location ?? '';
+    document.getElementById('edit_description').value = field.description ?? '';
+    document.getElementById('edit_price').value = field.price_per_hour ?? '';
+    document.getElementById('edit_status').value = field.status ?? 'active';
+
+    if(field.image){
+        document.getElementById('edit_preview').src =
+            "/uploads/fields/" + field.image + "?t=" + new Date().getTime();
+    }else{
+        document.getElementById('edit_preview').src = "";
+    }
 
     document.getElementById('edit_image_input').value = "";
 }
 
-// Preview khi chọn file mới
-document.getElementById('edit_image_input').addEventListener('change', function(event) {
-    const [file] = event.target.files;
-    if (file) {
-        document.getElementById('edit_preview').src = URL.createObjectURL(file);
+
+// preview ảnh mới
+document.getElementById('edit_image_input').addEventListener('change', function(e) {
+
+    if(e.target.files.length > 0){
+
+        document.getElementById('edit_preview').src =
+            URL.createObjectURL(e.target.files[0]);
+
     }
+
 });
 </script>
 @endsection

@@ -129,6 +129,11 @@ class BossController extends Controller
     
     public function storeUser(Request $request)
     {
+            $user = auth()->id();
+   if(!$user || $user->role != 'boss'){
+        return back()->with('error', 'Vui lòng đăng nhập với vai trò boss!!');
+    }
+
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
@@ -532,50 +537,49 @@ class BossController extends Controller
         
         return view('boss.user_service_history', compact('data'));
     }
-    public function manageFeedback() 
-    { 
-        // Feedback dịch vụ
-        $serviceFeedbacks = DB::table('feedback as f')
-            ->join('services as s', 's.id', '=', 'f.service_id')
-            ->join('users as u', 'u.id', '=', 'f.user_id')
-            ->whereNotNull('f.service_id')
-            ->select([
-                'f.id as feedback_id',
-                'u.name as user_name',
-                's.id as service_id',
-                's.name as service_name',
-                's.image as service_image',
-                'f.message as feedback_message',
-                'f.rating as feedback_rating',
-                'f.created_at'
-            ])
-            ->orderByDesc('f.id')
-            ->get();
+   public function manageFeedback() 
+{ 
+    // Feedback dịch vụ
+    $serviceFeedbacks = DB::table('feedbacks as f')
+        ->join('services as s', 's.id', '=', 'f.service_id')
+        ->join('users as u', 'u.id', '=', 'f.user_id')
+        ->whereNotNull('f.service_id')
+        ->select([
+            'f.id as feedback_id',
+            'u.name as user_name',
+            's.id as service_id',
+            's.name as service_name',
+            's.image as service_image',
+            'f.message as feedback_message',
+            'f.rating as feedback_rating',
+            'f.created_at'
+        ])
+        ->orderByDesc('f.id')
+        ->get();
 
-        // Feedback booking
-        $bookingFeedbacks = DB::table('feedback as fb')
-            ->join('bookings as b', 'b.id', '=', 'fb.booking_id')
-            ->join('users as u', 'u.id', '=', 'fb.user_id')
-            ->join('fields as f', 'f.id', '=', 'b.field_id')
-            ->select([
-                'fb.id as feedback_id',
-                'b.id as booking_id',
-                'u.name as user_name',
-                'f.name as field_name',
-                'f.image as field_image',
-                'b.booking_date',
-                'b.start_time',
-                'b.end_time',
-                'fb.message as feedback_message',
-                'fb.rating as feedback_rating',
-                'fb.created_at'
-            ])
-            ->orderByDesc('fb.id')
-            ->get();
-        
-        return view('boss.manage-feedback', compact('serviceFeedbacks', 'bookingFeedbacks')); 
-    }
-
+    // Feedback booking
+    $bookingFeedbacks = DB::table('feedbacks as fb')
+        ->join('bookings as b', 'b.id', '=', 'fb.booking_id')
+        ->join('users as u', 'u.id', '=', 'fb.user_id')
+        ->join('fields as f', 'f.id', '=', 'b.field_id')
+        ->select([
+            'fb.id as feedback_id',
+            'b.id as booking_id',
+            'u.name as user_name',
+            'f.name as field_name',
+            'f.image as field_image',
+            'b.booking_date',
+            'b.start_time',
+            'b.end_time',
+            'fb.message as feedback_message',
+            'fb.rating as feedback_rating',
+            'fb.created_at'
+        ])
+        ->orderByDesc('fb.id')
+        ->get();
+    
+    return view('boss.manage-feedback', compact('serviceFeedbacks', 'bookingFeedbacks')); 
+}
     public function statistics()
     {
         $stats = Cache::remember('boss.statistics', 300, function () {
