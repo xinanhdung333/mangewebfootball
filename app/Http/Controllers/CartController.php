@@ -189,6 +189,7 @@ public function checkoutAll(Request $request)
         'cart_id',
         $user->cart->id ?? null
     )->get();
+
     if ($cartItems->isEmpty()) {
         return redirect()
             ->route('user.cart')
@@ -203,19 +204,33 @@ public function checkoutAll(Request $request)
             $cartItems,
             $user
         );
+
         $createdOrders = [];
+        $totalAmount = 0;
 
-foreach ($cartItems as $item){
-        $serviceId = $item->service_id;
+        foreach ($cartItems as $item) {
 
-    $service = Service::find($serviceId);
+            $service = Service::find($item->service_id);
 
-    $createdOrders[] = [
-        'order_id' => $order->id,
-        'name' => $service->name,
-        'total' => $service->price * $item->quantity
-    ];
-}
+            $total = $service->price * $item->quantity;
+
+            // tạo order item
+            OrderItem::create([
+                'order_id' => $order->id,
+                'service_id' => $service->id,
+                'quantity' => $item->quantity,
+                'price' => $service->price,
+                'total' => $total
+            ]);
+
+            $createdOrders[] = [
+                'order_id' => $order->id,
+                'name' => $service->name,
+                'total' => $total
+            ];
+
+            $totalAmount += $total;
+        }
 
         CartItem::whereIn(
             'id',
@@ -224,18 +239,67 @@ foreach ($cartItems as $item){
 
         DB::commit();
 
-       return view('user.checkout', [
-    'createdOrders' => $createdOrders
-]);
+        // chuẩn bị dữ liệu gửi MoMo
+        session([
+            'momo_order_id' => $order->id,
+            'momo_amount' => $totalAmount
+        ]);
+// dd($order);
+        return redirect()->route('user.momo.pay');
 
-  }catch (\Exception $e) {
+    } catch (\Exception $e) {
 
-    DB::rollback();
+        DB::rollback();
 
-    dd($e->getMessage());
-
+        dd($e->getMessage());
+    }
 }
-}public function checkoutSelected(Request $request)
+public function checkoutBuyNow(Request $request)
+{
+    $request->validate([
+        'service_id' => 'required|exists:services,id',
+        'quantity' => 'required|integer|min:1'
+    ]);
+
+    $user = $request->user();
+
+    $service = Service::findOrFail($request->service_id);
+
+    $item = new \stdClass();
+    $item->service_id = $service->id;
+    $item->quantity = $request->quantity;
+    $item->price = $service->price;
+
+    DB::beginTransaction();
+
+    try {
+
+        $order = $this->createOrderFromItems(
+            collect([$item]),
+            $user
+        );
+
+        Payment::create([
+            'order_id' => $order->id,
+            'amount' => $order->total_amount,
+            'status' => 'pending'
+        ]);
+
+        DB::commit();
+
+        return redirect()->route('user.momo.pay', [
+            'order_id' => $order->id
+        ]);
+
+    } catch (\Exception $e) {
+
+        DB::rollback();
+
+        return back()->with('error', 'Tha nh toán thất bại');
+
+    }
+}
+public function checkoutSelected(Request $request)
 {
     $request->validate([
         'selected_items' => 'required'
@@ -272,51 +336,6 @@ foreach ($cartItems as $item){
             ]);
      
 DB::commit();
-
-        return redirect()->route('user.momo.pay', [
-            'order_id' => $order->id
-        ]);
-
-    } catch (\Exception $e) {
-
-        DB::rollback();
-
-        return back()->with('error', 'Thanh toán thất bại');
-
-    }
-}
-public function checkoutBuyNow(Request $request)
-{
-    $request->validate([
-        'service_id' => 'required|exists:services,id',
-        'quantity' => 'required|integer|min:1'
-    ]);
-
-    $user = $request->user();
-
-    $service = Service::findOrFail($request->service_id);
-
-    $item = new \stdClass();
-    $item->service_id = $service->id;
-    $item->quantity = $request->quantity;
-    $item->price = $service->price;
-
-    DB::beginTransaction();
-
-    try {
-
-        $order = $this->createOrderFromItems(
-            collect([$item]),
-            $user
-        );
-
-        Payment::create([
-            'order_id' => $order->id,
-            'amount' => $order->total_amount,
-            'status' => 'pending'
-        ]);
-
-        DB::commit();
 
         return redirect()->route('user.momo.pay', [
             'order_id' => $order->id

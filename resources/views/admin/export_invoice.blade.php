@@ -16,7 +16,7 @@
                     <h5 class="mb-0">Tạo Hóa Đơn</h5>
                 </div>
                 <div class="card-body">
-                    <form method="GET" action="{{ route('boss.export.invoice') }}" class="needs-validation">
+                    <form method="GET" action="{{ route('admin.export.invoice') }}" class="needs-validation">
                         @csrf
                         
                         <div class="mb-3">

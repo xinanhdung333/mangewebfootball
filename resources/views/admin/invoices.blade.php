@@ -1,64 +1,192 @@
 @extends('layouts.app')
 
 @section('content')
+
 <div class="row mb-4">
-    <div class="col-md-12">
-        <h1><i class="bi bi-receipt"></i> Hóa Đơn</h1>
-    </div>
+<div class="col-md-12">
+<h1>
+<i class="bi bi-receipt"></i>
+Danh sách hóa đơn đã xuất
+</h1>
+</div>
 </div>
 
 <div class="row mb-4">
-    <div class="col-md-12">
-        <a href="{{ route('boss.export.invoice') }}" class="btn btn-success">
-            <i class="bi bi-file-earmark-pdf"></i> Xuất báo cáo
-        </a>
-    </div>
+<div class="col-md-12">
+<a href="{{ route('admin.export.invoice') }}"
+class="btn btn-success">
+
+<i class="bi bi-file-earmark-pdf"></i>
+Xuất báo cáo
+
+</a>
+</div>
 </div>
 
 <div class="row">
-    <div class="col-md-12">
-        <div class="card">
-            <div class="card-header">
-                <h5 class="mb-0">Danh sách hóa đơn</h5>
-            </div>
-            <div class="card-body">
-                @if ($orders && $orders->count() > 0)
-                    <div class="table-responsive">
-                        <table class="table table-striped table-hover">
-                            <thead>
-                                <tr>
-                                    <th>ID Hóa Đơn</th>
-                                    <th>Ngày tạo</th>
-                                    <th>Khách hàng</th>
-                                    <th>Số tiền</th>
-                                    <th>Trạng thái</th>
-                                    <th>Hành động</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($orders as $order)
-                                    <tr>
-                                        <td>#{{ $order->id }}</td>
-                                        <td>{{ $order->created_at }}</td>
-                                        <td>{{ $order->user_name ?? 'N/A' }}</td>
-                                        <td>{{ isset($order->total) ? number_format($order->total, 0, ',', '.') . 'đ' : 'N/A' }}</td>
-                                        <td><span class="badge bg-success">Đã thanh toán</span></td>
-                                        <td>
-                                            <a href="{{ route('boss.export.invoice', ['type' => 'service', 'id' => $order->id]) }}" class="btn btn-sm btn-success" title="Xuất PDF">
-                                                <i class="bi bi-file-earmark-pdf"></i> Xuất PDF
-                                            </a>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                
-                @else
-                    <p class="text-muted">Chưa có hóa đơn nào được tạo.</p>
-                @endif
-            </div>
-        </div>
-    </div>
+<div class="col-md-12">
+
+<div class="card">
+
+<div class="card-header">
+<h5 class="mb-0">Danh sách hóa đơn</h5>
 </div>
+
+<div class="card-body">
+
+@if ($invoices->count() > 0)
+
+<div class="table-responsive">
+
+<table class="table table-striped table-hover">
+
+<thead>
+<tr>
+<th>Mã hóa đơn</th>
+<th>User ID</th>
+<th>Tên khách</th>
+<th>Ảnh</th>
+<th>Loại</th>
+<th>Sân / Dịch vụ</th>
+<th>Số tiền</th>
+<th>Ngày xuất</th>
+<th>Hành động</th>
+</tr>
+</thead>
+
+<tbody>
+
+@foreach ($invoices as $invoice)
+
+<tr>
+
+<td>{{ $invoice->invoice_code }}</td>
+
+<td>
+{{ $invoice->booking?->user?->id
+?? $invoice->order?->user?->id
+?? '-' }}
+</td>
+
+<td>
+{{ $invoice->booking?->user?->name
+?? $invoice->order?->user?->name
+?? '-' }}
+</td>
+
+<td>
+
+@if($invoice->booking?->user?->image)
+
+<img
+src="{{ asset('storage/'.$invoice->booking->user->image) }}"
+width="50"
+class="rounded"
+/>
+
+@elseif($invoice->order?->user?->image)
+
+<img
+src="{{ asset('storage/'.$invoice->order->user->image) }}"
+width="50"
+class="rounded"
+/>
+
+@else
+
+-
+
+@endif
+
+</td>
+
+<td>
+
+@if($invoice->booking_id)
+
+Booking sân ⚽
+
+@elseif($invoice->order_id)
+
+Dịch vụ 🧾
+
+@else
+
+-
+
+@endif
+
+</td>
+
+<td>
+
+@if($invoice->booking_id)
+
+{{ $invoice->booking?->field?->name ?? '-' }}
+
+@elseif($invoice->order_id)
+
+@foreach($invoice->order?->items ?? [] as $item)
+
+{{ $item->service?->name }}<br>
+
+@endforeach
+
+@endif
+
+</td>
+
+<td>
+
+{{ number_format($invoice->total_amount,0,',','.') }}đ
+
+</td>
+
+<td>
+
+{{ $invoice->issued_at }}
+
+</td>
+
+<td>
+
+<a
+href="{{ route('admin.export.invoice', [
+'type' => $invoice->booking_id ? 'booking' : 'service',
+'id' => $invoice->booking_id ?? $invoice->order_id
+]) }}"
+class="btn btn-sm btn-success">
+
+Xuất PDF
+
+</a>
+
+</td>
+
+</tr>
+
+@endforeach
+
+</tbody>
+</table>
+
+</div>
+
+@else
+
+<p class="text-muted">
+Chưa có hóa đơn nào được xuất.
+</p>
+
+@endif
+
+</div>
+</div>
+</div>
+</div>
+</br>
+</br>
+</br>
+</br>
+</br>
 @endsection

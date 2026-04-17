@@ -13,12 +13,14 @@ return Application::configure(basePath: dirname(__DIR__))
    ->withMiddleware(function (Middleware $middleware) {
 
     $middleware->validateCsrfTokens(except: [
-        'user/momo/ipn',
+        'momo/ipn',
+        'booking/momo/ipn',
     ]);
 
     // thêm dòng này
     $middleware->alias([
         'boss' => \App\Http\Middleware\BossMiddleware::class,
+        'role' => \App\Http\Middleware\EnsureUserHasRole::class,
     ]);
 
 })

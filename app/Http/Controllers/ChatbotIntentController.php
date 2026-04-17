@@ -89,4 +89,20 @@ public function storeResponse(Request $request)
 
     return back();
 }
+
+public function update(Request $request, $id)
+{
+    ChatbotIntent::findOrFail($id)->update([
+        'name' => $request->name,
+    ]);
+
+    return back();
+}
+
+public function destroy($id)
+{
+    ChatbotIntent::destroy($id);
+
+    return back();
+}
 }

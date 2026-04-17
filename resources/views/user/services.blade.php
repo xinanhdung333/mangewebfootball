@@ -31,8 +31,8 @@ name="q"
 value="{{ request('q') }}"
 placeholder="Tìm theo tên..."
 style="flex:1; padding:8px; border:1px solid #ccc; border-radius:4px;">
-
-<select id="serviceSort"
+ 
+<select id="serviceSort" name ="sort"
 style="padding:8px; border:1px solid #ccc; border-radius:4px;">
 
 <option value="name">Sắp xếp theo tên</option>

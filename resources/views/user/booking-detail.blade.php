@@ -213,7 +213,7 @@
                     @endif
 
                     <!-- NÚT XUẤT HÓA ĐƠN CHO ĐẶT SÂN ĐÃ HOÀN THÀNH -->
-                    @if($booking->status === 'completed')
+                    @if($booking->status === 'confirmed' || $booking->status === 'completed')
                         <hr>
                         <a href="{{ route('user.exportInvoicebooking', $booking->id) }}" 
                            target="_blank" 

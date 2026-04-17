@@ -44,7 +44,7 @@ Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
-Route::get('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 // Fields & Services
 Route::get('/services', [ServiceController::class, 'index'])->name('services.index');
@@ -74,7 +74,7 @@ Route::get('/field-schedule', [BookingController::class, 'fieldSchedule'])->name
 Route::get('/my-bookings', [BookingController::class, 'myBookings'])->name('bookings.my');
 
 // Admin
-Route::prefix('admin')->name('admin.')->middleware(['auth'])->group(function(){
+Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function(){
     Route::get('/home', [HomeController::class, 'indexadmin'])->name('home');
 
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
@@ -211,7 +211,7 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function(){
     
     // Cart & Shopping
     Route::get('/cart', [PagesController::class, 'cart'])->name('cart');
-    Route::post('cart/add/checkoutAll', [CartController::class, 'checkoutAll'])->name('cart.add.checkoutAll');
+    Route::post('cart/add/checkoutAll', [CartController::class, 'checkoutAll'])->name('checkoutAll');
     Route::post('cart/add/checkoutSelected', [CartController::class, 'checkoutSelected'])->name('cart.add.checkoutSelected');
     Route::post('add/checkoutBuyNow', [CartController::class, 'checkoutBuyNow'])->name('add.checkoutBuyNow');
 
@@ -232,6 +232,12 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function(){
     Route::get('/order/{id}/export', [PagesController::class, 'exportInvoice'])->name('exportInvoice');
     
     // Services Purchased
+      Route::get(
+    '/bookings/search',
+    [BookingController::class, 'searchBookings']
+)->name('bookings.search');
+        Route::get('/my-bookings', [BookingController::class, 'myBookings'])->name('myBookings');
+
     Route::get('/my-services', [PagesController::class, 'myServices'])->name('myServices');
     //payments
     Route::get('/momo/pay', [MomoController::class, 'createPayment'])->name('momo.pay');
@@ -254,13 +260,15 @@ Route::get('/booking/momo/{booking_id}',
 
 Route::get('/booking/momo/return', [BookingMomoController::class, 'returnUrl'])
 ->name('booking.momo.return');
+Route::match(['GET','POST'], '/booking/momo/ipn', [BookingMomoController::class, 'ipnUrl'])
+->name('booking.momo.ipn');
 Route::match(['GET','POST'], '/momo/ipn',
     [MomoController::class, 'ipnUrl']
 )->name('momo.ipn');
 //Route::get('/chat/{id}', [ChatController::class,'index']);
 //Route::post('/chat/send', [ChatController::class,'sendMessage']);  
 
-Route::get('/generate-chatbot-json', function () {
+Route::middleware(['auth', 'role:admin'])->get('/generate-chatbot-json', function () {
 
     app(\App\Http\Controllers\AdminController::class)
         ->generateRules();

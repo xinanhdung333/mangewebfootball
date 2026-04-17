@@ -13,7 +13,9 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
     use App\Models\ChatbotIntent;
-
+  use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Storage;
+use App\Models\Invoice;
 class AdminController extends Controller
 {
     /**
@@ -255,21 +257,62 @@ class AdminController extends Controller
     /**
      * Update admin profile
      */
-    public function updateProfile(Request $request)
-    {
-        $admin = Auth::user();
-        
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email,' . $admin->id,
-            'phone' => 'nullable|string|max:20',
-        ]);
 
-        $admin->update($validated);
 
-        return redirect()->back()->with('success', 'Cập nhật thông tin thành công!');
+public function updateProfile(Request $request)
+{
+    $admin = Auth::user();
+
+    $validated = $request->validate([
+        'name' => 'required|string|max:255',
+        'email' => 'required|email|unique:users,email,' . $admin->id,
+        'phone' => 'nullable|string|max:20',
+        'avt' => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+    ]);
+
+    // update thông tin cơ bản
+    $admin->name = $validated['name'];
+    $admin->email = $validated['email'];
+    $admin->phone = $validated['phone'];
+
+    // upload avatar
+    if ($request->hasFile('avt')) {
+
+        // xoá avatar cũ nếu có
+        if ($admin->avt && Storage::disk('public')->exists('avatars/'.$admin->avt)) {
+            Storage::disk('public')->delete('avatars/'.$admin->avt);
+        }
+
+        $file = $request->file('avt');
+
+        $filename = time().'_'.$file->getClientOriginalName();
+
+        $file->storeAs('avatars', $filename, 'public');
+
+        $admin->avt = $filename;
     }
 
+    // đổi mật khẩu nếu nhập
+    if ($request->filled('password')) {
+
+        if (!Hash::check($request->current_password, $admin->password)) {
+
+            return back()->withErrors([
+                'current_password' => 'Mật khẩu hiện tại không đúng'
+            ]);
+        }
+
+        $request->validate([
+            'password' => 'required|confirmed|min:6'
+        ]);
+
+        $admin->password = bcrypt($request->password);
+    }
+
+    $admin->save();
+
+    return back()->with('success', 'Cập nhật thông tin thành công!');
+}
     /**
      * Store new field
      */
@@ -539,11 +582,17 @@ class AdminController extends Controller
     /**
      * Invoices
      */
-    public function invoices()
-    {
-        $orders = DB::table('orders')->orderBy('created_at', 'DESC')->paginate(20);
-        return view('admin.invoices', compact('orders'));
-    }
+public function invoices()
+{
+    $invoices = Invoice::with([
+        'booking.user',
+        'booking.field',
+        'order.user',
+        'order.items.service'
+    ])->latest()->get();
+
+    return view('admin.invoices', compact('invoices'));
+}
 
     /**
      * Edit status (placeholder)
@@ -640,11 +689,17 @@ class AdminController extends Controller
                 'booking' => $booking,
                 'services' => $services
             ]);
-            
+            Invoice::create([
+                'booking_id'   => $booking->id,
+                'invoice_code' => 'INV-' . time(),
+                'total_amount' => $booking->total_price,
+                'issued_at'    => now()
+            ]);
             return $pdf->download('hoa-don-booking-' . $id . '.pdf');
         }
         
         if ($type === 'service') {
+
             $order = DB::table('orders')
                 ->join('users', 'orders.user_id', '=', 'users.id')
                 ->where('orders.id', $id)
@@ -667,6 +722,13 @@ class AdminController extends Controller
                 'items' => $items
             ]);
             
+            Invoice::create([
+                'order_id'     => $order->id,
+                'invoice_code' => 'INV-' . time(),
+                'total_amount' => $order->total_amount,
+                'issued_at'    => now()
+            ]);
+
             return $pdf->download('hoa-don-dich-vu-' . $id . '.pdf');
         }
     }

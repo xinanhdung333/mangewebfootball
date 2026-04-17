@@ -126,7 +126,7 @@
 
 
 
-}
+}  
     </style>
 
 
@@ -314,9 +314,9 @@
                             <i class="bi bi-person"></i> {{ auth()->user()->name }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{{ route('boss.profile') }}">Hồ sơ</a></li>
+                            <li><a class="dropdown-item" href="{{ route('admin.profile') }}">Hồ sơ</a></li>
                             <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ route('logout') }}">Đăng xuất</a></li>
+                            <li><form method="POST" action="{{ route('logout') }}">@csrf<button type="submit" class="dropdown-item">Đăng xuất</button></form></li>
                         </ul>
                     </li>
                 @else

@@ -16,18 +16,18 @@
             {{-- Thông tin cá nhân --}}
             <div class="card text-center mb-3">
                 <div class="card-body">
-                    <img
-                        src="{{ $boss->avatar
-                            ? asset('storage/avatars/'.$boss->avatar)
-                            : asset('images/default.png') }}"
-                        class="rounded-circle mb-2"
-                        style="width:120px;height:120px;object-fit:cover;"
-                    >
+                  <img
+src="{{ $admin->avt
+? asset('storage/avatars/'.$admin->avt)
+: asset('images/default.png') }}"
+class="rounded-circle mb-2"
+style="width:120px;height:120px;object-fit:cover;"
+>
 
-                    <h5>{{ $boss->name }}</h5>
-                    <p>{{ $boss->email }}</p>
-                    <p><strong>Vai trò:</strong> {{ $boss->role === 'admin' ? 'Quản lý' : 'Người dùng' }}</p>
-                    <p><strong>Ngày tạo:</strong> {{ $boss->created_at->format('d/m/Y') }}</p>
+                    <h5>{{ $admin->name }}</h5>
+                    <p>{{ $admin->email }}</p>
+                    <p><strong>Vai trò:</strong> {{ $admin->role === 'admin' ? 'Quản lý' : 'Người dùng' }}</p>
+                    <p><strong>Ngày tạo:</strong> {{ $admin->created_at->format('d/m/Y') }}</p>
                 </div>
             </div>
 
@@ -97,7 +97,7 @@
                     <h5>Cập nhật thông tin</h5>
 
                     <form method="POST"
-                          action="{{ route('boss.profile.update') }}"
+                          action="{{ route('admin.profile.update') }}"
                           enctype="multipart/form-data">
                         @csrf
 
@@ -105,21 +105,28 @@
                             <label>Họ tên</label>
                             <input type="text" name="name"
                                    class="form-control"
-                                   value="{{ old('name', $boss->name) }}"
+                                   value="{{ old('name', $admin->name) }}"
                                    required>
                         </div>
-
+<div class="mb-3">
+    <label>Email</label>
+    <input type="email"
+           name="email"
+           class="form-control"
+           value="{{ old('email', $admin->email) }}"
+           required>
+</div>
                         <div class="mb-3">
                             <label>Số điện thoại</label>
                             <input type="text" name="phone"
                                    class="form-control"
-                                   value="{{ old('phone', $boss->phone) }}"
+                                   value="{{ old('phone', $admin->phone) }}"
                                    required>
                         </div>
 
                         <div class="mb-3">
                             <label>Upload avatar</label>
-                            <input type="file" name="avatar" class="form-control">
+                            <input type="file" name="avt" class="form-control">
                         </div>
 
                         <hr>

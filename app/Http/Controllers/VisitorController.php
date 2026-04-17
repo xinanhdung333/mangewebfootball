@@ -26,7 +26,7 @@ public function dashboard()
     $stats_total = $user ? $user->bookings()->count() : 0;
     $stats_confirmed = $user ? $user->bookings()->where('status', 'confirmed')->count() : 0;
     $stats_revenue = $user ? $user->bookings()->sum('total_price') : 0;
-
+   
     $response = Http::get('https://newsapi.org/v2/top-headlines', [
         'country' => 'us',
         'apiKey' => 'YOUR_API_KEY'

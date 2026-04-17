@@ -88,11 +88,10 @@ style="width:25px;height:25px;cursor:pointer;">
                                         {{ number_format($totalPrice, 0, ',', '.') }} VNĐ
                                     </span>
                                 </h5>
-                                <form method="POST" action="{{ route('user.cart.add.checkoutAll') }}">
+                               <form method="POST" action="{{ route('user.cart.add.checkoutSelected') }}" id="checkout-all-form">
     @csrf
-    <input type="hidden" name="type" value="all_cart">
-
-    <button type="submit" class="btn btn-primary">
+    <input type="hidden" name="selected_items" id="selected-items-all" value="">
+    <button type="submit" class="btn btn-primary" id="checkout-all-btn">
         <i class="bi bi-credit-card"></i> Thanh toán tất cả
     </button>
 </form>
@@ -202,7 +201,10 @@ style="width:25px;height:25px;cursor:pointer;">
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
+
     const checkboxes = document.querySelectorAll('.select-item');
+
+    // ===== Thanh toán sản phẩm đã chọn =====
     const selectedInput = document.getElementById('selected-items');
     const checkoutBtn = document.getElementById('checkout-selected-btn');
 
@@ -211,14 +213,25 @@ document.addEventListener('DOMContentLoaded', function () {
             const selected = Array.from(checkboxes)
                 .filter(i => i.checked)
                 .map(i => i.value);
+
             selectedInput.value = selected.join(',');
             checkoutBtn.disabled = selected.length === 0;
         });
     });
-});
-document.getElementById('checkout-selected-form').addEventListener('submit', function(e) {
-    // Chỉ submit POST, không để link redirect
-    // e.preventDefault(); // chỉ dùng nếu submit bằng fetch/ajax
+
+    // ===== Thanh toán tất cả =====
+    const checkoutAllForm = document.getElementById('checkout-all-form');
+    const selectedAllInput = document.getElementById('selected-items-all');
+
+    checkoutAllForm.addEventListener('submit', function () {
+
+        const allIds = Array.from(checkboxes)
+            .map(i => i.value);
+
+        selectedAllInput.value = allIds.join(',');
+
+    });
+
 });
 </script>
 

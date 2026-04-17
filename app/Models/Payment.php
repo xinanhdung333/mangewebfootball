@@ -7,6 +7,7 @@ class Payment extends Model
 {
     protected $fillable = [
         'order_id',
+        'momo_order_id',
         'momo_trans_id',
         'amount',
         'status',

@@ -12,8 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('bookings', function (Blueprint $table) {
-            $table->integer('id', true);
-            $table->integer('user_id')->index('idx_user');
+$table->id();            $table->integer('user_id')->index('idx_user');
             $table->integer('field_id')->index('idx_field');
             $table->date('booking_date');
             $table->time('start_time');

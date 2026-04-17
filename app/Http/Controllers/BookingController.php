@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\DB;
 use App\Models\Field;
 use App\Models\Service;
 use App\Models\Booking;
+use App\Models\OrderItem; 
 
 class BookingController extends Controller
 {
@@ -62,21 +63,19 @@ class BookingController extends Controller
 
         return redirect()->route('booking.create', ['field_id' => $data['field_id']])->with('success', 'Đặt sân thành công.');
     }
-public function searchBookings(Request $request)
+public function searchBooking(Request $request)
 {
-    $query = Booking::with(['service', 'order'])
-        ->whereHas('order', function ($q) {
-            $q->where('user_id', auth()->id());
-        });
+    $query = Booking::with(['field','order'])
+        ->where('user_id', auth()->id());
 
-    // tìm theo tên service
+    // 🔎 search theo tên sân
     if ($request->keyword) {
-        $query->whereHas('service', function ($q) use ($request) {
+        $query->whereHas('field', function ($q) use ($request) {
             $q->where('name', 'like', '%' . $request->keyword . '%');
         });
     }
 
-    // lọc theo trạng thái order
+    // 🔎 filter status
     if ($request->status) {
         $query->whereHas('order', function ($q) use ($request) {
             $q->where('status', $request->status);
@@ -84,31 +83,40 @@ public function searchBookings(Request $request)
     }
 
     $myBookings = $query->latest()
-        ->paginate(10)
+        ->paginate(5)
         ->withQueryString()
-        ->withPath(route('user.bookings.search'));
+        ->withPath(route('search.Booking'));
 
-    // thêm ảnh + tổng tiền
-    $myBookings->getCollection()->transform(function ($item) {
+    // thống kê
+    $pendingCount = Booking::where('user_id', auth()->id())
+        ->whereHas('order', fn($q)=>$q->where('status','pending'))
+        ->count();
 
-        $item->image = $item->service->image ?? null;
+    $paidCount = Booking::where('user_id', auth()->id())
+        ->whereHas('order', fn($q)=>$q->where('status','paid'))
+        ->count();
 
-        $item->total_amount =
-            ($item->price ?? 0) * ($item->quantity ?? 1);
+    if ($request->ajax()) {
 
-        return $item;
-    });
+        return view(
+            'user.booking-table',
+            compact(
+                'myBookings',
+                'pendingCount',
+                'paidCount'
+            )
+        )->render();
 
-    // ajax render table
-    if ($request->ajax() || 
-        $request->header('X-Requested-With') === 'XMLHttpRequest') {
-
-        return view('user.booking-table', compact('myBookings'))->render();
     }
 
-    $filterStatus = $request->status ?? null;
-
-    return view('user.my-bookings', compact('myBookings', 'filterStatus'));
+    return view(
+        'user.my-bookings',
+        compact(
+            'myBookings',
+            'pendingCount',
+            'paidCount'
+        )
+    );
 }
    public function bookingdetail($id)
 {
@@ -116,40 +124,61 @@ public function searchBookings(Request $request)
 }
 
    
-    public function myBookings(Request $request)
-    {
-        return view('user.my-bookings');
-    }
-    public function searchBooking(Request $request)
+    // public function myBookings(Request $request)
+    // {
+    //     return view('user.my-bookings');
+    // }
+    public function myBookings()
 {
-    $keyword = $request->keyword;
-    $status = $request->status;
+    $filterStatus = request()->query('status');
 
-    $query = Booking::with(['order', 'field']);
+    return view(
+        'user.my-bookings',
+        compact('filterStatus')
+    );
+}
 
-    // 🔎 tìm theo tên sân (service bên dịch vụ)
-    if ($keyword) {
-        $query->whereHas('field', function ($q) use ($keyword) {
-            $q->where('name', 'like', '%' . $keyword . '%');
+public function searchBookings(Request $request)
+{
+    $query = OrderItem::with(['service', 'order'])
+        ->whereHas('order', function ($q) {
+            $q->where('user_id', auth()->id());
+        });
+
+    if ($request->keyword) {
+        $query->whereHas('service', function ($q) use ($request) {
+            $q->where('name', 'like', '%' . $request->keyword . '%');
         });
     }
 
-    // 🔎 lọc theo trạng thái order
-    if ($status) {
-        $query->whereHas('order', function ($q) use ($status) {
-            $q->where('status', $status);
+    if ($request->status) {
+        $query->whereHas('order', function ($q) use ($request) {
+            $q->where('status', $request->status);
         });
     }
 
-    $myBookings = $query
-        ->where('user_id', auth()->id()) // 👈 QUAN TRỌNG: chỉ lấy booking của user
-        ->orderByDesc('created_at')
-        ->paginate(5);
+    $myServices = $query->latest()
+        ->paginate(10)
+        ->withQueryString()
+        ->withPath(route('user.services.search'));
 
-    if ($request->ajax()) {
-        return view('user.booking-table', compact('myBookings'));
+    // thêm ảnh + tổng tiền
+    $myServices->getCollection()->transform(function ($item) {
+
+        $item->image = $item->service->image ?? null;
+
+        $item->total_amount = 
+            ($item->price ?? 0) * ($item->quantity ?? 1);
+
+        return $item;
+    });
+
+    if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
+        return view('user.booking-table', compact('myServices'))->render();
     }
 
-    return view('user.my-bookings', compact('myBookings'));
+    $filterStatus = $request->status ?? null;
+
+    return view('user.my-bookings', compact('myServices', 'filterStatus'));
 }
 }
