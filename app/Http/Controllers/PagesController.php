@@ -573,7 +573,6 @@ public function exportInvoicebooking($id)
 public function profile()
 {
     $user = Auth::user();
-
     // 🔥 lịch sử đặt sân
     $bookingHistory = DB::table('bookings as b')
         ->join('fields as f', 'b.field_id', '=', 'f.id')
@@ -602,11 +601,12 @@ public function profile()
         'o.created_at'
     ])
     ->get();
-
+            $avatar = $user->avt;
     return view('user.profile', [
         'user' => $user,
         'bookingHistory' => $bookingHistory,
-        'serviceHistory' => $serviceHistory // 🔥 thêm dòng này
+        'serviceHistory' => $serviceHistory, // 🔥 thêm dòng này
+        'avatar' => $avatar
     ]);
 }
 public function updateProfile(Request $request)
@@ -697,46 +697,103 @@ public function feedback()
 
     return view('user.feedback', compact('services', 'bookings'));
 }
-    public function sendFeedback(Request $request)
-    {
-        $validated = $request->validate([
-            'feedback_type' => 'required|in:service,booking',
-            'item_id' => 'required|integer',
-            'message' => 'required|string|max:2000',
-            'rating' => 'required|integer|min:1|max:5',
-        ]);
+  
+public function sendFeedback(Request $request)
+{
+    $validated = $request->validate([
+        'feedback_type' => 'required|in:service,booking',
+        'item_id' => 'required|integer',
+        'message' => 'required|string|max:2000',
+        'rating' => 'required|integer|min:1|max:5',
+    ]);
 
-        $userId = Auth::id();
-        $feedbackData = [
-            'user_id' => $userId,
-            'message' => $validated['message'],
-            'rating' => $validated['rating'],
-        ];
+    $userId = Auth::id();
 
-        if ($validated['feedback_type'] === 'service') {
-            $feedbackData['service_id'] = $validated['item_id'];
-        } else {
-            $feedbackData['booking_id'] = $validated['item_id'];
-        }
+    $feedbackData = [
+        'user_id' => $userId,
+        'message' => $validated['message'],
+        'rating' => $validated['rating'],
+    ];
 
-        // update existing feedback by user for this service/booking or create new
-        $query = Feedback::where('user_id', $userId);
-        if ($validated['feedback_type'] === 'service') {
-            $query->where('service_id', $validated['item_id']);
-        } else {
-            $query->where('booking_id', $validated['item_id']);
-        }
-
-        $feedback = $query->first();
-        if ($feedback) {
-            $feedback->update($feedbackData);
-        } else {
-            Feedback::create($feedbackData);
-        }
-
-        return redirect()->route('user.feedback')->with('success', 'Feedback đã gửi thành công.');
+    if ($validated['feedback_type'] === 'service') {
+        $feedbackData['service_id'] = $validated['item_id'];
+    } else {
+        $feedbackData['booking_id'] = $validated['item_id'];
     }
 
+    $query = Feedback::where('user_id', $userId);
+
+    if ($validated['feedback_type'] === 'service') {
+        $query->where('service_id', $validated['item_id']);
+    } else {
+        $query->where('booking_id', $validated['item_id']);
+    }
+
+    $feedback = $query->first();
+
+    if ($feedback) {
+        $feedback->update($feedbackData);
+    } else {
+        Feedback::create($feedbackData);
+    }
+
+
+    /*
+    =============================
+    UPDATE AVG RATING SERVICE
+    =============================
+    */
+
+    if ($validated['feedback_type'] === 'service') {
+
+        $serviceId = $validated['item_id'];
+
+        $avgRating = Feedback::where('service_id', $serviceId)->avg('rating') ?? 0;
+
+        $totalReviews = Feedback::where('service_id', $serviceId)->count();
+
+        Service::where('id', $serviceId)->update([
+            'avg_rating' => round($avgRating, 2),
+            'total_reviews' => $totalReviews
+        ]);
+    }
+
+
+    /*
+    =============================
+    UPDATE AVG RATING FIELD
+    =============================
+    */
+
+   if ($validated['feedback_type'] === 'booking') {
+
+    $bookingId = $validated['item_id'];
+
+    $booking = Booking::find($bookingId);
+
+    if ($booking) {
+
+        $fieldId = $booking->field_id;
+
+        $avgRating = Feedback::whereHas('booking', function ($q) use ($fieldId) {
+            $q->where('field_id', $fieldId);
+        })->avg('rating') ?? 0;
+
+        $totalReviews = Feedback::whereHas('booking', function ($q) use ($fieldId) {
+            $q->where('field_id', $fieldId);
+        })->count();
+
+        Field::where('id', $fieldId)->update([
+            'avg_rating' => round($avgRating, 2),
+            'total_reviews' => $totalReviews
+        ]);
+    }
+}
+
+    return redirect()
+        ->route('user.feedback')
+        ->with('success', 'Feedback đã gửi thành công.');
+}
 
 public function services(Request $request)
 {
@@ -1001,12 +1058,29 @@ public function checkoutMultiple(Request $request)
     return view('user.checkout', compact('createdOrders'));
 }
 
+public function fieldSchedule(Request $request)
+{
+    // Lấy danh sách sân
+    $fields = Field::all();
 
- public function fieldSchedule(Request $request)
-    {
-        $fields = Field::all();
-        return view('user.field-schedule', ['fields' => $fields]);
+    // Lấy tất cả booking + user
+    $bookings = Booking::with('user')
+        ->orderBy('booking_date')
+        ->orderBy('start_time')
+        ->get();
+
+    // Gom booking theo từng field_id
+    $bookingMap = [];
+
+    foreach ($bookings as $booking) {
+        $bookingMap[$booking->field_id][] = $booking;
     }
+
+    return view('user.field-schedule', [
+        'fields' => $fields,
+        'bookingMap' => $bookingMap
+    ]);
+}
 
 public function checkoutAll(Request $request)
 {

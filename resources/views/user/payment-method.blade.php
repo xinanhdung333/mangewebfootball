@@ -5,7 +5,7 @@
 <div class="row justify-content-center">
 <div class="col-lg-10">
 
-<div class="card shadow border-0">
+<div class="card shadow border-0 back">
 <div class="card-body p-4 p-md-5">
 
 
@@ -35,8 +35,8 @@ Chọn phương thức thanh toán
 {{-- BOOKING INFO --}}
 @if($type === 'booking')
 
-<div class="card bg-light border-0 mb-4">
-<div class="card-body">
+<div class="card bg-light border-0 mb-4 ll">
+<div class="card-body ">
 
 <div class="row align-items-center">
 
@@ -232,14 +232,14 @@ class="d-none payment-option"
 checked
 >
 
-<div class="card payment-card border-2 h-100">
+<div class="card payment-card border-2 h-100 tien">
 
 <div class="card-body">
 
 <div class="d-flex align-items-center gap-3 mb-3">
 
 <img
-src="{{ asset('assets/momo.png') }}"
+src="{{ asset('assets/momo.webp') }}"
 width="40"
 >
 
@@ -287,7 +287,7 @@ value="cash"
 class="d-none payment-option"
 >
 
-<div class="card payment-card border-2 h-100">
+<div class="card payment-card border-2 h-100 gion">
 
 <div class="card-body">
 
@@ -368,7 +368,12 @@ Tiếp tục thanh toán →
 
 
 <style>
-
+.tien{
+background: linear-gradient(90deg, #ecb8d9, #e57dcd);
+}
+.gion{
+    background: linear-gradient(90deg, #a1c4fd, #c2e9fb);
+}
 .payment-card{
 cursor:pointer;
 transition:.2s;
@@ -383,7 +388,12 @@ box-shadow:0 10px 25px rgba(0,0,0,.12);
 border-color:#0d6efd;
 box-shadow:0 0 0 0.2rem rgba(13,110,253,.15);
 }
-
+.back{
+background: white;
+}
+.ll{
+    background: linear-gradient(90deg, #806e6e, #e0e0e0);
+}
 </style>
 
 @endsection

@@ -11,7 +11,7 @@
     <div class="col-md-4">
         <div class="card text-center mb-3">
             <div class="card-body">
-                <img src="{{ !empty(Auth::user()->avatar) ? asset('uploads/avatars/'.Auth::user()->avatar) : asset('assets/images/default.png') }}" 
+                <img src="{{ !empty($avatar) ? asset('uploads/avatars/'.$avatar) : asset('assets/images/default.png') }}" 
                      alt="Avatar" class="rounded-circle mb-2" style="width:120px;height:120px;object-fit:cover;">
                 <h5>{{ Auth::user()->name }}</h5>
                 <p>{{ Auth::user()->email }}</p>

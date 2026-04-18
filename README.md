@@ -227,7 +227,11 @@ User:
 Một số hướng nâng cấp trong tương lai:
 
 * Tích hợp AI
-
+Activity log
+Analytics dashboard chart
+QR check-in
+Coupon system
+Excel export report 
 
 ---
 

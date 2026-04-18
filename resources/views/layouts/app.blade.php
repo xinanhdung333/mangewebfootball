@@ -286,6 +286,17 @@
                         <li class="nav-item"><a class="nav-link" href="{{ route('cart.index') }}"><i class="bi bi-cart-fill"></i> Giỏ hàng</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('user.feedback') }}"><i class="bi bi-chat-dots"></i> Feedback</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('about') }}"><i class="bi bi-chat-dots"></i> About</a></li>
+                        
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-person"></i> {{ auth()->user()->name }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{{ route('user.profile') }}">Hồ sơ</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><form method="POST" action="{{ route('logout') }}">@csrf<button type="submit" class="dropdown-item">Đăng xuất</button></form></li>
+                        </ul>
+                    </li> 
                     @endif
 
                     @if(auth()->user()->role === 'admin')
@@ -297,17 +308,6 @@
                         <li class="nav-item"><a class="nav-link" href="{{ route('admin.invoices') }}"><i class="bi bi-file-earmark-pdf"></i> Quản lý hóa đơn</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('admin.chatbot.index') }}"><i class="bi bi-robot"></i> Quản lý Chatbot</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('admin.statistics') }}"><i class="bi bi-bar-chart"></i> Thống kê</a></li>
-                    @endif
-                    @if(auth()->user()->role === 'boss')
-                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.manage.fields') }}"><i class="bi bi-gear"></i> Quản lý sân</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.manage.bookings') }}"><i class="bi bi-clipboard-check"></i> Quản lý đặt sân</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.manage.services') }}"><i class="bi bi-grid"></i> Quản lý dịch vụ</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.user.service.history') }}"><i class="bi bi-bag-check"></i> Chi tiết mua hàng</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.manage.feedback') }}"><i class="bi bi-chat-dots"></i> Quản lý Feedback</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.invoices') }}"><i class="bi bi-file-earmark-pdf"></i> Quản lý hóa đơn</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.manage.users') }}"><i class="bi bi-people"></i> Quản lý người dùng</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.statistics') }}"><i class="bi bi-bar-chart"></i> Thống kê</a></li>
-                    @endif
 
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
@@ -318,7 +318,31 @@
                             <li><hr class="dropdown-divider"></li>
                             <li><form method="POST" action="{{ route('logout') }}">@csrf<button type="submit" class="dropdown-item">Đăng xuất</button></form></li>
                         </ul>
-                    </li>
+                    </li> 
+                    @endif
+
+                    @if(auth()->user()->role === 'boss')
+                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.manage.fields') }}"><i class="bi bi-gear"></i> Quản lý sân</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.manage.bookings') }}"><i class="bi bi-clipboard-check"></i> Quản lý đặt sân</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.manage.services') }}"><i class="bi bi-grid"></i> Quản lý dịch vụ</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.user.service.history') }}"><i class="bi bi-bag-check"></i> Chi tiết mua hàng</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.manage.feedback') }}"><i class="bi bi-chat-dots"></i> Quản lý Feedback</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.invoices') }}"><i class="bi bi-file-earmark-pdf"></i> Quản lý hóa đơn</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.manage.users') }}"><i class="bi bi-people"></i> Quản lý người dùng</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.statistics') }}"><i class="bi bi-bar-chart"></i> Thống kê</a></li>
+                        
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                            <i class="bi bi-person"></i> {{ auth()->user()->name }}
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="{{ route('boss.profile') }}">Hồ sơ</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><form method="POST" action="{{ route('logout') }}">@csrf<button type="submit" class="dropdown-item">Đăng xuất</button></form></li>
+                        </ul>
+                    </li> 
+                    @endif
+
                 @else
                <li class="nav-item"><a class="nav-link" href="{{ route('visitor.dashboard') }}"><i class="bi bi-house"></i> Trang chủ</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('visitor.fields') }}"><i class="bi bi-grid"></i> Sân</a></li>
