@@ -14,8 +14,8 @@
                 type="text"
                 id="search-input"
                 class="form-control"
-                placeholder="Tìm sân..."
-                value="{{ request('keyword', '') }}"
+                placeholder="Tìm kiếm..."
+                value="{{ $keyword ?? request('keyword', '') }}"
             >
         </div>
 
@@ -29,7 +29,11 @@
         </div>
     </div>
 
-    <div id="booking-table-area" class="py-4"></div>
+    <div id="booking-table-area" class="py-4">
+        @isset($myBookings)
+            @include('user.booking-table')
+        @endisset
+    </div>
 </div>
 
 <script>
@@ -38,7 +42,7 @@ function loadBookings(url = null) {
     const status = document.getElementById('status-filter').value;
 
     if (!url) {
-        url = `{{ route('user.search.Booking') }}?keyword=${encodeURIComponent(keyword)}&status=${encodeURIComponent(status)}`;
+        url = `{{ route('user.search.Booking') }}?keyword=${encodeURIComponent(keyword)}&status=${encodeURIComponent(status)}&partial=1`;
     }
 
     fetch(url, {
@@ -48,12 +52,22 @@ function loadBookings(url = null) {
     })
     .then(res => res.text())
     .then(data => {
+        if (data.includes('<html') || data.includes('<!DOCTYPE html')) {
+            const doc = new DOMParser().parseFromString(data, 'text/html');
+            const partial = doc.querySelector('#booking-table-area');
+
+            if (partial) {
+                document.getElementById('booking-table-area').innerHTML = partial.innerHTML;
+                return;
+            }
+        }
+
         document.getElementById('booking-table-area').innerHTML = data;
     });
 }
 
 document.addEventListener('click', function (e) {
-    const link = e.target.closest('#booking-table-area .pagination a');
+    const link = e.target.closest('#booking-table-area .booking-pagination a');
 
     if (link) {
         e.preventDefault();
@@ -61,6 +75,7 @@ document.addEventListener('click', function (e) {
         const url = new URL(link.href);
         url.searchParams.set('keyword', document.getElementById('search-input').value);
         url.searchParams.set('status', document.getElementById('status-filter').value);
+        url.searchParams.set('partial', '1');
 
         loadBookings(url.toString());
     }
@@ -68,7 +83,5 @@ document.addEventListener('click', function (e) {
 
 document.getElementById('search-input').addEventListener('keyup', () => loadBookings());
 document.getElementById('status-filter').addEventListener('change', () => loadBookings());
-
-loadBookings();
 </script>
 @endsection

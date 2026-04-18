@@ -2,7 +2,7 @@
     <div class="col-md-4">
         <div class="card shadow-sm h-100">
             <div class="card-body">
-                <h6 class="mb-2">Tổng dịch vụ</h6>
+                <h6 class="mb-2">Tổng số dịch vụ</h6>
                 <div class="fs-4 fw-semibold">{{ $myServices->total() }}</div>
             </div>
         </div>
@@ -44,21 +44,21 @@
                 <div class="card shadow-sm h-100">
                     <div class="row g-0 h-100">
                         <div class="col-sm-4">
-                            <img src="{{ $image }}" alt="{{ $item->service->name ?? 'Dịch vụ' }}" class="img-fluid h-100 w-100 rounded-start" style="object-fit: cover; min-height: 160px;">
+                            <img src="{{ $image }}" alt="{{ $item->service->name ?? 'Dich vu' }}" class="img-fluid h-100 w-100 rounded-start" style="object-fit: cover; min-height: 160px;">
                         </div>
                         <div class="col-sm-8">
                             <div class="card-body d-flex flex-column h-100">
                                 <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
-                                    <h5 class="card-title mb-0">{{ $item->service->name ?? 'Dịch vụ' }}</h5>
+                                    <h5 class="card-title mb-0">{{ $item->service->name ?? 'Dich vu' }}</h5>
                                     <span class="badge bg-{{ $badgeClass }}">{{ $label }}</span>
                                 </div>
                                 <p class="text-muted mb-2">Số lượng: {{ $item->quantity }}</p>
-                                <p class="text-muted mb-3">Đơn giá: {{ number_format($item->price, 0, ',', '.') }}đ</p>
+                                <p class="text-muted mb-3">Đơn giá: {{ number_format($item->price, 0, ',', '.') }}d</p>
+                                <p class="text-muted mb-3">Mã dịch vụ: #{{ $item->id }}</p>
+                                 <p class="text-muted mb-3">Phương thức thanh toán: {{ $item->order->payment->payment_method ?? 'Chưa xác định' }}</p>
                                 <div class="mt-auto d-flex justify-content-between align-items-center">
-                                    <strong>{{ number_format($item->total_amount, 0, ',', '.') }}đ</strong>
-                                    <a href="{{ route('user.orderDetail', $item->order_id) }}" class="btn btn-sm btn-outline-primary">
-                                        Xem đơn
-                                    </a>
+                                    <strong>{{ number_format($item->total_amount, 0, ',', '.') }}d</strong>
+                                    <a href="{{ route('user.orderDetail', $item->order_id) }}" class="btn btn-sm btn-outline-primary">Xem đơn hàng</a>
                                 </div>
                             </div>
                         </div>
@@ -80,10 +80,21 @@
 @if($myServices->hasPages())
     <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 mt-4">
         <div class="text-white small">
-            Hiển thị {{ $myServices->firstItem() }}-{{ $myServices->lastItem() }} / {{ $myServices->total() }} dịch vụ
+            Hiển thị {{ $myServices->firstItem() }}-{{ $myServices->lastItem() }} trong tổng {{ $myServices->total() }} dịch vụ
         </div>
-        <div class="bg-white rounded-3 px-3 py-2 shadow-sm">
-            {{ $myServices->links('pagination::bootstrap-5') }}
+        <div class="d-flex flex-column align-items-center gap-2">
+            <div class="text-white small">Trang {{ $myServices->currentPage() }} / {{ $myServices->lastPage() }}</div>
+        <div class="service-pagination bg-white rounded-3 px-3 py-2 shadow-sm d-flex flex-wrap justify-content-center gap-2">
+            @if(!$myServices->onFirstPage())
+                <a href="{{ $myServices->previousPageUrl() }}" class="btn btn-sm btn-outline-secondary">Truoc</a>
+            @endif
+            @foreach($myServices->getUrlRange(1, $myServices->lastPage()) as $page => $url)
+                <a href="{{ $url }}" class="btn btn-sm {{ $page === $myServices->currentPage() ? 'btn-primary' : 'btn-outline-primary' }}">{{ $page }}</a>
+            @endforeach
+            @if($myServices->hasMorePages())
+                <a href="{{ $myServices->nextPageUrl() }}" class="btn btn-sm btn-outline-secondary">Sau</a>
+            @endif
+            </div>
         </div>
     </div>
 @endif

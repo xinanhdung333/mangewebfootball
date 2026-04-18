@@ -80,6 +80,7 @@ class MomoController extends Controller
                 'amount' => $request->input('amount'),
                 'status' => 'success',
                 'paid_at' => now(),
+                'payment_method' => 'momo',
             ]);
 
             Order::where('id', $payment->order_id)

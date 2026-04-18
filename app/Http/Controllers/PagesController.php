@@ -143,12 +143,7 @@ class PagesController extends Controller
     }
   public function myBookings()
 {
-    $filterStatus = request()->query('status');
-
-    return view(
-        'user.my-bookings',
-        compact('filterStatus')
-    );
+    return app(BookingController::class)->myBookings();
 }
 public function searchBooking(Request $request)
 {
@@ -275,11 +270,7 @@ public function storeBooking(Request $request)
         'status' => 'pending'
     ]);
 
-    // redirect momo
-   
-return redirect()->route('user.booking.momo', [
-    'booking_id' => $booking->id
-]);
+    return redirect()->route('user.payment.booking', $booking->id);
 }
        public function bookingcreate(Request $request)
     {
@@ -298,13 +289,183 @@ public function bookingdetail($id)
 
     return view('user.booking-detail', compact('booking'));
 }
+public function showOrderPaymentMethod(Order $order)
+{
+    abort_unless($order->user_id === auth()->id(), 403);
+
+    $payment = Payment::firstOrCreate(
+        ['order_id' => $order->id],
+        [
+            'amount' => $order->total_amount,
+            'status' => 'pending',
+        ]
+    );
+$service = DB::table('order_items as oi')
+    ->join('services as s', 'oi.service_id', '=', 's.id')
+    ->where('oi.order_id', $order->id)
+    ->select('s.name', 's.price', 's.image', 'oi.quantity')
+    ->get();
+
+
+    return view('user.payment-method', [
+        'type' => 'order',
+        'item' => $order,
+        'amount' => $order->total_amount,
+        'submitRoute' => route('user.payment.order.submit', $order->id),
+        'title' => 'Chon phuong thuc thanh toan don hang',
+        'description' => 'Don hang #' . $order->id,
+        'payment' => $payment,
+        'services' => $service
+    ]);
+}
+
+public function handleOrderPaymentMethod(Request $request, Order $order)
+{
+    abort_unless($order->user_id === auth()->id(), 403);
+
+    $data = $request->validate([
+        'payment_method' => 'required|in:momo,cash',
+    ]);
+
+    $payment = Payment::updateOrCreate(
+        ['order_id' => $order->id],
+        [
+            'amount' => $order->total_amount,
+            'status' => 'pending',
+        ]
+    );
+
+    if ($data['payment_method'] === 'momo') {
+        return redirect()->route('user.momo.pay', ['order_id' => $order->id]);
+    }
+
+    DB::transaction(function () use ($order, $payment) {
+        $payment->update([
+            'status' => 'success',
+            'paid_at' => now(),
+            'method_payment' => 'cash',
+        ]);
+
+        $order->update([
+            'status' => 'confirmed',
+        ]);
+
+        DB::table('order_items')
+            ->where('order_id', $order->id)
+            ->update(['status' => 'confirmed']);
+
+        $serviceIds = OrderItem::where('order_id', $order->id)
+            ->pluck('service_id');
+
+        if ($order->cart_id) {
+            CartItem::where('cart_id', $order->cart_id)
+                ->whereIn('service_id', $serviceIds)
+                ->delete();
+        }
+    });
+
+    return redirect()->route('user.myServices')
+        ->with('success', 'Da xac nhan thanh toan tien mat');
+}
+
+public function showBookingPaymentMethod(Booking $booking)
+{
+    abort_unless($booking->user_id === auth()->id(), 403);
+
+    $payment = BookingPayment::firstOrCreate(
+        ['booking_id' => $booking->id],
+        [
+            'amount' => $booking->total_price,
+            'status' => 'pending',
+        ]
+    );
+  $services = DB::table('booking_services as bs')
+    ->join('services as s', 'bs.service_id', '=', 's.id')
+    ->where('bs.booking_id', $booking->id)
+    ->select('s.name', 's.price', 's.image', 'bs.quantity')
+    ->get();
+    return view('user.payment-method', [
+        'type' => 'booking',
+        'item' => $booking,
+        'amount' => $booking->total_price,
+        'submitRoute' => route('user.payment.booking.submit', $booking->id),
+        'title' => 'Chon phuong thuc thanh toan booking',
+        'description' => 'Booking #' . $booking->id,
+        'payment' => $payment,
+        'services' => $services
+    ]);
+}
+
+public function handleBookingPaymentMethod(Request $request, Booking $booking)
+{
+    abort_unless($booking->user_id === auth()->id(), 403);
+
+    $data = $request->validate([
+        'payment_method' => 'required|in:momo,cash',
+    ]);
+
+    BookingPayment::updateOrCreate(
+        ['booking_id' => $booking->id],
+        [
+            'amount' => $booking->total_price,
+            'status' => 'pending',
+        ]
+    );
+
+    if ($data['payment_method'] === 'momo') {
+        return redirect()->route('user.booking.momo', ['booking_id' => $booking->id]);
+    }
+
+    $booking->payment()->update([
+        'status' => 'success',
+        'paid_at' => now(),
+        'amount' => $booking->total_price,
+        'payment_method' => 'cash',
+    ]);
+
+    $booking->update([
+        'status' => 'confirmed',
+    ]);
+
+    return redirect()->route('user.myBookings')
+        ->with('success', 'Da xac nhan thanh toan tien mat cho booking');
+}
 public function myServices()
 {
-    $filterStatus = request()->query('status');
+    $request = request();
+    $filterStatus = $request->query('status');
+    $keyword = $request->query('keyword');
+
+    $query = OrderItem::with(['service', 'order'])
+        ->whereHas('order', function ($q) {
+            $q->where('user_id', auth()->id());
+        });
+
+    if ($keyword) {
+        $query->whereHas('service', function ($q) use ($keyword) {
+            $q->where('name', 'like', '%' . $keyword . '%');
+        });
+    }
+
+    if ($filterStatus) {
+        $query->whereHas('order', function ($q) use ($filterStatus) {
+            $q->where('status', $filterStatus);
+        });
+    }
+
+    $myServices = $query->latest()
+        ->paginate(5)
+        ->withQueryString();
+
+    $myServices->getCollection()->transform(function ($item) {
+        $item->image = $item->service->image ?? null;
+        $item->total_amount = ($item->price ?? 0) * ($item->quantity ?? 1);
+        return $item;
+    });
 
     return view(
         'user.my-services',
-        compact('filterStatus')
+        compact('filterStatus', 'keyword', 'myServices')
     );
 }
 
@@ -711,7 +872,14 @@ public function searchServices(Request $request)
         return $item;
     });
 
-    return view('user.service-table', compact('myServices'))->render();
+    if ($request->ajax() || $request->boolean('partial')) {
+        return view('user.service-table', compact('myServices'))->render();
+    }
+
+    $filterStatus = $request->status ?? null;
+    $keyword = $request->keyword ?? null;
+$method_payment = $request->method_payment ?? null;
+    return view('user.my-services', compact('myServices', 'filterStatus', 'keyword', 'method_payment'));
 }
 public function removeFromCart(Request $request)
 {

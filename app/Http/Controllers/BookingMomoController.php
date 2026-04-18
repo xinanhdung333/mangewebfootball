@@ -76,6 +76,7 @@ class BookingMomoController extends Controller
                 'paid_at' => now(),
                 'momo_trans_id' => $request->input('transId'),
                 'amount' => $request->input('amount'),
+                'payment_method' => 'momo',
             ]);
 
             Booking::where('id', $payment->booking_id)

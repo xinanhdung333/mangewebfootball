@@ -201,7 +201,7 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function(){
     Route::get('/my-bookings-fetch', [PagesController::class, 'myBookingsFetch'])->name('myBookings.fetch');
     Route::get('/bookingcreate', [PagesController::class, 'bookingcreate'])->name('bookingcreate');
     Route::post('/booking', [PagesController::class, 'storeBooking'])->name('bookingstore');
-    Route::get('/my-bookings', [PagesController::class, 'myBookings'])->name('myBookings');
+    Route::get('/my-bookings', [BookingController::class, 'myBookings'])->name('myBookings');
     Route::get('/field-schedule', [PagesController::class, 'fieldSchedule']) ->name('fieldSchedule');
     Route::get('/booking/search', [BookingController::class, 'searchBooking'])->name('search.Booking');
     Route::get('/booking/{id}', [PagesController::class, 'bookingdetail'])->whereNumber('id')->name('bookingdetail');
@@ -238,6 +238,10 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function(){
 )->name('bookings.search');
 
     Route::get('/my-services', [PagesController::class, 'myServices'])->name('myServices');
+    Route::get('/payment/order/{order}', [PagesController::class, 'showOrderPaymentMethod'])->name('payment.order');
+    Route::post('/payment/order/{order}', [PagesController::class, 'handleOrderPaymentMethod'])->name('payment.order.submit');
+    Route::get('/payment/booking/{booking}', [PagesController::class, 'showBookingPaymentMethod'])->name('payment.booking');
+    Route::post('/payment/booking/{booking}', [PagesController::class, 'handleBookingPaymentMethod'])->name('payment.booking.submit');
     //payments
     Route::get('/momo/pay', [MomoController::class, 'createPayment'])->name('momo.pay');
     Route::get('/momo/return', [MomoController::class, 'returnUrl'])->name('momo.return');

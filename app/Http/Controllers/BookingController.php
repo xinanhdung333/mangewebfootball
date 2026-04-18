@@ -91,14 +91,31 @@ public function searchBooking(Request $request)
         ->where('status', 'confirmed')
         ->count();
 
+    if ($request->ajax() || $request->boolean('partial')) {
+        return view(
+            'user.booking-table',
+            compact(
+                'myBookings',
+                'pendingCount',
+                'paidCount'
+            )
+        )->render();
+    }
+
+    $filterStatus = $request->status ?? null;
+    $keyword = $request->keyword ?? null;
+    $method_payment = $request->payment_method ?? null;
     return view(
-        'user.booking-table',
+        'user.my-bookings',
         compact(
             'myBookings',
             'pendingCount',
-            'paidCount'
+            'paidCount',
+            'filterStatus',
+            'keyword',
+            'method_payment'
         )
-    )->render();
+    );
 }
    public function bookingdetail($id)
 {
@@ -112,11 +129,38 @@ public function searchBooking(Request $request)
     // }
     public function myBookings()
 {
-    $filterStatus = request()->query('status');
+    $request = request();
+    $filterStatus = $request->query('status');
+    $keyword = $request->query('keyword');
+
+    $query = Booking::with(['field', 'payment'])
+        ->where('user_id', auth()->id());
+
+    if ($keyword) {
+        $query->whereHas('field', function ($q) use ($keyword) {
+            $q->where('name', 'like', '%' . $keyword . '%');
+        });
+    }
+
+    if ($filterStatus) {
+        $query->where('status', $filterStatus);
+    }
+
+    $myBookings = $query->latest()
+        ->paginate(5)
+        ->withQueryString();
+
+    $pendingCount = Booking::where('user_id', auth()->id())
+        ->where('status', 'pending')
+        ->count();
+
+    $paidCount = Booking::where('user_id', auth()->id())
+        ->where('status', 'confirmed')
+        ->count();
 
     return view(
         'user.my-bookings',
-        compact('filterStatus')
+        compact('filterStatus', 'keyword', 'myBookings', 'pendingCount', 'paidCount')
     );
 }
 

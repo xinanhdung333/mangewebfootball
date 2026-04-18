@@ -12,6 +12,7 @@ class BookingPayment extends Model
         'momo_trans_id',
         'amount',
         'status',
-        'paid_at'
+        'paid_at',
+        'payment_method'
     ];
 }
