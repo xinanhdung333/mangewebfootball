@@ -15,7 +15,7 @@ svg {
     display: block;
 }
 .imageservicedetail {
- width: 200px !important; height: 500px !important; object-fit: contain; border: 1px solid #ddd; border-radius: 12px; background:#f9f9f9;
+ width: 600px !important; height: 500px !important; object-fit: contain; border: 1px solid #ddd; border-radius: 12px; background:#f9f9f9;
 }
 .chatbot {
     position: fixed;

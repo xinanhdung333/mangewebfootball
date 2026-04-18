@@ -94,7 +94,7 @@
                                     </button>
                                 </td>
                                 <td>
-                                    <form method="POST" action="{{ route('boss.update-booking-status') }}" style="display: inline;">
+                                    <form method="POST" action="{{ route('admin.update-booking-status') }}" style="display: inline;">
                                         @csrf
                                         <input type="hidden" name="booking_id" value="{{ $booking->id }}">
                                         <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">

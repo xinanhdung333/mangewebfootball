@@ -1,5 +1,43 @@
     @extends('layouts.app')
-
+@php
+ $news = [
+        [
+            'title' => 'MU thắng nghẹt thở cuối trận',
+            'description' => 'MU lội ngược dòng ở phút cuối, thắng 3-2 trước Chelsea.',
+            'url' => '#',
+            'urlToImage' => 'https://images2.thanhnien.vn/Uploaded/sontung/2023_01_14/2023-01-14t141009z-528690775-up1ej1e13cvbz-rtrmadp-3-soccer-england-mun-mci-report-2201.jpg',
+            'publishedAt' => '2025-12-10 14:00:00'
+        ],
+        [
+            'title' => 'Messi lập siêu phẩm ngoài vòng cấm',
+            'description' => 'Messi ghi bàn ngoạn mục từ ngoài vòng cấm, giúp PSG dẫn đầu.',
+            'url' => '#',
+            'urlToImage' => 'https://images2.thanhnien.vn/528068263637045248/2025/7/13/messi-sut-phat-17523725364231377943710.jpg',
+            'publishedAt' => '2025-12-10 12:00:00'
+        ],
+        [
+            'title' => 'Barca đón trung vệ mới',
+            'description' => 'Barca ký hợp đồng với trung vệ chất lượng từ Ligue 1.',
+            'url' => '#',
+            'urlToImage' => 'https://media-cdn-v2.laodong.vn/storage/newsportal/2024/4/10/1325719/Rsz_33Mt6kt-Preview.jpg',
+            'publishedAt' => '2025-12-09 16:00:00'
+        ],
+        [
+            'title' => 'Liverpool khởi đầu hoàn hảo',
+            'description' => 'Liverpool thắng 4-0 trận mở màn Premier League.',
+            'url' => '#',
+            'urlToImage' => 'https://i.ibb.co/9tP7G2r/news4.jpg',
+            'publishedAt' => '2025-12-09 10:00:00'
+        ],
+        [
+            'title' => 'Real Madrid giữ vững ngôi đầu bảng',
+            'description' => 'Real Madrid tiếp tục phong độ ấn tượng với chiến thắng 2-1.',
+            'url' => '#',
+            'urlToImage' => 'https://i.ibb.co/7kFxT99/news5.jpg',
+            'publishedAt' => '2025-12-08 18:30:00'
+        ],
+    ];
+@endphp
     @section('content')
     <style>
     .hero-modern { position:relative; height:420px; display:flex; align-items:center; justify-content:center; overflow:hidden; background-color:#0f1724; margin-bottom:40px; }

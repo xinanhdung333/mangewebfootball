@@ -100,8 +100,6 @@ document.addEventListener('mousemove', (e) => {
         </div>
     </div>
 </nav>
+<main class="container-fluid mt-4 px-4">
 
-<main class="container mt-4">   <!-- THÊM DÒNG NÀY -->
-
-<div class="container-fluid px-4">
 

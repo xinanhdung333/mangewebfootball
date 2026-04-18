@@ -1,6 +1,5 @@
 @php $url = request()->getRequestUri(); @endphp
 
-</div>
 </main>
 
 

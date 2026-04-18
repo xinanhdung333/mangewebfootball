@@ -139,23 +139,23 @@ class AdminController extends Controller
     /**
      * Manage bookings with status filtering
      */
-    public function manageBookings(Request $request)
-    {
-        $filter_status = $request->get('status', '');
+   public function manageBookings(Request $request)
+{
+    $filter_status = $request->get('status');
 
-        $query = Booking::with(['user', 'field']);
+    $query = Booking::with(['user', 'field']);
 
-        if ($filter_status !== "") {
-            $query->where('status', $filter_status);
-        }
-
-        $bookings = $query->orderBy('created_at', 'desc')->paginate(15);
-
-        return view('admin.manage-bookings', [
-            'bookings' => $bookings,
-            'filterStatus' => $filter_status,
-        ]);
+    if (!empty($filter_status)) {
+        $query->where('status', $filter_status);
     }
+
+    $bookings = $query->orderBy('created_at', 'desc')->paginate(15);
+
+    return view('admin.manage-bookings', [
+        'bookings' => $bookings,
+        'filterStatus' => $filter_status,
+    ]);
+}
 
     /**
      * Update booking status with validation

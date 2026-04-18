@@ -1,45 +1,44 @@
 @extends('layouts.app')
-@section('content')
 
+@section('content')
 <div class="container-fluid py-4">
     <div class="row mb-4">
         <div class="col-md-12">
             <h1><i class="bi bi-bag-check"></i> Sân đã đặt</h1>
         </div>
     </div>
-<div class="row mb-3">
 
-    <div class="col-md-4">
-        <input type="text"
-               id="search-input"
-               class="form-control"
-               placeholder="Tìm sân...">
+    <div class="row mb-3 g-3">
+        <div class="col-md-4">
+            <input
+                type="text"
+                id="search-input"
+                class="form-control"
+                placeholder="Tìm sân..."
+                value="{{ request('keyword', '') }}"
+            >
+        </div>
+
+        <div class="col-md-3">
+            <select id="status-filter" class="form-select">
+                <option value="">Tất cả trạng thái</option>
+                <option value="pending" {{ request('status', $filterStatus ?? '') === 'pending' ? 'selected' : '' }}>Chờ xử lý</option>
+                <option value="confirmed" {{ request('status', $filterStatus ?? '') === 'confirmed' ? 'selected' : '' }}>Đã xác nhận</option>
+                <option value="cancelled" {{ request('status', $filterStatus ?? '') === 'cancelled' ? 'selected' : '' }}>Đã hủy</option>
+            </select>
+        </div>
     </div>
 
-    <div class="col-md-3">
-        <select id="status-filter" class="form-select">
-            <option value="">Tất cả trạng thái</option>
-            <option value="pending">Chờ xử lý</option>
-            <option value="confirmed">Đã thanh toán</option>
-            <option value="cancelled">Đã huỷ</option>
-        </select>
-    </div>
-
+    <div id="booking-table-area" class="py-4"></div>
 </div>
 
-
-  <div id="service-table-area" class ="py-4">
-
-<!-- @include('user.service-table') -->
-
-</div>
 <script>
-function loadServices(url = null) {
+function loadBookings(url = null) {
     const keyword = document.getElementById('search-input').value;
     const status = document.getElementById('status-filter').value;
 
     if (!url) {
-        url = `{{ route('user.services.search') }}?keyword=${keyword}&status=${status}`;
+        url = `{{ route('user.search.Booking') }}?keyword=${encodeURIComponent(keyword)}&status=${encodeURIComponent(status)}`;
     }
 
     fetch(url, {
@@ -49,14 +48,12 @@ function loadServices(url = null) {
     })
     .then(res => res.text())
     .then(data => {
-        document.getElementById('service-table-area').innerHTML = data;
+        document.getElementById('booking-table-area').innerHTML = data;
     });
 }
 
-
-// delegation click pagination (quan trọng)
-document.addEventListener('click', function(e) {
-    const link = e.target.closest('#service-table-area .pagination a');
+document.addEventListener('click', function (e) {
+    const link = e.target.closest('#booking-table-area .pagination a');
 
     if (link) {
         e.preventDefault();
@@ -65,14 +62,13 @@ document.addEventListener('click', function(e) {
         url.searchParams.set('keyword', document.getElementById('search-input').value);
         url.searchParams.set('status', document.getElementById('status-filter').value);
 
-        loadServices(url.toString());
+        loadBookings(url.toString());
     }
 });
 
-document.getElementById('search-input').addEventListener('keyup', () => loadServices());
-document.getElementById('status-filter').addEventListener('change', () => loadServices());
+document.getElementById('search-input').addEventListener('keyup', () => loadBookings());
+document.getElementById('status-filter').addEventListener('change', () => loadBookings());
 
-// load lần đầu
-loadServices();
+loadBookings();
 </script>
 @endsection

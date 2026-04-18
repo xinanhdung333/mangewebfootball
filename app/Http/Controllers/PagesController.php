@@ -143,88 +143,16 @@ class PagesController extends Controller
     }
   public function myBookings()
 {
-    $user = auth()->user();
-
-    $myBookings = Booking::with(['field'])
-        ->where('user_id', $userId)
-        ->latest()
-        ->paginate(5);
-
-    // // thống kê
-    // $pendingCount = Booking::where('user_id',$userId)
-    //     ->whereHas('order',
-    //         fn($q)=>$q->where('status','pending')
-    //     )->count();
-
-    // $paidCount = Booking::where('user_id',$userId)
-    //     ->whereHas('order',
-    //         fn($q)=>$q->where('status','paid')
-    //     )->count();
+    $filterStatus = request()->query('status');
 
     return view(
         'user.my-bookings',
-        compact(
-            'myBookings',
-            // 'pendingCount',
-            // 'paidCount'
-        )
+        compact('filterStatus')
     );
 }
 public function searchBooking(Request $request)
 {
-    $user = auth()->user();
-
-    $query = Booking::with(['field','order'])
-        ->where('user_id',$userId);
-
-    // search tên sân
-    if ($request->keyword) {
-
-        $query->whereHas('field',
-            fn($q)=>$q->where(
-                'name',
-                'like',
-                "%{$request->keyword}%"
-            )
-        );
-    }
-
-    // filter status
-    if ($request->status) {
-
-        $query->whereHas('order',
-            fn($q)=>$q->where(
-                'status',
-                $request->status
-            )
-        );
-    }
-
-    $myBookings = $query
-        ->latest()
-        ->paginate(5)
-        ->withQueryString();
-
-    // thống kê giữ nguyên
-    $pendingCount = Booking::where('user_id',$userId)
-        ->whereHas('order',
-            fn($q)=>$q->where('status','pending')
-        )->count();
-
-    $paidCount = Booking::where('user_id',$userId)
-        ->whereHas('order',
-            fn($q)=>$q->where('status','paid')
-        )->count();
-
-
-    return view(
-        'user.booking-table',
-        compact(
-            'myBookings',
-            'pendingCount',
-            'paidCount'
-        )
-    )->render();
+    return app(BookingController::class)->searchBooking($request);
 }
 public function myBookingsFetch(Request $request)
 {
@@ -370,7 +298,7 @@ public function bookingdetail($id)
 
     return view('user.booking-detail', compact('booking'));
 }
-        public function myServices()
+public function myServices()
 {
     $filterStatus = request()->query('status');
 
@@ -768,7 +696,7 @@ public function searchServices(Request $request)
     }
 
     $myServices = $query->latest()
-        ->paginate(10)
+        ->paginate(5)
         ->withQueryString()
         ->withPath(route('user.services.search'));
 
@@ -783,13 +711,7 @@ public function searchServices(Request $request)
         return $item;
     });
 
-    if ($request->ajax() || $request->header('X-Requested-With') === 'XMLHttpRequest') {
-        return view('user.service-table', compact('myServices'))->render();
-    }
-
-    $filterStatus = $request->status ?? null;
-
-    return view('user.my-services', compact('myServices', 'filterStatus'));
+    return view('user.service-table', compact('myServices'))->render();
 }
 public function removeFromCart(Request $request)
 {
@@ -1076,6 +998,15 @@ public function checkoutBuyNow(Request $request)
         return back()->with('error', 'Thanh toán thất bại');
 
     }
+}
+
+public function serviceDetail($id)
+{
+    // lấy service theo id
+    $service = Service::findOrFail($id);
+
+    // trả về view
+    return view('user.service-detail', compact('service'));
 }
 public function orderDetail($id)
 {

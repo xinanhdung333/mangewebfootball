@@ -29,9 +29,7 @@
 
 
   <div id="service-table-area" class ="py-4">
-
-<!-- @include('user.service-table') -->
-
+{{-- @include('user.service-table') --}}
 </div>
 <script>
 function loadServices(url = null) {

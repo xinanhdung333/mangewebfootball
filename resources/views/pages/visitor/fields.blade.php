@@ -1,7 +1,8 @@
-@extends('layouts.visitor')
+@extends('layouts.app')
 
 @section('content')
 @php $fields = $fields ?? []; @endphp
+<div style="max-width:1200px; margin:20px auto; padding:0 10px;">
 
 <div class="row mb-4">
     <div class="col-md-12">
@@ -61,7 +62,7 @@
         <div class="col-md-12"><div class="alert alert-info">Hiện tại không có sân nào.</div></div>
     @endif
 </div>
-
+</div>
 <script>
 function toggleDesc(id) {
     const short = document.getElementById("desc-short-" + id);

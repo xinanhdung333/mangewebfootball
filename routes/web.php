@@ -201,12 +201,12 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function(){
     Route::get('/my-bookings-fetch', [PagesController::class, 'myBookingsFetch'])->name('myBookings.fetch');
     Route::get('/bookingcreate', [PagesController::class, 'bookingcreate'])->name('bookingcreate');
     Route::post('/booking', [PagesController::class, 'storeBooking'])->name('bookingstore');
-    Route::get('/booking/{id}', [PagesController::class, 'bookingdetail'])->name('bookingdetail');
-    Route::post('/booking/{id}/cancel', [PagesController::class, 'cancelBooking'])->name('cancelBooking');
     Route::get('/my-bookings', [PagesController::class, 'myBookings'])->name('myBookings');
     Route::get('/field-schedule', [PagesController::class, 'fieldSchedule']) ->name('fieldSchedule');
     Route::get('/booking/search', [BookingController::class, 'searchBooking'])->name('search.Booking');
-        Route::get('/booking/{id}/export', [PagesController::class, 'exportInvoicebooking'])->name('exportInvoicebooking');
+    Route::get('/booking/{id}', [PagesController::class, 'bookingdetail'])->whereNumber('id')->name('bookingdetail');
+    Route::post('/booking/{id}/cancel', [PagesController::class, 'cancelBooking'])->whereNumber('id')->name('cancelBooking');
+    Route::get('/booking/{id}/export', [PagesController::class, 'exportInvoicebooking'])->whereNumber('id')->name('exportInvoicebooking');
 
     
     // Cart & Shopping
@@ -236,7 +236,6 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function(){
     '/bookings/search',
     [BookingController::class, 'searchBookings']
 )->name('bookings.search');
-        Route::get('/my-bookings', [BookingController::class, 'myBookings'])->name('myBookings');
 
     Route::get('/my-services', [PagesController::class, 'myServices'])->name('myServices');
     //payments

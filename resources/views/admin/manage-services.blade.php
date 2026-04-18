@@ -235,4 +235,7 @@ document.getElementById('edit_image_input').addEventListener('change', function(
     }
 });
 </script>
+</br>
+</br>
+</br>
 @endsection
