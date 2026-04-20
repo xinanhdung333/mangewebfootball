@@ -13,8 +13,11 @@ use App\Http\Controllers\BookingController;
 use App\Http\Controllers\AdminController;
 use App\Http\Controllers\BossController;
 use App\Http\Controllers\VisitorController;
+use App\Http\Controllers\ChatController;
 use App\Http\Controllers\ChatbotController;
 use App\Http\Controllers\ChatbotIntentController;
+use App\Http\Controllers\ChatbotKeywordController;
+use App\Http\Controllers\ChatbotResponseController;
 use App\Http\Controllers\BookingMomoController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
@@ -98,6 +101,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/user_service_history', [AdminController::class, 'userServiceHistory'])->name('user.service.history');
     Route::get('/statistics', [AdminController::class, 'statistics'])->name('statistics');
     Route::get('/manage-feedback', [AdminController::class, 'manageFeedback'])->name('manage.feedback');
+    Route::get('/chat-conversations', [ChatController::class, 'adminIndex'])->name('chat.index');
+    Route::get('/chat-conversations/{conversation}', [ChatController::class, 'adminShow'])->name('chat.show');
+    Route::post('/chat-conversations/{conversation}/reply', [ChatController::class, 'adminReply'])->name('chat.reply');
 //generate chatbot rules
 
     Route::get('/', [ChatbotIntentController::class,'index'])->name('chatbot.index');
@@ -249,7 +255,14 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function(){
     Route::get('/feedback', [PagesController::class, 'feedback'])->name('feedback');
     Route::post('/feedback', [PagesController::class, 'sendFeedback'])->name('sendFeedback');
     // Chatbot
-  Route::post('/chatbot/message', [ChatbotController::class, 'reply'])->name('chatbot.message');
+    Route::post('/chatbot/message', [ChatbotController::class, 'reply'])->name('chatbot.message');
+
+    Route::middleware(['auth'])->group(function () {
+        // User chat support
+        Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
+        Route::post('/chat/send', [ChatController::class, 'send'])->name('chat.send');
+    });
+
 // Route::get('/chatbot', function () {
 //     return view('ap');
 //});

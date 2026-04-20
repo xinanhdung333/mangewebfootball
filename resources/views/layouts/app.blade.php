@@ -285,6 +285,7 @@
                         <li class="nav-item"><a class="nav-link" href="{{ route('user.myServices') }}"><i class="bi bi-bag-check"></i> Dịch vụ đã mua</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('cart.index') }}"><i class="bi bi-cart-fill"></i> Giỏ hàng</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('user.feedback') }}"><i class="bi bi-chat-dots"></i> Feedback</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('user.chat.index') }}"><i class="bi bi-chat-left-text"></i> Chat Admin</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('about') }}"><i class="bi bi-chat-dots"></i> About</a></li>
                         
                     <li class="nav-item dropdown">
@@ -305,6 +306,7 @@
                         <li class="nav-item"><a class="nav-link" href="{{ route('admin.manage.services') }}"><i class="bi bi-grid"></i> Quản lý dịch vụ</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('admin.user.service.history') }}"><i class="bi bi-bag-check"></i> Chi tiết mua hàng</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('admin.manage.feedback') }}"><i class="bi bi-chat-dots"></i> Quản lý Feedback</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('admin.chat.index') }}"><i class="bi bi-chat-left-text"></i> Chat Admin</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('admin.invoices') }}"><i class="bi bi-file-earmark-pdf"></i> Quản lý hóa đơn</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('admin.chatbot.index') }}"><i class="bi bi-robot"></i> Quản lý Chatbot</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('admin.statistics') }}"><i class="bi bi-bar-chart"></i> Thống kê</a></li>
@@ -426,20 +428,21 @@ async function sendMessage() {
 
 // xử lý Enter gửi tin nhắn
 const inputMessage = document.getElementById("message");
-
-inputMessage.addEventListener("keydown", function(e) {
-    if (e.key === "Enter") {
-        e.preventDefault();
-        sendMessage();
-    }
-});
-
+if (inputMessage) {
+    inputMessage.addEventListener("keydown", function(e) {
+        if (e.key === "Enter") {
+            e.preventDefault();
+            sendMessage();
+        }
+    });
+}
 
 // open chat
-mascot.onclick = () => chatBox.style.display = "block";
 
 // close chat
-closeChat.onclick = () => chatBox.style.display = "none";
+if (typeof closeChat !== 'undefined' && typeof chatBox !== 'undefined') {
+    closeChat.onclick = () => chatBox.style.display = "none";
+}
 
 </script> 
 
@@ -481,24 +484,6 @@ closeChat.addEventListener('click', () => {
     chatBox.style.display = 'none';
 });
 </script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pusher/8.2.0/pusher.min.js"></script>
-/* <script>
-Pusher.logToConsole = true;
-
-var pusher = new Pusher("{{ config('broadcasting.connections.pusher.key') }}", {
-    cluster: "ap1"
-});
-var conversationId = 1;
-var channel = pusher.subscribe('chat.' + conversationId);
-channel.bind('MessageSent', function(data) {
-
-    let chatBody = document.querySelector(".chat-body");
-
-    chatBody.innerHTML +=
-        `<div>${data.message.message}</div>`;
-
-});
-</script> */
 @stack('scripts')
 </body>
 </html>

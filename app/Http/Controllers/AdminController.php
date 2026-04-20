@@ -276,22 +276,20 @@ public function updateProfile(Request $request)
     $admin->phone = $validated['phone'];
 
     // upload avatar
-    if ($request->hasFile('avt')) {
+  if ($request->hasFile('avt')) {
 
-        // xoá avatar cũ nếu có
-        if ($admin->avt && Storage::disk('public')->exists('avatars/'.$admin->avt)) {
-            Storage::disk('public')->delete('avatars/'.$admin->avt);
-        }
-
-        $file = $request->file('avt');
-
-        $filename = time().'_'.$file->getClientOriginalName();
-
-        $file->storeAs('avatars', $filename, 'public');
-
-        $admin->avt = $filename;
+    if ($admin->avt && file_exists(public_path('uploads/avatars/'.$admin->avt))) {
+        unlink(public_path('uploads/avatars/'.$admin->avt));
     }
 
+    $file = $request->file('avt');
+
+    $filename = time().'_'.$file->getClientOriginalName();
+
+    $file->move(public_path('uploads/avatars'), $filename);
+
+    $admin->avt = $filename;
+}
     // đổi mật khẩu nếu nhập
     if ($request->filled('password')) {
 

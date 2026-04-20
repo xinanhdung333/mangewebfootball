@@ -18,7 +18,7 @@
                 <div class="card-body">
                   <img
 src="{{ $admin->avt
-? asset('storage/avatars/'.$admin->avt)
+? asset('uploads/avatars/'.$admin->avt)
 : asset('images/default.png') }}"
 class="rounded-circle mb-2"
 style="width:120px;height:120px;object-fit:cover;"

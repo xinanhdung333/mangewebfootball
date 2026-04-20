@@ -72,4 +72,8 @@ class User extends Authenticatable
     {
         return $this->bookings()->with('field')->orderByDesc('start_time')->get();
     }
+    public function assignedConversations()
+{
+    return $this->hasMany(Conversation::class, 'admin_id');
+}
 }
