@@ -84,7 +84,7 @@
                                             onclick='editService(@json($service))'>
                                         <i class="bi bi-pencil"></i> Sửa
                                     </button>
-                                    <form method="POST" action="{{ route('boss.delete.service') }}" style="display:inline;">
+                                    <form method="POST" action="{{ route('admin.delete.service') }}" style="display:inline;">
                                         @csrf
                                         <input type="hidden" name="id" value="{{ $service->id }}">
                                         <button type="submit" class="btn btn-sm btn-danger"
@@ -110,7 +110,7 @@
 <div class="modal fade" id="addServiceModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST" action="{{ route('boss.store.service') }}" enctype="multipart/form-data">
+            <form method="POST" action="{{ route('admin.store.service') }}" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-header">
                     <h5 class="modal-title">Thêm dịch vụ</h5>
@@ -159,7 +159,7 @@
 <div class="modal fade" id="editServiceModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST" action="{{ route('boss.update.service') }}" enctype="multipart/form-data">
+            <form method="POST" action="{{ route('admin.update.service') }}" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-header">
                     <h5 class="modal-title">Sửa dịch vụ</h5>

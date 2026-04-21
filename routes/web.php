@@ -24,7 +24,9 @@ use App\Http\Controllers\Auth\PasswordResetLinkController;
 
 require __DIR__.'/auth.php';
 
-
+Route::get('/h', function () {
+    return view('h');
+});
 
 // Route::post('/forgot-password', function (Request $request) {
 //     $request->validate(['email' => 'required|email']);
@@ -87,13 +89,16 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::post('/update-booking-status', [AdminController::class, 'updateBookingStatus'])->name('update-booking-status');
     Route::get('/invoices', [AdminController::class, 'invoices'])->name('invoices');
     Route::get('/export-invoice', [AdminController::class, 'exportInvoice'])->name('export.invoice');
-    Route::get('/edit-status', [AdminController::class, 'editStatus'])->name('edit.status');
-    Route::get('/about', [AdminController::class, 'about'])->name('about');
+Route::get('/edit-status/{id}', [AdminController::class, 'editStatus'])
+    ->name('admin.edit.status.order');    Route::get('/about', [AdminController::class, 'about'])->name('about');
     Route::get('/manage-fields', [AdminController::class, 'manageFields'])->name('manage.fields');
     Route::post('/store-field', [AdminController::class, 'storeField'])->name('store.field');
     Route::post('/update-field', [AdminController::class, 'updateField'])->name('update.field');
     Route::post('/delete-field', [AdminController::class, 'deleteField'])->name('delete.field');
     Route::get('/manage-orders', [AdminController::class, 'manageOrders'])->name('manage.orders');
+Route::get('/edit-status-order/{id}', [AdminController::class, 'editStatusOrder'])
+    ->name('edit.status.order');    Route::post('/update-order-status', [AdminController::class, 'updateOrderStatus'])->name('update.order.status');
+    Route::post('/update-order-items-status', [AdminController::class, 'updateOrderItemsStatus'])->name('update.order.items.status');
     Route::get('/manage-services', [AdminController::class, 'manageServices'])->name('manage.services');
     Route::post('/store-service', [AdminController::class, 'storeService'])->name('store.service');
     Route::post('/update-service', [AdminController::class, 'updateService'])->name('update.service');
@@ -171,6 +176,8 @@ Route::prefix('boss')->name('boss.')->middleware(['auth','boss'])->group(functio
     Route::post('/update-field', [BossController::class, 'updateField'])->name('update.field');
     Route::post('/delete-field', [BossController::class, 'deleteField'])->name('delete.field');
     Route::get('/manage-orders', [BossController::class, 'manageOrders'])->name('manage.orders');
+    Route::get('/edit-status-order', [BossController::class, 'editStatusOrder'])->name('edit.status.order');
+    Route::post('/update-order-status', [BossController::class, 'updateOrderStatus'])->name('update.order.status');
     Route::get('/manage-services', [BossController::class, 'manageServices'])->name('manage.services');
     Route::post('/store-service', [BossController::class, 'storeService'])->name('store.service');
     Route::post('/update-service', [BossController::class, 'updateService'])->name('update.service');

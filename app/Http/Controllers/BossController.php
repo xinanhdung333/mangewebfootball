@@ -7,8 +7,11 @@ use App\Models\Booking;
 use App\Models\Field;
 use App\Models\User;
 use App\Models\Service;
+use App\Models\Order;
+use App\Models\UserSpending;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Request;
 use DateTime;
 use DateTimeZone;
@@ -238,7 +241,7 @@ class BossController extends Controller
         $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $boss->id,
-            'phone' => 'nullable|string|max:20',
+            'phone' => 'nullable|string|max:40',
         ]);
 
         $boss->update($validated);
@@ -410,29 +413,96 @@ class BossController extends Controller
     public function manageOrders(Request $request) 
     { 
         $filter_user = $request->get('user_id', '');
+        $filter_status = $request->get('status', '');
 
-        $query = DB::table('user_spending as us')
-            ->leftJoin('users as u', 'us.user_id', '=', 'u.id')
-            ->select([
-                'us.id',
-                'us.user_id',
-                'us.total_booking',
-                'us.total_services',
-                'us.total_spent',
-                'us.last_update',
-                'u.name as user_name',
-                'u.phone as user_phone'
-            ]);
+        $query = Order::with(['user', 'items.service']);
 
         if ($filter_user !== "") {
-            $query->where('us.user_id', intval($filter_user));
+            $query->where('user_id', intval($filter_user));
         }
 
-        $orders = $query->orderByDesc('us.last_update')->paginate(20);
-        $users = DB::table('users')->orderBy('name')->get();
+        if ($filter_status !== "") {
+            $query->where('status', $filter_status);
+        }
 
-        return view('boss.manage-orders', compact('orders', 'users', 'filter_user'));
+        $orders = $query->orderBy('created_at', 'desc')->paginate(15);
+        $users = User::orderBy('name')->get();
+
+        return view('boss.manage-orders', compact('orders', 'users', 'filter_user', 'filter_status'));
     }
+
+    /**
+     * Edit order status
+     */
+    public function editStatusOrder(Request $request)
+    {
+        $order = Order::with(['user', 'items.service'])->find($request->id);
+
+        if (!$order) {
+            return back()->with('error', 'Đơn hàng không tồn tại!');
+        }
+
+        return view('admin.edit-status', ['order' => $order]);
+    }
+
+    /**
+     * Update order status with validation
+     */
+    public function updateOrderStatus(Request $request)
+    {
+        try {
+            $order = Order::find($request->order_id);
+
+            if (!$order) {
+                return back()->with('error', 'Đơn hàng không tồn tại hoặc đã bị xoá.');
+            }
+
+            $current = $order->status;
+            $new = $request->status;
+
+            $statusOrder = [
+                'pending' => 1,
+                'confirmed' => 2,
+                'processing' => 3,
+                'in_progress' => 4,
+                'completed' => 5,
+                'cancelled' => 6
+            ];
+
+            // Trạng thái cố định không cho sửa
+            if (in_array($current, ['completed', 'cancelled'])) {
+                return back()->with('error', 'Đơn hàng này đã hoàn tất và không thể thay đổi.');
+            }
+
+            // Không cho quay ngược trạng thái
+            if (isset($statusOrder[$new], $statusOrder[$current]) && $statusOrder[$new] < $statusOrder[$current]) {
+                return back()->with('error', 'Không thể chuyển trạng thái về bước trước.');
+            }
+
+            $order->update(['status' => $new]);
+
+            // Cộng doanh thu khi hoàn thành
+            if ($new === 'completed' && $current !== 'completed') {
+                UserSpending::updateOrCreate(
+                    ['user_id' => $order->user_id],
+                    [
+                        'total_booking' => DB::raw("total_booking + {$order->total_amount}"),
+                        'last_update' => now(),
+                    ]
+                );
+            }
+
+            Cache::forget('admin_statistics');
+
+            return back()->with('success', 'Cập nhật trạng thái đơn hàng thành công.');
+        } catch (\Throwable $e) {
+            // Log thật, user không thấy lỗi hệ thống
+            Log::error('Update order status error: ' . $e->getMessage());
+
+            return back()->with('error', 'Có lỗi xảy ra, vui lòng thử lại sau.');
+        }
+    }
+    
     public function manageServices()
     {
         $services = Service::orderBy('name')->get();

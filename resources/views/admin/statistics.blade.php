@@ -116,7 +116,7 @@ body.dark-mode .table thead th { border-bottom-color: rgba(255,255,255,0.06); }
         </div>
  
         <div class="col-sm-6 col-md-3 fade-in" style="animation-delay:.12s">
-            <a href="{{ route('boss.manage.fields') }}" class="text-decoration-none">
+            <a href="{{ route('admin.manage.fields') }}" class="text-decoration-none">
                 <div class="stat-card" style="background: linear-gradient(135deg,#28a745,#66d97a);">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
@@ -131,7 +131,7 @@ body.dark-mode .table thead th { border-bottom-color: rgba(255,255,255,0.06); }
         </div>
 
         <div class="col-sm-6 col-md-3 fade-in" style="animation-delay:.16s">
-            <a href="{{ route('boss.manage.bookings') }}" class="text-decoration-none">
+            <a href="{{ route('admin.manage.bookings') }}" class="text-decoration-none">
                 <div class="stat-card" style="background: linear-gradient(135deg,#ffc107,#ffd75e);">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
@@ -146,7 +146,7 @@ body.dark-mode .table thead th { border-bottom-color: rgba(255,255,255,0.06); }
         </div>
 
         <div class="col-sm-6 col-md-3 fade-in" style="animation-delay:.20s">
-            <a href="{{ route('boss.manage.orders') }}" class="text-decoration-none">
+            <a href="{{ route('admin.manage.orders') }}" class="text-decoration-none">
                 <div class="stat-card" style="background: linear-gradient(135deg,#17a2b8,#63d2e6);">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
@@ -162,7 +162,7 @@ body.dark-mode .table thead th { border-bottom-color: rgba(255,255,255,0.06); }
 
         <!-- Service card -->
         <div class="col-sm-6 col-md-3 fade-in" style="animation-delay:.24s">
-            <a href="{{ route('boss.manage.services') }}" class="text-decoration-none">
+            <a href="{{ route('admin.manage.services') }}" class="text-decoration-none">
                 <div class="stat-card" style="background: linear-gradient(135deg,#ff5722,#ff8a50);">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>

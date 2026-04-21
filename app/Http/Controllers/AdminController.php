@@ -16,6 +16,9 @@ use Carbon\Carbon;
   use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Invoice;
+use App\Models\Order;
+use App\Models\OrderItem;
+use Illuminate\Support\Facades\Log; 
 class AdminController extends Controller
 {
     /**
@@ -160,20 +163,19 @@ class AdminController extends Controller
     /**
      * Update booking status with validation
      */
-    public function updateBookingStatus(Request $request)
-    {
-        $booking_id = $request->input('booking_id');
-        $new_status = $request->input('status');
-
-        $booking = Booking::find($booking_id);
+  public function updateBookingStatus(Request $request)
+{
+    try {
+        $booking = Booking::find($request->booking_id);
 
         if (!$booking) {
-            return redirect()->back()->with('error', 'Không tìm thấy đơn đặt sân!');
+            return back()->with('error', 'Đơn đặt sân không tồn tại hoặc đã bị xoá.');
         }
 
-        $current_status = $booking->status;
+        $current = $booking->status;
+        $new = $request->status;
 
-        $status_order = [
+        $order = [
             'pending' => 1,
             'confirmed' => 2,
             'in_progress' => 3,
@@ -182,69 +184,56 @@ class AdminController extends Controller
             'expired' => 6
         ];
 
-        $allowed = false;
-        $error = null;
+        // trạng thái cố định không cho sửa
+        if (in_array($current, ['completed', 'cancelled'])) {
+            return back()->with('error', 'Đơn này đã kết thúc và không thể thay đổi.');
+        }
 
-        // Validate status
-        if ($current_status === 'completed') {
-            $error = "Đơn đã hoàn thành, không thể thay đổi!";
-        } elseif ($current_status === 'cancelled') {
-            $error = "Đơn đã hủy, không thể thay đổi!";
-        } elseif ($new_status === 'cancelled') {
-            $allowed = true;
-        } elseif ($current_status === 'pending' && $new_status === 'confirmed') {
-            $allowed = true;
-        } elseif ($new_status === 'in_progress') {
-            if ($booking->booking_date && $booking->start_time) {
-                $start = Carbon::parse($booking->booking_date . ' ' . $booking->start_time);
-                $now = Carbon::now();
-                if ($now >= $start) {
-                    $allowed = true;
-                } else {
-                    $error = "Chưa đến giờ bắt đầu trận!";
-                }
-            }
-        } elseif ($new_status === 'completed') {
-            if ($booking->booking_date && $booking->end_time) {
-                $end = Carbon::parse($booking->booking_date . ' ' . $booking->end_time);
-                $now = Carbon::now();
-                if ($now >= $end) {
-                    $allowed = true;
-                } else {
-                    $error = "Trận đấu chưa kết thúc!";
-                }
-            }
-        } else {
-            if ($status_order[$new_status] < $status_order[$current_status]) {
-                $error = "Không thể quay ngược trạng thái!";
-            } else {
-                $allowed = true;
+        // không cho quay ngược trạng thái
+        if (isset($order[$new], $order[$current]) && $order[$new] < $order[$current]) {
+            return back()->with('error', 'Không thể chuyển trạng thái về bước trước.');
+        }
+
+        // logic đặc biệt
+        if ($new === 'in_progress') {
+            $start = Carbon::parse($booking->booking_date . ' ' . $booking->start_time);
+
+            if (now()->lt($start)) {
+                return back()->with('error', 'Chưa đến giờ bắt đầu trận đấu.');
             }
         }
 
-        if (!$allowed) {
-            return redirect()->back()->with('error', $error ?? 'Không thể cập nhật trạng thái!');
+        if ($new === 'completed') {
+            $end = Carbon::parse($booking->booking_date . ' ' . $booking->end_time);
+
+            if (now()->lt($end)) {
+                return back()->with('error', 'Trận đấu chưa kết thúc.');
+            }
         }
 
-        $booking->update(['status' => $new_status]);
+        $booking->update(['status' => $new]);
 
-        // Add to user spending when completed
-        if ($new_status === 'completed' && $current_status !== 'completed') {
+        // cộng doanh thu khi hoàn thành
+        if ($new === 'completed' && $current !== 'completed') {
             UserSpending::updateOrCreate(
                 ['user_id' => $booking->user_id],
                 [
-                    'total_booking' => DB::raw("total_booking + " . $booking->total_price),
+                    'total_booking' => DB::raw("total_booking + {$booking->total_price}"),
                     'last_update' => now(),
                 ]
             );
         }
 
-        // Clear statistics cache
         Cache::forget('admin_statistics');
 
-        return redirect()->back()->with('success', 'Cập nhật trạng thái thành công!');
-    }
+        return back()->with('success', 'Cập nhật trạng thái thành công.');
+    } catch (\Throwable $e) {
+        // log thật, user không thấy lỗi hệ thống
+        Log::error('Update booking status error: ' . $e->getMessage());
 
+        return back()->with('error', 'Có lỗi xảy ra, vui lòng thử lại sau.');
+    }
+}
     /**
      * Manage fields
      */
@@ -258,7 +247,131 @@ class AdminController extends Controller
      * Update admin profile
      */
 
+public function editStatusOrder($id)
+{
+    $order = Order::with(['user', 'items.service'])->find($id);
 
+    if (!$order) {
+        return back()->with('error', 'Đơn hàng không tồn tại!');
+    }
+
+    return view('admin.edit-status', compact('order'));
+}
+
+/**
+ * Update order status with validation
+ */
+public function updateOrderStatus(Request $request)
+{
+    try {
+        $request->validate([
+            'order_id' => 'required|integer',
+            'status' => 'required|string'
+        ]);
+
+        $order = Order::find($request->order_id);
+
+        if (!$order) {
+            return back()->with('error', 'Đơn hàng không tồn tại.');
+        }
+
+        $current = $order->status;
+        $new = $request->status;
+
+        $validStatus = [
+            'pending',
+            'confirmed',
+            'in_progress',
+            'completed',
+            'cancelled'
+        ];
+
+        if (!in_array($new, $validStatus)) {
+            return back()->with('error', 'Trạng thái không hợp lệ.');
+        }
+
+        $orderFlow = [
+            'pending' => 1,
+            'confirmed' => 2,
+            'in_progress' => 3,
+            'completed' => 4,
+            'cancelled' => 5,
+        ];
+
+        // trạng thái kết thúc
+        if (in_array($current, ['completed', 'cancelled'])) {
+            return back()->with('error', 'Đơn hàng đã kết thúc.');
+        }
+
+        // không cho quay lui
+        if (
+            isset($orderFlow[$current], $orderFlow[$new]) &&
+            $orderFlow[$new] < $orderFlow[$current]
+        ) {
+            return back()->with('error', 'Không thể lùi trạng thái.');
+        }
+
+        // update status
+        $order->update([
+            'status' => $new
+        ]);
+
+        // cộng doanh thu khi hoàn thành
+        if ($new === 'completed' && $current !== 'completed') {
+
+            $spending = UserSpending::firstOrCreate(
+                ['user_id' => $order->user_id],
+                ['total_booking' => 0]
+            );
+
+            $spending->total_booking += $order->total_amount;
+            $spending->last_update = now();
+            $spending->save();
+        }
+
+        Cache::forget('admin_statistics');
+
+        return back()->with('success', 'Cập nhật trạng thái thành công.');
+
+    } catch (\Throwable $e) {
+
+        Log::error('Order status error: ' . $e->getMessage());
+
+        return back()->with('error', 'Có lỗi xảy ra, vui lòng thử lại.');
+    }
+}
+
+
+public function updateOrderItemsStatus(Request $request)
+{
+    $request->validate([
+        'order_id' => 'required|exists:orders,id',
+        'items' => 'required|array',
+    ]);
+
+$validStatus = [
+    'pending',
+    'confirmed',
+    'processing',
+    'completed',
+    'cancelled'
+];
+    $order = Order::find($request->order_id);
+
+    DB::transaction(function () use ($request, $order, $validStatus) {
+
+       foreach ($request->items as $itemId => $status) {
+
+   $f = DB::table('order_items')
+        ->where('id', $itemId)
+        ->update([
+            'status' => $status
+        ]);
+}
+
+    });
+  return back()->with('success', 'Cập nhật dịch vụ thành công');
+}
 public function updateProfile(Request $request)
 {
     $admin = Auth::user();
@@ -314,8 +427,9 @@ public function updateProfile(Request $request)
     /**
      * Store new field
      */
-    public function storeField(Request $request)
-    {
+  public function storeField(Request $request)
+{
+    try {
         $validated = $request->validate([
             'name' => 'required|string',
             'location' => 'required|string',
@@ -336,13 +450,17 @@ public function updateProfile(Request $request)
         Cache::forget('admin_statistics');
 
         return redirect()->back()->with('success', 'Thêm sân thành công!');
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'Có lỗi xảy ra khi thêm sân!');
     }
+}
 
     /**
      * Update field
      */
-    public function updateField(Request $request)
-    {
+  public function updateField(Request $request)
+{
+    try {
         $field = Field::find($request->input('id'));
 
         if (!$field) {
@@ -359,10 +477,10 @@ public function updateProfile(Request $request)
         ]);
 
         if ($request->hasFile('image')) {
-            // Delete old image
             if ($field->image && file_exists(public_path('uploads/fields/' . $field->image))) {
                 unlink(public_path('uploads/fields/' . $field->image));
             }
+
             $image_name = time() . "_" . rand(1000, 9999) . "." . $request->file('image')->extension();
             $request->file('image')->move(public_path('uploads/fields'), $image_name);
             $validated['image'] = $image_name;
@@ -373,13 +491,16 @@ public function updateProfile(Request $request)
         Cache::forget('admin_statistics');
 
         return redirect()->back()->with('success', 'Cập nhật sân thành công!');
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'Có lỗi xảy ra khi cập nhật sân!');
     }
-
+}
     /**
      * Delete field
      */
-    public function deleteField(Request $request)
-    {
+   public function deleteField(Request $request)
+{
+    try {
         $field = Field::find($request->input('id'));
 
         if (!$field) {
@@ -395,7 +516,10 @@ public function updateProfile(Request $request)
         Cache::forget('admin_statistics');
 
         return redirect()->back()->with('success', 'Xóa sân thành công!');
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'Có lỗi xảy ra khi xóa sân!');
     }
+}
 
     /**
      * Manage services
@@ -409,16 +533,18 @@ public function updateProfile(Request $request)
     /**
      * Store new service
      */
-    public function storeService(Request $request)
-    {
-        $validated = $request->validate([
-            'name' => 'required|string',
-            'price' => 'required|numeric',
-            'quantity' => 'required|integer',
-            'status' => 'required|in:active,inactive',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-        ]);
+  
+public function storeService(Request $request)
+{
+    $validated = $request->validate([
+        'name' => 'required|string',
+        'price' => 'required|numeric|min:0|max:9999999999999',
+        'quantity' => 'required|integer|min:0',
+        'status' => 'required|in:active,inactive',
+        'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+    ]);
 
+    try {
         if ($request->hasFile('image')) {
             $image_name = time() . "_" . rand(1000, 9999) . "." . $request->file('image')->extension();
             $request->file('image')->move(public_path('uploads/services'), $image_name);
@@ -429,55 +555,70 @@ public function updateProfile(Request $request)
 
         Cache::forget('admin_statistics');
 
-        return redirect()->back()->with('success', 'Thêm dịch vụ thành công!');
-    }
+        return back()->with('success', 'Thêm dịch vụ thành công!');
+    } catch (\Exception $e) {
+        Log::error('Store service error: ' . $e->getMessage(), [
+            'line' => $e->getLine()
+        ]);
 
+        return back()->with('error', 'Không thể thêm dịch vụ, vui lòng thử lại!');
+    }
+}
     /**
      * Update service
      */
-    public function updateService(Request $request)
-    {
-        $service = Service::find($request->input('id'));
+public function updateService(Request $request)
+{
+    $service = Service::find($request->input('id'));
 
-        if (!$service) {
-            return redirect()->back()->with('error', 'Không tìm thấy dịch vụ!');
-        }
+    if (!$service) {
+        return back()->with('error', 'Không tìm thấy dịch vụ!');
+    }
 
-        $validated = $request->validate([
-            'name' => 'required|string',
-            'price' => 'required|numeric',
-            'quantity' => 'required|integer',
-            'status' => 'required|in:active,inactive',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
-        ]);
+    $validated = $request->validate([
+        'name' => 'required|string',
+        'price' => 'required|numeric',
+        'quantity' => 'required|integer',
+        'status' => 'required|in:active,inactive',
+        'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+    ]);
 
+    try {
+        // xử lý file (có thể lỗi)
         if ($request->hasFile('image')) {
             if ($service->image && file_exists(public_path('uploads/services/' . $service->image))) {
                 unlink(public_path('uploads/services/' . $service->image));
             }
+
             $image_name = time() . "_" . rand(1000, 9999) . "." . $request->file('image')->extension();
             $request->file('image')->move(public_path('uploads/services'), $image_name);
+
             $validated['image'] = $image_name;
         }
 
+        // DB update (có thể lỗi SQL)
         $service->update($validated);
 
         Cache::forget('admin_statistics');
 
-        return redirect()->back()->with('success', 'Cập nhật dịch vụ thành công!');
+        return back()->with('success', 'Cập nhật dịch vụ thành công!');
+    } catch (\Exception $e) {
+        return back()->with('error', 'Có lỗi khi cập nhật dữ liệu!');
     }
+}
 
     /**
      * Delete service
      */
-    public function deleteService(Request $request)
-    {
-        $service = Service::find($request->input('id'));
+  public function deleteService(Request $request)
+{
+    $service = Service::find($request->input('id'));
 
-        if (!$service) {
-            return redirect()->back()->with('error', 'Không tìm thấy dịch vụ!');
-        }
+    if (!$service) {
+        return back()->with('error', 'Không tìm thấy dịch vụ!');
+    }
 
+    try {
         if ($service->image && file_exists(public_path('uploads/services/' . $service->image))) {
             unlink(public_path('uploads/services/' . $service->image));
         }
@@ -486,47 +627,54 @@ public function updateProfile(Request $request)
 
         Cache::forget('admin_statistics');
 
-        return redirect()->back()->with('success', 'Xóa dịch vụ thành công!');
+        return back()->with('success', 'Xóa dịch vụ thành công!');
+    } catch (\Exception $e) {
+        return back()->with('error', 'Không thể xóa dịch vụ!');
+    }
+}
+public function manageOrders(Request $request)
+{
+    $query = Order::with(['user', 'items.service']);
+
+    // FILTER USER
+    if ($request->filled('user_id')) {
+        $query->where('user_id', $request->user_id);
     }
 
-    /**
-     * Manage orders (user spending)
-     */
-    public function manageOrders(Request $request)
-    {
-        $filter_user = $request->get('user_id', '');
-
-        $query = UserSpending::with('user');
-
-        if ($filter_user !== "") {
-            $query->where('user_id', $filter_user);
-        }
-
-        $orders = $query->orderBy('last_update', 'desc')->paginate(15);
-        $users = User::orderBy('name')->get();
-
-        return view('admin.manage-orders', [
-            'orders' => $orders,
-            'users' => $users,
-            'filter_user' => $filter_user,
-        ]);
+    // FILTER STATUS
+    if ($request->filled('status')) {
+        $query->where('status', $request->status);
     }
 
-    /**
-     * User service history
-     */
-    /**
+    // SEARCH (thêm nếu cần tìm nhanh)
+    if ($request->filled('search')) {
+        $keyword = $request->search;
+
+        $query->where(function ($q) use ($keyword) {
+            $q->where('id', $keyword)
+              ->orWhereHas('user', function ($u) use ($keyword) {
+                  $u->where('name', 'like', "%$keyword%")
+                    ->orWhere('email', 'like', "%$keyword%");
+              });
+        });
+    }
+
+    $orders = $query->orderByDesc('created_at')
+        ->paginate(15)
+        ->appends($request->all()); // 🔥 GIỮ FILTER KHI CHUYỂN PAGE
+
+    $users = User::orderBy('name')->get();
+
+    return view('admin.manage-orders', compact(
+        'orders',
+        'users'
+    ));
+} /**
      * User service history
      */
     public function userServiceHistory()
     {
-        $data = DB::table('booking_services')
-            ->join('bookings', 'booking_services.booking_id', '=', 'bookings.id')
-            ->join('services', 'booking_services.service_id', '=', 'services.id')
-            ->join('users', 'bookings.user_id', '=', 'users.id')
-            ->select('users.name as user_name', 'services.name', 'services.image', 'booking_services.quantity', 'services.price', 'bookings.booking_date', 'bookings.created_at', 'bookings.status', 'bookings.id as order_id')
-            ->orderBy('bookings.booking_date', 'desc')
-            ->paginate(15);
+        
 
         return view('admin.user_service_history', ['data' => $data]);
     }

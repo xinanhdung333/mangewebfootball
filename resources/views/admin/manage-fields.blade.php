@@ -86,7 +86,7 @@
                                             onclick='editField(@json($field))'>
                                         <i class="bi bi-pencil"></i> Sửa
                                     </button>
-                                    <form method="POST" action="{{ route('boss.delete.field') }}" style="display:inline;">
+                                    <form method="POST" action="{{ route('admin.delete.field') }}" style="display:inline;">
                                         @csrf
                                         <input type="hidden" name="id" value="{{ $field->id }}">
                                         <button type="submit" class="btn btn-sm btn-danger"
@@ -112,7 +112,7 @@
 <div class="modal fade" id="addFieldModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST" action="{{ route('boss.store.field') }}" enctype="multipart/form-data">
+            <form method="POST" action="{{ route('admin.store.field') }}" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-header">
                     <h5 class="modal-title">Thêm sân</h5>
@@ -166,7 +166,7 @@
 <div class="modal fade" id="editFieldModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST" action="{{ route('boss.update.field') }}" enctype="multipart/form-data">
+            <form method="POST" action="{{ route('admin.update.field') }}" enctype="multipart/form-data">
                 @csrf
                 <div class="modal-header">
                     <h5 class="modal-title">Sửa sân</h5>

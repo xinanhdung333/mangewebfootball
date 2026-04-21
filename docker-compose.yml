@@ -1,0 +1,98 @@
+services:
+  # PHP FPM Service
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: football-app
+    restart: unless-stopped
+    working_dir: /var/www/app
+    volumes:
+      - ./:/var/www/app
+      - ./storage:/var/www/app/storage
+      - ./bootstrap/cache:/var/www/app/bootstrap/cache
+    networks:
+      - football-network
+    depends_on:
+      - mysql
+      - redis
+
+  # Nginx Web Server
+  nginx:
+    image: nginx:latest
+    container_name: football-nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./:/var/www/app
+      - ./docker/nginx/conf.d/:/etc/nginx/conf.d/:ro
+    networks:
+      - football-network
+    depends_on:
+      - app
+
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: football-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: ${DB_DATABASE:-football}
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-root}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-password}
+      MYSQL_USER: ${DB_USERNAME:-football}
+    ports:
+      - "3306:3306"
+    volumes:
+      - dbdata:/var/lib/mysql
+      - ./docker/mysql/my.cnf:/etc/mysql/conf.d/my.cnf:ro
+    networks:
+      - football-network
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: football-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    networks:
+      - football-network
+
+  # Node.js WebSocket Server
+  websocket:
+    image: node:18-alpine
+    container_name: football-websocket
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./:/app
+    ports:
+      - "8080:8080"
+    command: node websocket-server.js
+    networks:
+      - football-network
+
+  # Node.js for Frontend Build (Vite)
+  node:
+    image: node:18-alpine
+    container_name: football-node
+    restart: unless-stopped
+    working_dir: /app
+    volumes:
+      - ./:/app
+    ports:
+      - "5173:5173"
+    command: npm run dev
+    networks:
+      - football-network
+
+volumes:
+  dbdata:
+    driver: local
+
+networks:
+  football-network:
+    driver: bridge
