@@ -343,7 +343,7 @@ public function handleOrderPaymentMethod(Request $request, Order $order)
         $payment->update([
             'status' => 'success',
             'paid_at' => now(),
-            'method_payment' => 'cash',
+            'payment_method' => 'cash',
         ]);
 
         $order->update([

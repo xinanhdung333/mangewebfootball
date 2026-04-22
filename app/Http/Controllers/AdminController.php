@@ -19,11 +19,20 @@ use App\Models\Invoice;
 use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Support\Facades\Log; 
+use App\Models\ActivityLog;
 class AdminController extends Controller
 {
     /**
      * Display admin dashboard with key statistics
      */
+    public function activityLogs()
+{
+    $logs = ActivityLog::orderByDesc('created_at')->paginate(20);
+
+    return view('admin.logs', compact('logs'));
+}
+
+
     public function dashboard()
     {
         // Get statistics
