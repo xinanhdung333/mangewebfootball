@@ -75,7 +75,6 @@ class BookingMomoController extends Controller
                 'status' => 'success',
                 'paid_at' => now(),
                 'momo_trans_id' => $request->input('transId'),
-                'amount' => $request->input('amount'),
                 'payment_method' => 'momo',
             ]);
 
@@ -91,12 +90,12 @@ class BookingMomoController extends Controller
         $booking = Booking::where('id', $booking_id)
             ->where('user_id', auth()->id())
             ->firstOrFail();
-
+        $bookingPayment = BookingPayment::where('booking_id', $booking->id)->first();
         $endpoint = 'https://test-payment.momo.vn/v2/gateway/api/create';
         $partnerCode = config('momo.partnerCode');
         $accessKey = config('momo.accessKey');
         $secretKey = config('momo.secretKey');
-        $amount = (string) intval($booking->total_price);
+        $amount = (string) intval($bookingPayment->amount);
         $orderId = 'booking_' . $booking->id . '_' . uniqid();
         $orderInfo = 'Thanh_toan_dat_san_' . $booking->id;
         $redirectUrl = route('booking.momo.return');
@@ -107,15 +106,9 @@ class BookingMomoController extends Controller
         $requestId = (string) time();
         $requestType = 'payWithATM';
 
-        BookingPayment::updateOrCreate(
-            ['booking_id' => $booking->id],
-            [
-                'momo_order_id' => $orderId,
-                'amount' => $amount,
-                'status' => 'pending',
-            ]
-        );
-
+       $d =$bookingPayment->update([
+    'momo_order_id' => $orderId,
+]);
         $rawHash = "accessKey=" . $accessKey
             . "&amount=" . $amount
             . "&extraData=" . $extraData
@@ -155,10 +148,8 @@ class BookingMomoController extends Controller
                 'response' => $jsonResult,
                 'raw_response' => $result,
             ]);
-
             return back()->with('error', 'Khong tao duoc thanh toan MoMo');
         }
-
         return redirect()->to($jsonResult['payUrl']);
     }
 

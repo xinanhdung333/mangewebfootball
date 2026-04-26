@@ -316,6 +316,9 @@
                             <i class="bi bi-person"></i> {{ auth()->user()->name }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
+                            <a href="{{ route('admin.settings.pricing') }}">
+    ⚙️ Pricing Settings
+</a>
                             <li><a class="dropdown-item" href="{{ route('admin.profile') }}">Hồ sơ</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><form method="POST" action="{{ route('logout') }}">@csrf<button type="submit" class="dropdown-item">Đăng xuất</button></form></li>

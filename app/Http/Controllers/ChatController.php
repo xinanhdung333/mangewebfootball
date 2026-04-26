@@ -132,12 +132,15 @@ class ChatController extends Controller
             'created_at' => $message->created_at->format('H:i d/m/Y'),
         ];
 
-        try {
-            Http::timeout(1)->post(env('WS_SERVER_URL', 'http://127.0.0.1:6001').'/broadcast', [
-                'conversation_id' => $conversation->id,
-                'message' => $payload,
-            ]);
-        } catch (\Throwable $e) {
+       try {
+    Http::timeout(1)->post(
+        env('WS_SERVER_URL') . '/broadcast',
+        [
+            'conversation_id' => $conversation->id,
+            'message' => $payload,
+        ]
+    );
+} catch (\Throwable $e) {
             // ignore websocket broadcast failure
         }
 

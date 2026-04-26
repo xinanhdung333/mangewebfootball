@@ -13,6 +13,8 @@ use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\Hash;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\PriceRule;
+use Carbon\Carbon;
 
 use App\Models\Booking;
 use App\Http\Controllers\Concerns\UsesServiceQuery;
@@ -20,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use App\Models\BookingPayment;
 use App\Models\Invoice;
+
 
 class PagesController extends Controller
 {
@@ -196,7 +199,7 @@ public function storeBooking(Request $request)
         'start_time' => 'required',
         'end_time' => 'required|after:start_time',
         'services' => 'array',
-    ]);
+    ]); 
 
     $user = Auth::user();
 
@@ -225,9 +228,48 @@ public function storeBooking(Request $request)
 
         $field = \App\Models\Field::findOrFail($data['field_id']);
 
-        $hours = (strtotime($data['end_time']) - strtotime($data['start_time'])) / 3600;
+$start = Carbon::createFromFormat('H:i', $data['start_time']);
+$end   = Carbon::createFromFormat('H:i', $data['end_time']);
 
-        $totalPrice = $field->price_per_hour * $hours;
+$totalPrice = 0;
+
+// 🔥 lấy rule (ưu tiên riêng > global)
+$rules = PriceRule::where(function($q) use ($field) {
+    $q->where('field_id', $field->id)
+      ->orWhereNull('field_id');
+})
+->orderByRaw('field_id IS NULL') // ưu tiên rule riêng
+->get();
+
+$current = $start->copy();
+
+while ($current < $end) {
+
+    $next = $current->copy()->addHour();
+
+    if ($next > $end) {
+        $next = $end;
+    }
+
+    $diff = $current->floatDiffInHours($next);
+
+    $price = $field->price_per_hour;
+
+    // 🔥 check rule
+    foreach ($rules as $rule) {
+
+       $ruleStart = Carbon::parse($rule->start_time);
+$ruleEnd   = Carbon::parse($rule->end_time);
+        if ($current->gte($ruleStart) && $current->lt($ruleEnd)) {
+            $price *= $rule->multiplier;
+            break;
+        }
+    }
+
+    $totalPrice += $diff * $price;
+
+    $current = $next;
+}
 
         $booking = Booking::create([
             'user_id' => $user->id,
@@ -262,23 +304,45 @@ public function storeBooking(Request $request)
 
         return $booking;
     });
-
+    $totalPriceServices = DB::table('booking_services as bs')
+        ->join('services as s', 'bs.service_id', '=', 's.id')
+        ->where('bs.booking_id', $booking->id)
+        ->select(DB::raw('SUM(s.price * bs.quantity) as total'))
+        ->value('total') ?? 0;
+        $totalPrice = $booking->total_price + $totalPriceServices;
+    
     // tạo payment
     BookingPayment::create([
         'booking_id' => $booking->id,
-        'amount' => $booking->total_price,
+        'amount' => $totalPrice,
         'status' => 'pending'
     ]);
-
-    return redirect()->route('user.payment.booking', $booking->id);
+return redirect()->route('user.payment.booking',$booking->id);
 }
-       public function bookingcreate(Request $request)
-    {
-        $fieldId = $request->query('field_id');
-        $field = $fieldId ? Field::find($fieldId) : null;
-        $services = Service::where('status','active')->get();
-        return view('user.booking', ['field' => $field, 'services' => $services]);
+
+public function bookingcreate(Request $request)
+{
+    $fieldId = $request->query('field_id');
+    $field = $fieldId ? Field::find($fieldId) : null;
+    $services = Service::where('status','active')->get();
+
+    // 🔥 lấy rule (ưu tiên riêng > global)
+    $priceRules = [];
+    if ($field) {
+        $priceRules = PriceRule::where(function($q) use ($field) {
+            $q->where('field_id', $field->id)
+              ->orWhereNull('field_id');
+        })
+        ->orderByRaw('field_id IS NULL') // ưu tiên rule riêng
+        ->get();
     }
+
+    return view('user.booking', [
+        'field' => $field,
+        'services' => $services,
+        'priceRules' => $priceRules
+    ]);
+}
 public function bookingdetail($id)
 {
     $booking = \App\Models\Booking::find($id);
@@ -334,8 +398,12 @@ public function handleOrderPaymentMethod(Request $request, Order $order)
             'status' => 'pending',
         ]
     );
-
+    
     if ($data['payment_method'] === 'momo') {
+         if ($payment->amount < 10000 || $payment->amount > 50000000) {
+            return back()->with('error', 'Số tiền phải từ 10k đến 50 triệu để thanh toán MoMo,vui lòng thanh toán bằng tiền mặt');
+        }
+
         return redirect()->route('user.momo.pay', ['order_id' => $order->id]);
     }
 
@@ -371,7 +439,6 @@ public function handleOrderPaymentMethod(Request $request, Order $order)
 public function showBookingPaymentMethod(Booking $booking)
 {
     abort_unless($booking->user_id === auth()->id(), 403);
-
     $payment = BookingPayment::firstOrCreate(
         ['booking_id' => $booking->id],
         [
@@ -395,7 +462,6 @@ public function showBookingPaymentMethod(Booking $booking)
         'services' => $services
     ]);
 }
-
 public function handleBookingPaymentMethod(Request $request, Booking $booking)
 {
     abort_unless($booking->user_id === auth()->id(), 403);
@@ -404,22 +470,31 @@ public function handleBookingPaymentMethod(Request $request, Booking $booking)
         'payment_method' => 'required|in:momo,cash',
     ]);
 
-    BookingPayment::updateOrCreate(
-        ['booking_id' => $booking->id],
-        [
-            'amount' => $booking->total_price,
-            'status' => 'pending',
-        ]
-    );
+    $payment = $booking->payment;
 
-    if ($data['payment_method'] === 'momo') {
-        return redirect()->route('user.booking.momo', ['booking_id' => $booking->id]);
+    if (!$payment) {
+        return back()->with('error', 'Không tìm thấy thông tin thanh toán');
     }
 
-    $booking->payment()->update([
+    // 👉 Lấy amount từ DB (chuẩn)
+    $amount = (int) $payment->amount;
+
+    // 👉 CHẶN MOMO nếu vượt giới hạn
+    if ($data['payment_method'] === 'momo') {
+
+        if ($amount < 10000 || $amount > 50000000) {
+            return back()->with('error', 'Số tiền phải từ 10k đến 50 triệu để thanh toán MoMo,vui lòng thanh toán bằng tiền mặt');
+        }
+
+        return redirect()->route('user.booking.momo', [
+            'booking_id' => $booking->id
+        ]);
+    }
+
+    // 👉 CASH
+    $payment->update([
         'status' => 'success',
         'paid_at' => now(),
-        'amount' => $booking->total_price,
         'payment_method' => 'cash',
     ]);
 
@@ -428,7 +503,7 @@ public function handleBookingPaymentMethod(Request $request, Booking $booking)
     ]);
 
     return redirect()->route('user.myBookings')
-        ->with('success', 'Da xac nhan thanh toan tien mat cho booking');
+        ->with('success', 'Đã xác nhận thanh toán tiền mặt');
 }
 public function myServices()
 {

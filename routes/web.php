@@ -22,6 +22,7 @@ use App\Http\Controllers\BookingMomoController;
 use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 
+
 require __DIR__.'/auth.php';
 
 Route::get('/h', function () {
@@ -81,7 +82,11 @@ Route::get('/my-bookings', [BookingController::class, 'myBookings'])->name('book
 // Admin
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function(){
     Route::get('/home', [HomeController::class, 'indexadmin'])->name('home');
+//setting 
+ Route::get('settings/pricing', [\App\Http\Controllers\Admin\SettingController::class, 'pricing'])->name('settings.pricing');
+    Route::post('settings/pricing', [\App\Http\Controllers\Admin\SettingController::class, 'storePricing'])->name('settings.pricing.store');
 
+    Route::delete('settings/pricing/{id}', [\App\Http\Controllers\Admin\SettingController::class, 'deletePricing'])->name('settings.pricing.delete');
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/profile', [AdminController::class, 'profile'])->name('profile');
     Route::post('/profile', [AdminController::class, 'updateProfile'])->name('profile.update');

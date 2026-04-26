@@ -199,7 +199,9 @@
     font-size: 1.1rem;
 }
 </style>
-
+<script>
+const priceRules = @json($priceRules ?? []);
+</script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const fieldPricePerHour = {{ $field->price_per_hour }};
@@ -240,33 +242,60 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // ==== CẬP NHẬT TỔNG GIÁ ====
-    function updateTotal() {
-        const startTime = document.querySelector('input[name="start_time"]').value;
-        const endTime = document.querySelector('input[name="end_time"]').value;
-        let total = 0;
+ function updateTotal() {
+    const startTime = document.querySelector('#start_time').value;
+    const endTime = document.querySelector('#end_time').value;
 
-        // Giá sân
-        if (startTime && endTime) {
-            const start = new Date('1970-01-01 ' + startTime);
-            const end = new Date('1970-01-01 ' + endTime);
-            const hours = (end - start) / (1000 * 60 * 60);
-            if (hours > 0) {
-                total += hours * fieldPricePerHour;
+    let total = 0;
+
+    // ===== GIÁ SÂN =====
+    if (startTime && endTime) {
+        let start = new Date('1970-01-01 ' + startTime);
+        let end = new Date('1970-01-01 ' + endTime);
+
+        if (end > start) {
+            let current = new Date(start);
+
+            while (current < end) {
+                let next = new Date(current);
+                next.setMinutes(current.getMinutes() + 60);
+
+                if (next > end) next = end;
+
+                let diff = (next - current) / (1000 * 60 * 60);
+
+                let applied = fieldPricePerHour;
+
+                for (let rule of priceRules) {
+                    let ruleStart = new Date('1970-01-01 ' + rule.start_time);
+                    let ruleEnd   = new Date('1970-01-01 ' + rule.end_time);
+
+                    if (current >= ruleStart && current < ruleEnd) {
+                        applied = fieldPricePerHour * parseFloat(rule.multiplier);
+                        break;
+                    }
+                }
+
+                total += diff * applied;
+                current = next;
             }
         }
-
-        // Giá dịch vụ
-        document.querySelectorAll('.qty-input').forEach(input => {
-            const qty = parseInt(input.value) || 0;
-            const price = parseFloat(input.dataset.price) || 0;
-            total += qty * price;
-        });
-
-        const formatted = new Intl.NumberFormat('vi-VN').format(total);
-        document.getElementById('total_price').innerText = formatted + ' VNĐ';
-        document.getElementById('estimated_price').innerText = formatted + ' VNĐ';
     }
 
+    // ===== GIÁ DỊCH VỤ =====
+    document.querySelectorAll('.qty-input').forEach(input => {
+        const qty = parseInt(input.value) || 0;
+        const price = parseFloat(input.dataset.price) || 0;
+        total += qty * price;
+    });
+
+    // ===== UPDATE UI =====
+    const formatted = new Intl.NumberFormat('vi-VN').format(total);
+    document.getElementById('total_price').innerText = formatted + ' VNĐ';
+    document.getElementById('estimated_price').innerText = formatted + ' VNĐ';
+}
+
+      
     // ==== LẤY SỰ KIỆN THAY ĐỔI THỜI GIAN ====
     document.querySelector('input[name="start_time"]').addEventListener('change', updateTotal);
     document.querySelector('input[name="end_time"]').addEventListener('change', updateTotal);
@@ -288,6 +317,7 @@ function checkBooking() {
     let booking_date = document.getElementById('booking_date').value;
     let start_time = document.getElementById('start_time').value;
     let end_time = document.getElementById('end_time').value;
+    const submitBtn = document.getElementById('submitBtn');
 
     if (!booking_date || !start_time || !end_time) return;
 
