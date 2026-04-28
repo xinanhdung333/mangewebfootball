@@ -209,8 +209,8 @@ Tìm sân gần bạn
                 <div class="section-block mt-4">
                     <h3><i class="bi bi-gift"></i> Khuyến mãi hôm nay</h3>
                     <div class="intro-box">
-                        <p>Giảm 20% giá sân cho các khung giờ từ 14:00 - 17:00. Nhanh tay đặt ngay!</p>
-                        <a href="#" class="btn btn-sm btn-warning">Xem khuyến mãi</a>
+                        <p> khung giờ cao điểm từ 17:00 - 23    :00. Nhanh tay đặt ngay!</p>
+                        <a href="{{ route('user.fields') }}" class="btn btn-sm btn-warning">Xem khuyến mãi</a>
                     </div>
                 </div>
             </div>

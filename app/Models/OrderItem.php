@@ -12,6 +12,8 @@ class OrderItem extends Model
         'service_id',
         'quantity',
         'price',
+        'discount_percent',
+        'original_price',
         'status',
         'created_at',
         'updated_at'

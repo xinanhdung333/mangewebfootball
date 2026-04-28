@@ -7,7 +7,7 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-4 mb-4">
-                    <h5 class="footer-brand">{{ config('app.name') }}</h5>
+                    <h5 class="footer-brand">Football_booking</h5>
                     <p class="small">Đặt sân bóng nhanh chóng, dễ dàng và an toàn. Hỗ trợ đặt sân, thanh toán và quản lý lịch đặt cho người dùng.</p>
                     <div class="social-links mt-3">
                         <a href="#" class="text-light me-3"><i class="bi bi-facebook"></i></a>
@@ -55,7 +55,7 @@
             <div class="footer-bottom mt-4 pt-3 border-top border-secondary">
                 <div class="row">
                     <div class="col-md-6">
-                        <p class="mb-0 small">&copy; {{ date('Y') }} {{ config('app.name') }}. All rights reserved.</p>
+                        <p class="mb-0 small">&copy; {{ date('Y') }} Football_booking. All rights reserved.</p>
                     </div>
                     <div class="col-md-6 text-md-end">
                         <a href="{{ url('/pages/terms.php') }}" class="small text-light me-3">Điều khoản</a>

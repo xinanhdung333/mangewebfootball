@@ -77,7 +77,7 @@
                             </div>
                         </div>
                         <div id="check-result" class="mt-2"></div>
-
+<div id="price_note" style="white-space: pre-line; color: red;"></div>
                         <!-- Dịch vụ dạng lưới với ảnh -->
                         @if($services && count($services) > 0)
                             <hr>
@@ -200,78 +200,59 @@
 }
 </style>
 <script>
-const priceRules = @json($priceRules ?? []);
-</script>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
+
     const fieldPricePerHour = {{ $field->price_per_hour }};
+    const priceRules = @json($priceRules ?? []);
+    const submitBtn = document.getElementById('submitBtn');
 
-    // ==== THÊM/XÓA DỊCH VỤ ====
-    document.querySelectorAll('.add-service').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const id = this.dataset.id;
-            const maxQty = parseInt(this.dataset.qty);
-            const input = document.getElementById('input_' + id);
-            let qty = parseInt(input.value) || 0;
+    // ===== TIME UTILS =====
+    function toMinutes(time) {
+        let [h, m] = time.split(':').map(Number);
+        return h * 60 + m;
+    }
 
-            if (qty >= maxQty) {
-                alert('Vượt quá số lượng có sẵn!');
-                return;
-            }
+    function formatTime(minutes) {
+        minutes = minutes % 1440;
+        let h = Math.floor(minutes / 60).toString().padStart(2, '0');
+        let m = (minutes % 60).toString().padStart(2, '0');
+        return `${h}:${m}`;
+    }
 
-            qty++;
-            input.value = qty;
-            document.querySelector(`[data-id="${id}"].qty-badge`).innerText = qty;
-            updateTotal();
-        });
-    });
+    // ===== TÍNH TỔNG =====
+    function updateTotal() {
+        const startTime = document.getElementById('start_time').value;
+        const endTime = document.getElementById('end_time').value;
 
-    document.querySelectorAll('.remove-service').forEach(btn => {
-        btn.addEventListener('click', function() {
-            const id = this.dataset.id;
-            const input = document.getElementById('input_' + id);
-            let qty = parseInt(input.value) || 0;
+        let total = 0;
+        let surgeNotes = [];
 
-            if (qty <= 0) return;
+        if (startTime && endTime) {
+            let start = toMinutes(startTime);
+            let end = toMinutes(endTime);
 
-            qty--;
-            input.value = qty;
-            document.querySelector(`[data-id="${id}"].qty-badge`).innerText = qty;
-            updateTotal();
-        });
-    });
+            // qua ngày
+            if (end <= start) end += 1440;
 
-    // ==== CẬP NHẬT TỔNG GIÁ ====
- function updateTotal() {
-    const startTime = document.querySelector('#start_time').value;
-    const endTime = document.querySelector('#end_time').value;
-
-    let total = 0;
-
-    // ===== GIÁ SÂN =====
-    if (startTime && endTime) {
-        let start = new Date('1970-01-01 ' + startTime);
-        let end = new Date('1970-01-01 ' + endTime);
-
-        if (end > start) {
-            let current = new Date(start);
+            let current = start;
 
             while (current < end) {
-                let next = new Date(current);
-                next.setMinutes(current.getMinutes() + 60);
-
-                if (next > end) next = end;
-
-                let diff = (next - current) / (1000 * 60 * 60);
+                let next = Math.min(current + 60, end);
+                let diff = (next - current) / 60;
 
                 let applied = fieldPricePerHour;
+                let currentInDay = current % 1440;
 
                 for (let rule of priceRules) {
-                    let ruleStart = new Date('1970-01-01 ' + rule.start_time);
-                    let ruleEnd   = new Date('1970-01-01 ' + rule.end_time);
+                    let ruleStart = toMinutes(rule.start_time);
+                    let ruleEnd = toMinutes(rule.end_time);
 
-                    if (current >= ruleStart && current < ruleEnd) {
+                    if (
+                        (ruleStart <= ruleEnd && currentInDay >= ruleStart && currentInDay < ruleEnd) ||
+                        (ruleStart > ruleEnd && (currentInDay >= ruleStart || currentInDay < ruleEnd))
+                    ) {
                         applied = fieldPricePerHour * parseFloat(rule.multiplier);
+                        surgeNotes.push(`${formatTime(current)} - ${formatTime(next)} x${rule.multiplier}`);
                         break;
                     }
                 }
@@ -280,147 +261,159 @@ document.addEventListener('DOMContentLoaded', function() {
                 current = next;
             }
         }
+
+        // ===== DỊCH VỤ =====
+        document.querySelectorAll('.qty-input').forEach(input => {
+            const qty = parseInt(input.value) || 0;
+            const price = parseFloat(input.dataset.price) || 0;
+            total += qty * price;
+        });
+
+        // ===== UI =====
+        const formatted = new Intl.NumberFormat('vi-VN').format(total);
+        document.getElementById('total_price').innerText = formatted + ' VNĐ';
+        document.getElementById('estimated_price').innerText = formatted + ' VNĐ';
+
+       const noteBox = document.getElementById('price_note');
+
+if (noteBox) {
+    if (priceRules.length > 0) {
+        let text = "Khung giờ giá cao:\n";
+
+        priceRules.forEach(rule => {
+            text += `Từ ${rule.start_time} - ${rule.end_time} giá x${rule.multiplier}\n`;
+        });
+
+        noteBox.innerText = text;
+    } else {
+        noteBox.innerText = "";
+    }
+}
     }
 
-    // ===== GIÁ DỊCH VỤ =====
-    document.querySelectorAll('.qty-input').forEach(input => {
-        const qty = parseInt(input.value) || 0;
-        const price = parseFloat(input.dataset.price) || 0;
-        total += qty * price;
+    // ===== THÊM/XÓA DỊCH VỤ =====
+    document.querySelectorAll('.add-service').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const id = this.dataset.id;
+            const maxQty = parseInt(this.dataset.qty);
+            const input = document.getElementById('input_' + id);
+
+            let qty = parseInt(input.value) || 0;
+
+            if (qty >= maxQty) {
+                alert('Vượt quá số lượng!');
+                return;
+            }
+
+            qty++;
+            input.value = qty;
+            document.querySelector(`.qty-badge[data-id="${id}"]`).innerText = qty;
+
+            updateTotal();
+        });
     });
 
-    // ===== UPDATE UI =====
-    const formatted = new Intl.NumberFormat('vi-VN').format(total);
-    document.getElementById('total_price').innerText = formatted + ' VNĐ';
-    document.getElementById('estimated_price').innerText = formatted + ' VNĐ';
-}
+    document.querySelectorAll('.remove-service').forEach(btn => {
+        btn.addEventListener('click', function () {
+            const id = this.dataset.id;
+            const input = document.getElementById('input_' + id);
 
-      
-    // ==== LẤY SỰ KIỆN THAY ĐỔI THỜI GIAN ====
-    document.querySelector('input[name="start_time"]').addEventListener('change', updateTotal);
-    document.querySelector('input[name="end_time"]').addEventListener('change', updateTotal);
+            let qty = parseInt(input.value) || 0;
+            if (qty <= 0) return;
 
-    // ==== VALIDATE FORM ====
-    document.getElementById('bookingForm').addEventListener('submit', function(e) {
+            qty--;
+            input.value = qty;
+            document.querySelector(`.qty-badge[data-id="${id}"]`).innerText = qty;
 
-    // chặn submit nhiều lần
-    if (submitBtn.disabled) {
-        e.preventDefault();
-        return;
-    }
-document.querySelectorAll('#booking_date, #start_time, #end_time').forEach(el => {
-    el.addEventListener('change', checkBooking);
-});
+            updateTotal();
+        });
+    });
 
-function checkBooking() {
-    let field_id = {{ $field->id ?? 0 }};
-    let booking_date = document.getElementById('booking_date').value;
-    let start_time = document.getElementById('start_time').value;
-    let end_time = document.getElementById('end_time').value;
-    const submitBtn = document.getElementById('submitBtn');
+    // ===== CHANGE TIME =====
+    document.getElementById('start_time').addEventListener('change', updateTotal);
+    document.getElementById('end_time').addEventListener('change', updateTotal);
 
-    if (!booking_date || !start_time || !end_time) return;
+    // ===== CHECK BOOKING =====
+    function checkBooking() {
+        let field_id = {{ $field->id }};
+        let booking_date = document.getElementById('booking_date').value;
+        let start_time = document.getElementById('start_time').value;
+        let end_time = document.getElementById('end_time').value;
 
-    fetch("{{ route('user.check.booking') }}", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRF-TOKEN": "{{ csrf_token() }}"
-        },
-        body: JSON.stringify({
-            field_id,
-            booking_date,
-            start_time,
-            end_time
+        if (!booking_date || !start_time || !end_time) return;
+
+        fetch("{{ route('user.check.booking') }}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "X-CSRF-TOKEN": "{{ csrf_token() }}"
+            },
+            body: JSON.stringify({
+                field_id,
+                booking_date,
+                start_time,
+                end_time
+            })
         })
-    })
-    .then(res => res.json())
-    .then(data => {
-        let result = document.getElementById('check-result');
+        .then(res => res.json())
+        .then(data => {
+            let result = document.getElementById('check-result');
 
-        if (data.available) {
-            result.innerHTML = "✅ Khung giờ còn trống";
-            result.style.color = "green";
-        } else {
-            result.innerHTML = "❌ Khung giờ đã có người đặt";
-            result.style.color = "red";
+            if (data.available) {
+                result.innerHTML = "✅ Khung giờ còn trống";
+                result.style.color = "green";
+                submitBtn.disabled = false;
+            } else {
+                result.innerHTML = "❌ Khung giờ đã có người đặt";
+                result.style.color = "red";
+                submitBtn.disabled = true;
+            }
+        });
+    }
+
+    document.querySelectorAll('#booking_date, #start_time, #end_time')
+        .forEach(el => el.addEventListener('change', checkBooking));
+
+    // ===== SUBMIT =====
+    document.getElementById('bookingForm').addEventListener('submit', function (e) {
+
+        if (submitBtn.disabled) {
+            e.preventDefault();
+            return;
         }
-    });
-}
-    submitBtn.disabled = true;
-    submitBtn.innerHTML = 'Đang xử lý...';
-        const bookingDate = document.querySelector('input[name="booking_date"]').value;
-        const startTime = document.querySelector('input[name="start_time"]').value;
-        const endTime = document.querySelector('input[name="end_time"]').value;
+
+        const bookingDate = document.getElementById('booking_date').value;
+        const startTime = document.getElementById('start_time').value;
+        const endTime = document.getElementById('end_time').value;
 
         if (!bookingDate || !startTime || !endTime) {
             e.preventDefault();
-            alert('Vui lòng điền đầy đủ các trường bắt buộc!');
+            alert('Vui lòng nhập đủ thông tin');
             return;
         }
 
-        // Kiểm tra thời gian
-        if (startTime >= endTime) {
+        if (startTime === endTime) {
             e.preventDefault();
-            alert('Thời gian kết thúc phải sau thời gian bắt đầu!');
+            alert('Thời gian không hợp lệ');
             return;
         }
 
-        // Kiểm tra ngày
         const today = new Date();
-        today.setHours(0, 0, 0, 0);
+        today.setHours(0,0,0,0);
         const selectedDate = new Date(bookingDate);
+
         if (selectedDate < today) {
             e.preventDefault();
-            alert('Ngày đặt sân phải từ hôm nay trở đi!');
+            alert('Ngày không hợp lệ');
             return;
         }
+
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = 'Đang xử lý...';
     });
+
+    // ===== INIT =====
+    updateTotal();
 });
-</script>
-<script>
-document.querySelectorAll('#booking_date, #start_time, #end_time').forEach(el => {
-    el.addEventListener('change', checkBooking);
-});
-
-function checkBooking() {
-    let field_id = {{ $field->id }};
-    let booking_date = document.getElementById('booking_date').value;
-    let start_time = document.getElementById('start_time').value;
-    let end_time = document.getElementById('end_time').value;
-    let submitBtn = document.getElementById('submitBtn');
-
-    if (!booking_date || !start_time || !end_time) return;
-
-    fetch("{{ route('user.check.booking') }}", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRF-TOKEN": "{{ csrf_token() }}"
-        },
-        body: JSON.stringify({
-            field_id,
-            booking_date,
-            start_time,
-            end_time
-        })
-    })
-    .then(res => res.json())
-    .then(data => {
-        let result = document.getElementById('check-result');
-
-        if (data.available) {
-            result.innerHTML = "✅ Khung giờ còn trống";
-            result.style.color = "green";
-
-            submitBtn.disabled = false;
-        } else {
-            result.innerHTML = "❌ Khung giờ đã có người đặt";
-            result.style.color = "red";
-
-            submitBtn.disabled = true;
-        }
-    });
-}
 </script>
 @endsection

@@ -25,7 +25,9 @@
         </div>
     </div>
 </div>
+
 <div class="row" id="fieldList">
+    
     @if($fields && count($fields) > 0)
         @foreach($fields as $field)
             <div class="col-md-4 mb-4 field-item">
@@ -183,5 +185,82 @@ const sort = urlParams.get('sort');
 if(sort){
     document.getElementById('sort').value = sort;
 }
+</script>
+<div id="toast-noti" class="toast-noti">
+    <i class="bi bi-megaphone-fill"></i>
+    <div class="toast-content">
+        <strong>Thông báo</strong>
+        <p>🔥 Giờ cao điểm 17:00 - 20:00 (giá x1.5)</p>
+    </div>
+    <span class="toast-close" onclick="hideToast()">×</span>
+</div>
+<style>
+.toast-noti {
+    position: fixed;
+    bottom: -100px;
+    right: 20px;
+    width: 280px;
+    background: #fff;
+    border-left: 5px solid #ee4d2d;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    gap: 10px;
+    z-index: 9999;
+    transition: all 0.4s ease;
+    opacity: 0;
+}
+
+.toast-noti {
+    top: -100px;
+    bottom: auto;
+    right: 20px;
+    transition: all 0.4s ease;
+}
+
+.toast-noti.show {
+    top: 80px;
+    opacity: 1;
+}
+
+.toast-content {
+    flex: 1;
+    font-size: 13px;
+}
+
+.toast-content p {
+    margin: 0;
+    font-size: 12px;
+    color: #555;
+}
+
+.toast-close {
+    cursor: pointer;
+    font-size: 18px;
+    color: #999;
+}
+</style>
+    <script>
+function showToast() {
+    const toast = document.getElementById('toast-noti');
+    toast.classList.add('show');
+
+    // tự ẩn sau 5s
+    setTimeout(() => {
+        hideToast();
+    }, 5000);
+}
+
+function hideToast() {
+    const toast = document.getElementById('toast-noti');
+    toast.classList.remove('show');
+}
+
+// tự chạy khi load trang
+document.addEventListener('DOMContentLoaded', function () {
+    setTimeout(showToast, 800); // delay nhẹ cho giống Shopee
+});
 </script>
 @endsection

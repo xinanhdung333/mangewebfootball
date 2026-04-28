@@ -102,8 +102,8 @@ style="width:25px;height:25px;cursor:pointer;">
          <form method="POST" action="{{ route('user.cart.add.checkoutSelected') }}" id="checkout-selected-form">
     @csrf
     <input type="hidden" name="selected_items" id="selected-items" value="">
-    <button type="submit" id="checkout-selected-btn" disabled>
-        Thanh toán sản phẩm đã chọn
+    <button type="submit" id="checkout-selected-btn" disabled class="btn btn-primary">
+       <i class="bi bi-credit-card"></i>Thanh toán sản phẩm đã chọn
     </button>
 </form>
                 @else

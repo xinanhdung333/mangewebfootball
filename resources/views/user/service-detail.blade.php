@@ -50,23 +50,60 @@
             <!-- RIGHT: INFO -->
             <div class="col-lg-5">
                 <h2 class="fw-bold mb-2">{{ $service->name }}</h2>
-                
+                @if($discountPercent > 0)
+    <div class="mb-2">
+        <span class="badge bg-danger">
+            🔥 Flash Sale
+        </span>
+    </div>
+    @else
+    <div class="mb-2">
+        <span class="badge bg-danger">
+            ⏰ Hết khung giờ giảm giá
+</span>
+    </div>
+        @endif
                 @if($service->brand)
                 <p class="text-muted mb-3">Brand: <strong>{{ $service->brand }}</strong></p>
                 @endif
 
                 <!-- PRICE -->
-                <div class="mb-4">
-                    <div class="d-flex align-items-baseline gap-3">
-                        <div class="fs-2 fw-bold text-danger">{{ number_format($service->price, 0, ',', '.') }} VNĐ</div>
-                        @if($service->old_price && $service->old_price > $service->price)
-                            <div class="text-decoration-line-through text-muted">{{ number_format($service->old_price, 0, ',', '.') }} VNĐ</div>
-                            <div class="badge bg-danger">
-                                -{{ round(($service->old_price - $service->price) / $service->old_price * 100) }}%
-                            </div>
-                        @endif
-                    </div>
-                </div>
+              <div class="mb-4">
+
+    @if($discountPercent > 0)
+        <!-- GIÁ SAU GIẢM -->
+        <div class="d-flex align-items-center gap-3">
+
+            <div class="fs-2 fw-bold text-danger">
+                {{ number_format($finalPrice, 0, ',', '.') }} VNĐ
+            </div>
+
+            <!-- % giảm -->
+            <div class="badge bg-danger fs-6 px-3 py-2">
+                -{{ round($discountPercent) }}%
+            </div>
+
+        </div>
+
+        <!-- GIÁ GỐC -->
+        <div class="text-muted mt-1">
+            <span class="text-decoration-line-through fs-5">
+                {{ number_format($originalPrice, 0, ',', '.') }} VNĐ
+            </span>
+
+            <span class="ms-2 text-success fw-bold">
+                Tiết kiệm {{ number_format($originalPrice - $finalPrice, 0, ',', '.') }}đ
+            </span>
+        </div>
+
+    @else
+        <!-- KHÔNG GIẢM -->
+        <div class="fs-2 fw-bold text-dark">
+            {{ number_format($service->price, 0, ',', '.') }} VNĐ
+        </div>
+    @endif
+
+</div>
 
                 @if($service->location)
                 <p class="mb-2">
@@ -130,7 +167,16 @@
         </div>
     </div>
 </div>
+<style>
+    .badge.bg-danger {
+    background: linear-gradient(45deg, #ff4d4f, #ff0000);
+    box-shadow: 0 2px 6px rgba(255,0,0,0.3);
+}
 
+.text-decoration-line-through {
+    opacity: 0.7;
+}
+</style>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const qtyEl = document.getElementById('qty');

@@ -22,6 +22,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use App\Models\BookingPayment;
 use App\Models\Invoice;
+ use App\Models\ServiceDiscount;
 
 
 class PagesController extends Controller
@@ -73,43 +74,61 @@ class PagesController extends Controller
         ]);
     }
 
-    private function createOrderFromItems($items, $user): Order
-    {
-        $cart = $this->getOrCreateUserCart($user);
-        $total = 0;
+   private function createOrderFromItems($items, $user): Order
+{
+    $cart = $this->getOrCreateUserCart($user);
+    $total = 0;
 
-        foreach ($items as $item) {
-            $service = Service::findOrFail($item->service_id);
+    foreach ($items as $item) {
 
-            if ($service->quantity < $item->quantity) {
-                throw new \RuntimeException("Insufficient stock for service {$service->id}");
-            }
+        $service = Service::findOrFail($item->service_id);
 
-            $total += $service->price * $item->quantity;
+        if ($service->quantity < $item->quantity) {
+            throw new \RuntimeException("Insufficient stock for service {$service->id}");
         }
 
-        $order = Order::create([
-            'user_id' => $user->id,
-            'cart_id' => $cart->id,
-            'status' => 'pending',
-            'total_amount' => $total,
+        // 🔥 dùng giá đã giảm
+        $total += $item->price * $item->quantity;
+    }
+
+    $order = Order::create([
+        'user_id' => $user->id,
+        'cart_id' => $cart->id,
+        'status' => 'pending',
+        'total_amount' => $total,
+    ]);
+
+    foreach ($items as $item) {
+
+        $service = Service::findOrFail($item->service_id);
+
+        $originalPrice = $service->price;
+
+        $discountPercent = 0;
+
+        if ($item->price < $originalPrice) {
+            $discountPercent = round((1 - ($item->price / $originalPrice)) * 100);
+        }
+
+        OrderItem::create([
+            'order_id' => $order->id,
+            'service_id' => $service->id,
+
+            // 🔥 giá sau giảm
+            'price' => $item->price,
+
+            // 🔥 lưu thêm
+            'original_price' => $originalPrice,
+            'discount_percent' => $discountPercent,
+
+            'quantity' => $item->quantity,
         ]);
 
-        foreach ($items as $item) {
-            $service = Service::findOrFail($item->service_id);
-
-            OrderItem::create([
-                'order_id' => $order->id,
-                'service_id' => $service->id,
-                'price' => $service->price,
-                'quantity' => $item->quantity,
-            ]);
-
-            $service->decrement('quantity', $item->quantity);
-        }
-
-        return $order;
+        $service->decrement('quantity', $item->quantity);
     }
+
+    return $order;
+}
 
     public function about()
     {
@@ -199,15 +218,12 @@ public function storeBooking(Request $request)
         'start_time' => 'required',
         'end_time' => 'required|after:start_time',
         'services' => 'array',
-    ]); 
+    ]);
 
     $user = Auth::user();
+    if (!$user) return redirect()->route('login');
 
-    if (!$user) {
-        return redirect()->route('login');
-    }
-
-    // check trùng giờ
+    // ===== check trùng =====
     $exists = Booking::where('field_id', $data['field_id'])
         ->where('booking_date', $data['booking_date'])
         ->where(function ($q) use ($data) {
@@ -226,51 +242,52 @@ public function storeBooking(Request $request)
 
     $booking = DB::transaction(function () use ($data, $user, $request) {
 
-        $field = \App\Models\Field::findOrFail($data['field_id']);
+        $field = Field::findOrFail($data['field_id']);
 
-$start = Carbon::createFromFormat('H:i', $data['start_time']);
-$end   = Carbon::createFromFormat('H:i', $data['end_time']);
+        $start = Carbon::createFromFormat('H:i', $data['start_time']);
+        $end   = Carbon::createFromFormat('H:i', $data['end_time']);
 
-$totalPrice = 0;
+        $rules = PriceRule::where(function($q) use ($field) {
+                $q->where('field_id', $field->id)
+                  ->orWhereNull('field_id');
+            })
+            ->orderByRaw('field_id IS NULL')
+            ->get();
 
-// 🔥 lấy rule (ưu tiên riêng > global)
-$rules = PriceRule::where(function($q) use ($field) {
-    $q->where('field_id', $field->id)
-      ->orWhereNull('field_id');
-})
-->orderByRaw('field_id IS NULL') // ưu tiên rule riêng
-->get();
+        $totalPrice = 0;
+        $current = $start->copy();
 
-$current = $start->copy();
+        while ($current < $end) {
 
-while ($current < $end) {
+            $next = $current->copy()->addHour();
+            if ($next > $end) $next = $end;
 
-    $next = $current->copy()->addHour();
+            $diff = $current->floatDiffInHours($next);
+            $price = $field->price_per_hour;
 
-    if ($next > $end) {
-        $next = $end;
-    }
+            $currentMin = ($current->hour * 60) + $current->minute;
 
-    $diff = $current->floatDiffInHours($next);
+            foreach ($rules as $rule) {
 
-    $price = $field->price_per_hour;
+                $ruleStart = $this->toMinutes($rule->start_time);
+                $ruleEnd   = $this->toMinutes($rule->end_time);
 
-    // 🔥 check rule
-    foreach ($rules as $rule) {
+                $inRange =
+                    ($ruleStart <= $ruleEnd && $currentMin >= $ruleStart && $currentMin < $ruleEnd)
+                    ||
+                    ($ruleStart > $ruleEnd && ($currentMin >= $ruleStart || $currentMin < $ruleEnd));
 
-       $ruleStart = Carbon::parse($rule->start_time);
-$ruleEnd   = Carbon::parse($rule->end_time);
-        if ($current->gte($ruleStart) && $current->lt($ruleEnd)) {
-            $price *= $rule->multiplier;
-            break;
+                if ($inRange) {
+                    $price *= $rule->multiplier;
+                    break;
+                }
+            }
+
+            $totalPrice += $diff * $price;
+            $current = $next;
         }
-    }
 
-    $totalPrice += $diff * $price;
-
-    $current = $next;
-}
-
+        // ===== BOOKING =====
         $booking = Booking::create([
             'user_id' => $user->id,
             'field_id' => $field->id,
@@ -281,6 +298,7 @@ $ruleEnd   = Carbon::parse($rule->end_time);
             'status' => 'pending',
         ]);
 
+        // ===== SERVICES =====
         foreach ($request->input('services', []) as $serviceId => $qty) {
 
             $qty = (int) $qty;
@@ -304,20 +322,24 @@ $ruleEnd   = Carbon::parse($rule->end_time);
 
         return $booking;
     });
+
+    // ===== SERVICES TOTAL =====
     $totalPriceServices = DB::table('booking_services as bs')
         ->join('services as s', 'bs.service_id', '=', 's.id')
         ->where('bs.booking_id', $booking->id)
         ->select(DB::raw('SUM(s.price * bs.quantity) as total'))
         ->value('total') ?? 0;
-        $totalPrice = $booking->total_price + $totalPriceServices;
-    
-    // tạo payment
+
+    $finalTotal = $booking->total_price + $totalPriceServices;
+
+    // ===== PAYMENT =====
     BookingPayment::create([
         'booking_id' => $booking->id,
-        'amount' => $totalPrice,
+        'amount' => $finalTotal,
         'status' => 'pending'
     ]);
-return redirect()->route('user.payment.booking',$booking->id);
+
+    return redirect()->route('user.payment.booking', $booking->id);
 }
 
 public function bookingcreate(Request $request)
@@ -382,7 +404,11 @@ $service = DB::table('order_items as oi')
         'services' => $service
     ]);
 }
-
+private function toMinutes($time)
+{
+    [$h, $m] = explode(':', $time);
+    return $h * 60 + $m;
+}
 public function handleOrderPaymentMethod(Request $request, Order $order)
 {
     abort_unless($order->user_id === auth()->id(), 403);
@@ -870,55 +896,94 @@ public function sendFeedback(Request $request)
         ->with('success', 'Feedback đã gửi thành công.');
 }
 
+
 public function services(Request $request)
 {
     $query = Service::query();
 
-    // Search theo tên
+    // Search
     if ($request->q) {
         $query->where('name', 'like', '%' . $request->q . '%');
     }
 
     // Sort
-    if ($request->sort == 'priceAsc') {
-        $query->orderBy('price', 'asc');
-    }
-
-    if ($request->sort == 'priceDesc') {
-        $query->orderBy('price', 'desc');
-    }
-
-    if ($request->sort == 'rating') {
-        $query->orderByDesc('avg_rating');
-    }
-
-    if ($request->sort == 'name') {
-        $query->orderBy('name', 'asc');
-    }
+    if ($request->sort == 'priceAsc') $query->orderBy('price', 'asc');
+    if ($request->sort == 'priceDesc') $query->orderBy('price', 'desc');
+    if ($request->sort == 'rating') $query->orderByDesc('avg_rating');
+    if ($request->sort == 'name') $query->orderBy('name', 'asc');
 
     $services = $query->get();
 
-    // Nếu request từ AJAX → chỉ trả list HTML
-    if ($request->ajax()) {
+    // ===== THÊM LOGIC GIẢM GIÁ =====
+    $now = Carbon::now();
+    $currentMin = $now->hour * 60 + $now->minute;
 
-        return view(
-            'user.service_list',
-            compact('services')
-        )->render();
+    foreach ($services as $service) {
 
+        $finalPrice = $service->price;
+        $discountPercent = 0;
+
+        $rules = ServiceDiscount::where(function($q) use ($service) {
+            $q->where('service_id', $service->id)
+              ->orWhereNull('service_id');
+        })
+        ->orderByRaw('service_id IS NULL')
+        ->get();
+
+        foreach ($rules as $rule) {
+
+            $start = explode(':', $rule->start_time);
+            $end   = explode(':', $rule->end_time);
+
+            $startMin = $start[0] * 60 + $start[1];
+            $endMin   = $end[0] * 60 + $end[1];
+
+            $inTime =
+                ($startMin <= $endMin && $currentMin >= $startMin && $currentMin < $endMin)
+                ||
+                ($startMin > $endMin && ($currentMin >= $startMin || $currentMin < $endMin));
+
+            if ($inTime) {
+                $finalPrice = $service->price * $rule->multiplier;
+                $discountPercent = (1 - $rule->multiplier) * 100;
+                break;
+            }
+        }
+
+        // gắn thêm vào object
+        $service->final_price = $finalPrice;
+        $service->discount_percent = $discountPercent;
     }
 
+    // ===== CART COUNT =====
     $totalItems = 0;
-
     if (Auth::check()) {
         $totalItems = (int) $this->getCartItemsForUser(Auth::user())
             ->sum('cart_items.quantity');
     }
+$flashSale = ServiceDiscount::where('is_active', 1)
+    ->whereNull('service_id') // áp dụng toàn bộ
+    ->first();
 
-    return view(
-        'user.services',
-        compact('services', 'totalItems')
-    );
+$flashStart = null;
+$flashEnd = null;
+$flashPercent = 0;
+
+if ($flashSale) {
+    $flashStart = substr($flashSale->start_time, 0, 5); // 01:00
+    $flashEnd = substr($flashSale->end_time, 0, 5);     // 12:00
+    $flashPercent = (1 - $flashSale->multiplier) * 100;
+    $flashnote = $flashSale->note;
+}
+
+return view('user.services', compact(
+    'services',
+    'totalItems',
+    'flashStart',
+    'flashEnd',
+    'flashPercent',
+    'flashnote'
+));
 }
 public function cart()
 {
@@ -1317,13 +1382,55 @@ public function checkoutBuyNow(Request $request)
     }
 }
 
+
 public function serviceDetail($id)
 {
-    // lấy service theo id
     $service = Service::findOrFail($id);
 
-    // trả về view
-    return view('user.service-detail', compact('service'));
+    // ===== TÍNH GIẢM GIÁ =====
+    $now = Carbon::now();
+    $currentMin = $now->hour * 60 + $now->minute;
+
+    $finalPrice = $service->price;
+    $originalPrice = $service->price;
+    $discountPercent = 0;
+
+   $rules = ServiceDiscount::where(function($q) use ($service) {
+        $q->where('service_id', $service->id)
+          ->orWhereNull('service_id');
+    })
+    ->where('is_active', 1)
+    ->orderByRaw('service_id IS NULL')
+    ->get(); 
+
+  foreach ($rules as $rule) {
+
+    $start = explode(':', $rule->start_time);
+    $end   = explode(':', $rule->end_time);
+
+    $startMin = $start[0] * 60 + $start[1];
+    $endMin   = $end[0] * 60 + $end[1];
+
+    $matchService =
+        $rule->service_id == null || $rule->service_id == $service->id;
+
+    $inTime =
+        ($startMin <= $endMin && $currentMin >= $startMin && $currentMin < $endMin)
+        ||
+        ($startMin > $endMin && ($currentMin >= $startMin || $currentMin < $endMin));
+
+    if ($matchService && $inTime) {
+        $finalPrice = $service->price * $rule->multiplier;
+        $discountPercent = (1 - $rule->multiplier) * 100;
+        break;
+    }
+}
+   return view('user.service-detail', compact(
+        'service',
+        'finalPrice',
+        'originalPrice',
+        'discountPercent'
+    ));
 }
 public function orderDetail($id)
 {

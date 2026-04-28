@@ -10,7 +10,8 @@ use App\Models\Payment;
 use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-
+use App\Models\ServiceDiscount;
+use Carbon\Carbon;
 class CartController extends Controller
 {
     public function index(Request $request)
@@ -154,38 +155,56 @@ class CartController extends Controller
         return view('user.checkout', compact('cart', 'total', 'createdOrders'));
     }
 
-    private function createOrderFromItems($items, $user): Order
-    {
-        $total = 0;
+  private function createOrderFromItems($items, $user): Order
+{
+    $total = 0;
 
-        foreach ($items as $item) {
-            $service = Service::find($item->service_id);
-            $total += $service->price * $item->quantity;
-        }
+    foreach ($items as $item) {
 
-        $order = Order::create([
-            'user_id' => $user->id,
-            'cart_id' => $user->cart->id ?? null,
-            'status' => 'pending',
-            'total_amount' => $total,
-        ]);
+        $service = Service::findOrFail($item->service_id);
 
-        foreach ($items as $item) {
-            $service = Service::find($item->service_id);
-
-            OrderItem::create([
-                'order_id' => $order->id,
-                'service_id' => $item->service_id,
-                'price' => $service->price,
-                'quantity' => $item->quantity,
-            ]);
-
-            $service->decrement('quantity', $item->quantity);
-        }
-
-        return $order;
+        // 🔥 dùng giá đã giảm
+        $total += $item->price * $item->quantity;
     }
 
+    $order = Order::create([
+        'user_id' => $user->id,
+        'cart_id' => $user->cart->id ?? null,
+        'status' => 'pending',
+        'total_amount' => $total,
+    ]);
+
+    foreach ($items as $item) {
+
+        $service = Service::findOrFail($item->service_id);
+
+        $originalPrice = $service->price;
+
+        $discountPercent = 0;
+
+        if ($item->price < $originalPrice) {
+            $discountPercent = round((1 - ($item->price / $originalPrice)) * 100);
+        }
+
+        OrderItem::create([
+            'order_id' => $order->id,
+            'service_id' => $item->service_id,
+
+            // 🔥 giá sau giảm
+            'price' => $item->price,
+
+            // 🔥 lưu thêm
+            'original_price' => $originalPrice,
+            'discount_percent' => $discountPercent,
+
+            'quantity' => $item->quantity,
+        ]);
+
+        $service->decrement('quantity', $item->quantity);
+    }
+
+    return $order;
+}
     private function createPendingPayment(Order $order): Payment
     {
         return Payment::updateOrCreate(
@@ -223,36 +242,72 @@ class CartController extends Controller
         }
     }
 
-    public function checkoutBuyNow(Request $request)
-    {
-        $request->validate([
-            'service_id' => 'required|exists:services,id',
-            'quantity' => 'required|integer|min:1',
-        ]);
+        public function checkoutBuyNow(Request $request)
+        {
+            $request->validate([
+                'service_id' => 'required|exists:services,id',
+                'quantity' => 'required|integer|min:1',
+            ]);
 
-        $user = $request->user();
-        $service = Service::findOrFail($request->service_id);
+            $user = $request->user();
+            $service = Service::findOrFail($request->service_id);
 
-        $item = new \stdClass();
-        $item->service_id = $service->id;
-        $item->quantity = $request->quantity;
-        $item->price = $service->price;
+            $item = new \stdClass();
+            $item->service_id = $service->id;
+            $item->quantity = $request->quantity;
 
-        DB::beginTransaction();
 
-        try {
-            $order = $this->createOrderFromItems(collect([$item]), $user);
-            $this->createPendingPayment($order);
+$now = Carbon::now();
+$currentMin = $now->hour * 60 + $now->minute;
 
-            DB::commit();
+$finalPrice = $service->price;
 
-            return redirect()->route('user.payment.order', $order->id);
-        } catch (\Exception $e) {
-            DB::rollBack();
+// lấy rule
+$rules = ServiceDiscount::where(function($q) use ($service) {
+    $q->where('service_id', $service->id)
+      ->orWhereNull('service_id');
+})
+->orderByRaw('service_id IS NULL') // ưu tiên riêng
+->get();
+foreach ($rules as $rule) {
 
-            return back()->with('error', 'Thanh toan that bai');
-        }
+    $start = explode(':', $rule->start_time);
+    $end   = explode(':', $rule->end_time);
+
+    $startMin = $start[0] * 60 + $start[1];
+    $endMin   = $end[0] * 60 + $end[1];
+
+    $matchService =
+        $rule->service_id == null || $rule->service_id == $service->id;
+
+    $inTime =
+        ($startMin <= $endMin && $currentMin >= $startMin && $currentMin < $endMin)
+        ||
+        ($startMin > $endMin && ($currentMin >= $startMin || $currentMin < $endMin));
+
+    if ($matchService && $inTime) {
+        $finalPrice = $service->price * $rule->multiplier;
+        break;
     }
+}
+
+$item->price = $finalPrice;
+
+            DB::beginTransaction();
+
+            try {
+                $order = $this->createOrderFromItems(collect([$item]), $user);
+                $this->createPendingPayment($order);
+
+                DB::commit();
+
+                return redirect()->route('user.payment.order', $order->id);
+            } catch (\Exception $e) {
+                DB::rollBack();
+
+                return back()->with('error', 'Thanh toan that bai');
+            }
+        }
 
     public function checkoutSelected(Request $request)
     {
