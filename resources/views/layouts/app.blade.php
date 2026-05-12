@@ -315,7 +315,7 @@
                             <i class="bi bi-person"></i> {{ auth()->user()->name }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end">
-                            <a href="{{ route('admin.settings.pricing') }}">
+                          <li>  <a class="dropdown-item" href="{{ route('admin.settings') }}"></li>
     ⚙️ Pricing Settings
 </a>
                             <li><a class="dropdown-item" href="{{ route('admin.profile') }}">Hồ sơ</a></li>

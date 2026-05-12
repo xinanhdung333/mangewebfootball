@@ -10,7 +10,9 @@ use App\Models\OrderItem;
 use App\Http\Controllers\Concerns\UsesServiceQuery;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http; // thêm dòng này
-
+use App\Models\PriceRule;
+use App\Models\ServiceDiscount;
+use Carbon\Carbon;
 class VisitorController extends Controller
 {
     use UsesServiceQuery;
@@ -29,22 +31,29 @@ public function dashboard()
    
 
     $bookings = $user ? $user->bookings()->latest()->take(5)->get() : [];
-
+$rule = PriceRule::first();
+$ruleService = ServiceDiscount::first();
     return view('pages.visitor.dashboard', [
         'user' => $user,
         'stats_total' => $stats_total,
         'stats_confirmed' => $stats_confirmed,
         'stats_revenue' => $stats_revenue,
         'bookings' => $bookings,
+        'rule'     => $rule,
+        'ruleService'=>$ruleService
     ]);
 }
-       public function fields()
+      public function fields()
     {
         // use the Eloquent scope to include ratings
-        $fields = Field::withRatings()->get();
-        return view('pages.visitor.fields', ['fields' => $fields]);
+        $fields = Field::get();
+$rule = PriceRule::first();
+$ruleService = ServiceDiscount::first();
+        return view('user.fields', ['fields' => $fields,
+        'rule' => $rule,
+        'ruleService' => $ruleService
+        ]);
     }
-
 
    public function feedbacks()
     {
@@ -106,36 +115,93 @@ return view('pages.visitor.feedback', compact('serviceFeedbacks', 'bookingFeedba
    
 public function services(Request $request)
 {
-$query = Service::query();
-    // Search theo tên
+    $query = Service::query();
+
+    // Search
     if ($request->q) {
-        $query->where('services.name', 'like', '%' . $request->q . '%');
+        $query->where('name', 'like', '%' . $request->q . '%');
     }
 
-
+    // Sort
+    if ($request->sort == 'priceAsc') $query->orderBy('price', 'asc');
+    if ($request->sort == 'priceDesc') $query->orderBy('price', 'desc');
+    if ($request->sort == 'rating') $query->orderByDesc('avg_rating');
+    if ($request->sort == 'name') $query->orderBy('name', 'asc');
 
     $services = $query->get();
 
-    // Nếu request từ AJAX → chỉ trả list HTML
-    if ($request->ajax()) {
+    // ===== THÊM LOGIC GIẢM GIÁ =====
+    $now = Carbon::now();
+    $currentMin = $now->hour * 60 + $now->minute;
 
-        return view(
-            'pages.visitor.service_list',
-            compact('services')
-        )->render();
+    foreach ($services as $service) {
 
+        $finalPrice = $service->price;
+        $discountPercent = 0;
+
+        $rules = ServiceDiscount::where(function($q) use ($service) {
+            $q->where('service_id', $service->id)
+              ->orWhereNull('service_id');
+        })
+        ->orderByRaw('service_id IS NULL')
+        ->get();
+
+        foreach ($rules as $rule) {
+
+            $start = explode(':', $rule->start_time);
+            $end   = explode(':', $rule->end_time);
+
+            $startMin = $start[0] * 60 + $start[1];
+            $endMin   = $end[0] * 60 + $end[1];
+
+            $inTime =
+                ($startMin <= $endMin && $currentMin >= $startMin && $currentMin < $endMin)
+                ||
+                ($startMin > $endMin && ($currentMin >= $startMin || $currentMin < $endMin));
+
+            if ($inTime) {
+                $finalPrice = $service->price * $rule->multiplier;
+                $discountPercent = (1 - $rule->multiplier) * 100;
+                break;
+            }
+        }
+
+        // gắn thêm vào object
+        $service->final_price = $finalPrice;
+        $service->discount_percent = $discountPercent;
     }
 
-    // Cart session
-    $cart = session()->get('cart', []);
+    // ===== CART COUNT =====
+    $totalItems = 0;
+    if (Auth::check()) {
+        $totalItems = (int) $this->getCartItemsForUser(Auth::user())
+            ->sum('cart_items.quantity');
+    }
+$flashSale = ServiceDiscount::where('is_active', 1)
+    ->whereNull('service_id') // áp dụng toàn bộ
+    ->first();
 
-    $totalItems = array_sum(
-        array_column($cart, 'quantity')
-    );
+$flashStart = null;
+$flashEnd = null;
+$flashnote = null;
 
-    return view(
-        'pages.visitor.services',
-        compact('services', 'totalItems')
-    );
+$flashPercent = 0;
+
+if ($flashSale) {
+    $flashStart = substr($flashSale->start_time, 0, 5); // 01:00
+    $flashEnd = substr($flashSale->end_time, 0, 5);     // 12:00
+    $flashPercent = (1 - $flashSale->multiplier) * 100;
+    $flashnote = $flashSale->note;
+}
+$rule = PriceRule::first();
+return view('pages.visitor.services', compact(
+    'services',
+    'totalItems',
+    'flashStart',
+    'flashEnd',
+    'flashPercent',
+    'flashnote',
+    'rule'
+));
 }
 }

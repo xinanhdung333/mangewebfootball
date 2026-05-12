@@ -209,7 +209,7 @@ Tìm sân gần bạn
                 <div class="section-block mt-4">
                     <h3><i class="bi bi-gift"></i> Khuyến mãi hôm nay</h3>
                     <div class="intro-box">
-                        <p> khung giờ cao điểm từ 17:00 - 23    :00. Nhanh tay đặt ngay!</p>
+                            <p> khung giờ cao điểm từ {{optional($rule)->start_time}} - {{ optional($rule)->end_time }} . Nhanh tay đặt ngay!</p>
                         <a href="{{ route('user.fields') }}" class="btn btn-sm btn-warning">Xem khuyến mãi</a>
                     </div>
                 </div>
@@ -262,4 +262,100 @@ Tìm sân gần bạn
         const hero = document.querySelector('.hero-modern');
         window.addEventListener('scroll', () => { hero.style.backgroundPositionY = `${window.scrollY*0.2}px`; }, { passive:true });
     </script>
+    <a href ="{{route('user.fields')}}">
+    <div id="toast-rule" class="toast-noti">
+    <i class="bi bi-megaphone-fill"></i>
+    <div class="toast-content">
+        <strong>Thông báo</strong>
+        <p>🔥 Giờ cao điểm {{optional($rule)->start_time}} - {{ optional($rule)->end_time }} (giá x{{ optional($rule)->multiplier }})</p>
+    </div>
+    <span class="toast-close" onclick="hideToast('toast-rule')">×</span>
+</div>
+</a>
+<a href ="{{route('user.services')}}">
+    <div id="toast-news" class="toast-noti">
+    <i class="bi bi-info-circle-fill"></i>
+    <div class="toast-content">
+        <strong>Thông báo mới</strong>
+        <p>🔥 {{optional($ruleService)->note}}</p>
+    </div>
+    <span class="toast-close" onclick="hideToast('toast-news')">×</span>
+</div>
+</a>
+<style>
+.toast-noti {
+    position: fixed;
+    bottom: -100px;
+    right: 20px;
+    width: 280px;
+    background: #fff;
+    border-left: 5px solid #ee4d2d;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    gap: 10px;
+    z-index: 9999;
+    transition: all 0.4s ease;
+    opacity: 0;
+        top: -100px; /* mặc định ẩn */
+
+}
+
+.toast-noti {
+    top: -100px;
+    bottom: auto;
+    right: 20px;
+    transition: all 0.4s ease;
+}
+
+.toast-noti.show {
+    top: 80px;
+    opacity: 1;
+}
+
+.toast-content {
+    flex: 1;
+    font-size: 13px;
+}
+
+.toast-content p {
+    margin: 0;
+    font-size: 12px;
+    color: #555;
+}
+
+.toast-close {
+    cursor: pointer;
+    font-size: 18px;
+    color: #999;
+}
+</style>
+<script>
+function showToast(id, index = 0) {
+    const toast = document.getElementById(id);
+    if (!toast) return;
+
+    toast.style.top = (80 + index * 90) + "px"; // 👈 xếp tầng
+    toast.classList.add('show');
+
+    setTimeout(() => {
+        hideToast(id);
+    }, 10000);
+}
+
+function hideToast(id) {
+    const toast = document.getElementById(id);
+    if (!toast) return;
+
+    toast.classList.remove('show');
+    toast.style.top = "-100px";
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    setTimeout(() => showToast('toast-rule', 0), 800);
+    setTimeout(() => showToast('toast-news', 1), 1200);
+});
+</script>
     @endsection

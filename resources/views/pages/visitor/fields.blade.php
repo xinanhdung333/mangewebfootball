@@ -1,18 +1,25 @@
 @extends('layouts.app')
 
 @section('content')
-@php $fields = $fields ?? []; @endphp
-<div style="max-width:1200px; margin:20px auto; padding:0 10px;">
-
 <div class="row mb-4">
     <div class="col-md-12">
         <h1><i class="bi bi-grid"></i> Danh sách sân bóng</h1>
-
+<!-- Thanh tìm kiếm + nút lịch đặt -->
         <div class="d-flex align-items-center mt-3">
             <input type="text" id="searchField" class="form-control me-2" placeholder="Tìm kiếm sân..." 
                    style="background: rgba(255,255,255,0.8); border:1px solid #ccc;">
+<select id="priceSort" class="form-select ms-2" style="max-width:220px;">
+    <option value="name">Sắp xếp theo tên</option>
+    <option value="priceAsc">Giá thấp đến cao</option>
+    <option value="priceDesc">Giá cao đến thấp</option>
+    <option value="rating">Đánh giá cao nhất</option>
+</select>
 
-            <a href="{{ route('user.fieldSchedule') }}" class="btn btn-info">
+<select id="distanceSort" class="form-select ms-2" style="max-width:220px;">
+    <option value="nearest">Gần nhất</option>
+    <option value="farthest">Xa nhất</option>
+</select>
+            <a href="{{  route('user.fieldSchedule') }}" class="btn btn-info">
                 <i class="bi bi-calendar-check"></i> KHUNG GIỜ ĐÃ ĐƯỢC ĐẶT
             </a>
         </div>
@@ -20,77 +27,257 @@
 </div>
 
 <div class="row" id="fieldList">
-    @if(count($fields) > 0)
+    
+    @if($fields && count($fields) > 0)
         @foreach($fields as $field)
             <div class="col-md-4 mb-4 field-item">
-                   <div class="card h-100">
-                    <img src="{{ !empty($field['image']) ? url('/uploads/fields/'.$field['image']) : url('/assets/images/banner.jpg') }}" 
-                        class="card-img-top" alt="{{ $field['name'] ?? '' }}" 
-                        style="height: 200px; object-fit: cover;">
+                <div class="card h-100">
+                    <img src="{{ !empty($field->image) ? asset('uploads/fields/' . $field->image) : asset('assets/images/banner.jpg') }}" 
+                        class="fields" alt="{{ htmlspecialchars($field->name) }}">
                     <div class="card-body">
-                        <h5 class="card-title">{{ $field['name'] ?? '' }}</h5>
+                        <h5 class="card-title">{{ htmlspecialchars($field->name) }}</h5>
+                        
                         @php
-                            $desc = $field['description'] ?? '';
-                            $shortDesc = mb_strlen($desc) > 120 ? mb_substr($desc, 0, 120) . "..." : $desc;
+                            $desc = htmlspecialchars($field->description);
+                            $shortDesc = strlen($desc) > 120 ? substr($desc, 0, 120) . "..." : $desc;
                         @endphp
 
-                        <p class="card-text description-short" id="desc-short-{{ $field['id'] }}">{{ $shortDesc }}</p>
+                        <p class="card-text description-short" id="desc-short-{{ $field->id }}">
+                            {{ $shortDesc }}
+                        </p>
 
-                        <p class="card-text d-none" id="desc-full-{{ $field['id'] }}">{!! nl2br(e($desc)) !!}</p>
+                        <p class="card-text d-none" id="desc-full-{{ $field->id }}">
+                            {{ nl2br($desc) }}
+                        </p>
 
-                        @if(mb_strlen($desc) > 120)
-                            <span class="show-more-btn" onclick="toggleDesc({{ $field['id'] }})">Xem thêm</span>
+                        @if(strlen($desc) > 120)
+                            <span class="show-more-btn" onclick="toggleDesc({{ $field->id }})">Xem thêm</span>
                         @endif
 
-                        <p class="text-muted mb-2"><i class="bi bi-geo-alt"></i> {{ $field['location'] ?? '' }}</p>
-                        <p class="text-success fw-bold mb-3">{{ formatCurrency($field['price_per_hour'] ?? 0) }}/giờ</p>
+                        <p class="text-muted mb-2">
+                            <i class="bi bi-geo-alt"></i> {{ htmlspecialchars($field->location) }}
+                        </p>
+                        <p class="text-success fw-bold mb-3">
+                            {{ formatCurrency($field->price_per_hour) }}/giờ
+                        </p>
 
-                        @php $avg = isset($field['avg_rating']) ? round($field['avg_rating'],1) : 0; $total = $field['total_reviews'] ?? 0; @endphp
+                        <!-- Rating -->
+                        @php
+                            $avg = $field->avg_rating ? round($field->avg_rating, 1) : 0;
+                            $total = $field->total_reviews ?? 0;
+                        @endphp
+
                         <div class="mb-2">
-                            @for ($i=1;$i<=5;$i++)
-                                <span style="color: gold; font-size: 18px;">{!! ($i <= $avg) ? '★' : '☆' !!}</span>
+                            @for ($i = 1; $i <= 5; $i++)
+                                <span style="color: gold; font-size: 18px;">
+                                    @if($i <= $avg)★@else☆@endif
+                                </span>
                             @endfor
+
                             <span class="text-muted">({{ $avg }} / 5, {{ $total }} đánh giá)</span>
                         </div>
 
-                        <a href="{{ route('user.bookingcreate', ['field_id' => $field['id']]) }}" class="btn btn-primary w-100"><i class="bi bi-calendar-plus"></i> Đặt sân</a>
+                        <a href="{{ route('user.bookingcreate', ['field_id' => $field->id]) }}" class="btn btn-primary w-100">
+                            <i class="bi bi-calendar-plus"></i> Đặt sân
+                        </a>
                     </div>
                 </div>
             </div>
         @endforeach
     @else
-        <div class="col-md-12"><div class="alert alert-info">Hiện tại không có sân nào.</div></div>
+        <div class="col-md-12">
+            <div class="alert alert-info">Hiện tại không có sân nào.</div>
+        </div>
     @endif
 </div>
-</div>
+
 <script>
-function toggleDesc(id) {
-    const short = document.getElementById("desc-short-" + id);
-    const full = document.getElementById("desc-full-" + id);
-    const btn = event.target;
-    if (short.classList.contains("d-none")) {
-        short.classList.remove("d-none");
-        full.classList.add("d-none");
-        btn.innerText = "Xem thêm";
-    } else {
-        short.classList.add("d-none");
-        full.classList.remove("d-none");
-        btn.innerText = "Thu gọn";
+    function toggleDesc(id) {
+        const short = document.getElementById("desc-short-" + id);
+        const full = document.getElementById("desc-full-" + id);
+        const btn = event.target;
+
+        if (short.classList.contains("d-none")) {
+            short.classList.remove("d-none");
+            full.classList.add("d-none");
+            btn.textContent = "Xem thêm";
+        } else {
+            short.classList.add("d-none");
+            full.classList.remove("d-none");
+            btn.textContent = "Ẩn";
+        }
     }
-}
-document.getElementById('searchField').addEventListener('input', function() {
-    const filter = this.value.toLowerCase();
-    document.querySelectorAll('#fieldList .field-item').forEach(item => {
-        const name = item.querySelector('.card-title').innerText.toLowerCase();
-        const desc = item.querySelector('.card-text').innerText.toLowerCase();
-        if (name.includes(filter) || desc.includes(filter)) item.style.display = ''; else item.style.display = 'none';
+
+    // Tìm kiếm sân
+    document.getElementById('searchField').addEventListener('keyup', function() {
+        const query = this.value.toLowerCase();
+        const items = document.querySelectorAll('.field-item');
+        items.forEach(item => {
+            const name = item.querySelector('.card-title').textContent.toLowerCase();
+            const location = item.querySelector('.text-muted').textContent.toLowerCase();
+            item.style.display = name.includes(query) || location.includes(query) ? 'block' : 'none';
+        });
     });
+    
+
+document.getElementById('priceSort').addEventListener('change', function () {
+
+    let type = this.value;
+
+    let container = document.getElementById('fieldList');
+
+    let items = Array.from(document.querySelectorAll('.field-item'));
+
+    items.sort(function (a, b) {
+
+        let nameA = a.querySelector('.card-title').innerText.toLowerCase();
+        let nameB = b.querySelector('.card-title').innerText.toLowerCase();
+
+        let priceA = parseInt(a.querySelector('.text-success').innerText.replace(/\D/g, ""));
+        let priceB = parseInt(b.querySelector('.text-success').innerText.replace(/\D/g, ""));
+let ratingA = parseFloat(
+    a.querySelector('.mb-2 .text-muted').innerText.match(/\((.*?)\s\/\s5/)[1]
+);
+
+let ratingB = parseFloat(
+    b.querySelector('.mb-2 .text-muted').innerText.match(/\((.*?)\s\/\s5/)[1]
+);
+
+        if (type === "name") return nameA.localeCompare(nameB);
+
+        if (type === "priceAsc") return priceA - priceB;
+
+        if (type === "priceDesc") return priceB - priceA;
+
+        if (type === "rating") return ratingB - ratingA;
+
+    });
+
+    items.forEach(item => container.appendChild(item));
+
+});
+document.getElementById('distanceSort').addEventListener('change', function () {
+
+    let type = this.value;
+
+    let container = document.getElementById('fieldList');
+
+    let items = Array.from(document.querySelectorAll('.field-item'));
+
+    items.sort(function (a, b) {
+
+        let locationA = a.querySelector('.text-muted').innerText;
+        let locationB = b.querySelector('.text-muted').innerText;
+
+        if (type === "nearest") return locationA.localeCompare(locationB);
+
+        if (type === "farthest") return locationB.localeCompare(locationA);
+
+    });
+
+    items.forEach(item => container.appendChild(item));
+
+});
+
+const urlParams = new URLSearchParams(window.location.search);
+const sort = urlParams.get('sort');
+
+if(sort){
+    document.getElementById('sort').value = sort;
+}
+</script>
+<div id="toast-rule" class="toast-noti">
+    <i class="bi bi-megaphone-fill"></i>
+    <div class="toast-content">
+        <strong>Thông báo</strong>
+        <p>🔥 Giờ cao điểm {{$rule->start_time}} - {{$rule->end_time}} (giá x{{$rule->multiplier}})</p>
+    </div>
+    <span class="toast-close" onclick="hideToast('toast-rule')">×</span>
+</div>
+<a href ="{{route('user.services')}}">
+    <div id="toast-news" class="toast-noti">
+    <i class="bi bi-info-circle-fill"></i>
+    <div class="toast-content">
+        <strong>Thông báo mới</strong>
+        <p>🔥 {{$ruleService->note}}</p>
+    </div>
+    <span class="toast-close" onclick="hideToast('toast-news')">×</span>
+</div>
+</a>
+<style>
+.toast-noti {
+    position: fixed;
+    bottom: -100px;
+    right: 20px;
+    width: 280px;
+    background: #fff;
+    border-left: 5px solid #ee4d2d;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    padding: 12px;
+    gap: 10px;
+    z-index: 9999;
+    transition: all 0.4s ease;
+    opacity: 0;
+        top: -100px; /* mặc định ẩn */
+
+}
+
+.toast-noti {
+    top: -100px;
+    bottom: auto;
+    right: 20px;
+    transition: all 0.4s ease;
+}
+
+.toast-noti.show {
+    top: 80px;
+    opacity: 1;
+}
+
+.toast-content {
+    flex: 1;
+    font-size: 13px;
+}
+
+.toast-content p {
+    margin: 0;
+    font-size: 12px;
+    color: #555;
+}
+
+.toast-close {
+    cursor: pointer;
+    font-size: 18px;
+    color: #999;
+}
+</style>
+<script>
+function showToast(id, index = 0) {
+    const toast = document.getElementById(id);
+    if (!toast) return;
+
+    toast.style.top = (80 + index * 90) + "px"; // 👈 xếp tầng
+    toast.classList.add('show');
+
+    setTimeout(() => {
+        hideToast(id);
+    }, 10000);
+}
+
+function hideToast(id) {
+    const toast = document.getElementById(id);
+    if (!toast) return;
+
+    toast.classList.remove('show');
+    toast.style.top = "-100px";
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    setTimeout(() => showToast('toast-rule', 0), 800);
+    setTimeout(() => showToast('toast-news', 1), 1200);
 });
 </script>
-
-<style>
-.description-short { overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; }
-.show-more-btn { color: #0d6efd; cursor: pointer; font-size: 14px; }
-</style>
-
 @endsection

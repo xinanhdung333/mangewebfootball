@@ -12,6 +12,9 @@ use App\Models\Service;
 
 class SettingController extends Controller
 {
+    public function index(){
+        return view('admin.settings.setting');
+    }
     // ================== VIEW ==================
     public function pricing()
     {

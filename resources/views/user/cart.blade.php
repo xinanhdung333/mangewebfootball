@@ -32,7 +32,7 @@
                             <div class="card cart-item mb-3" 
                                  data-id="{{ $item['id'] }}" 
                                  data-price="{{ $item['price'] }}" 
-                                 data-stock="{{ $item['stock'] }}">
+                                >
                                 <div class="card-body">
                                     <div class="row align-items-center">
                                         <div class="col-auto">
@@ -48,10 +48,25 @@ style="width:25px;height:25px;cursor:pointer;">
                                         </div>
                                         <div class="col">
                                             <h5 class="card-title">{{ $item['name'] }}</h5>
-                                            <p class="card-text">
-                                                Giá: <span class="price text-success fw-bold">{{ number_format($item['price'], 0, ',', '.') }} VNĐ</span>
-                                            </p>
+                                          <div class="card-text">
+@if(($item['discount_percent'] ?? 0) > 0)
 
+    <div style="color:#e53935; font-weight:bold;">
+        {{ number_format($item['price'],0,',','.') }} đ
+    </div>
+
+    <div style="text-decoration:line-through; font-size:12px; color:#999;">
+        {{ number_format($item['original_price'] ?? $item['price'],0,',','.') }} đ
+    </div>
+
+@else
+
+    <div style="font-weight:bold; color:#e53935;">
+        {{ number_format($item['price'],0,',','.') }} đ
+    </div>
+
+@endif
+</div>
                                             <div class="quantity-control mb-2">
                                                 <button class="btn btn-sm btn-outline-secondary qty-btn decrease" 
                                                         data-item-id="{{ $item['id'] }}">-</button>
@@ -200,16 +215,56 @@ style="width:25px;height:25px;cursor:pointer;">
 </style>
 
 <script>
-document.addEventListener('DOMContentLoaded', function () {
+   document.addEventListener('DOMContentLoaded', function () {
 
+    // ======================
+    // QTY UPDATE
+    // ======================
+    document.querySelectorAll('.qty-btn').forEach(btn => {
+
+        btn.addEventListener('click', function () {
+
+            const id = this.dataset.itemId;
+            const isIncrease = this.classList.contains('increase');
+            const row = this.closest('.cart-item');
+            const qtyEl = row.querySelector('.qty');
+            const totalEl = row.querySelector('.item-total');
+
+            let qty = parseInt(qtyEl.textContent);
+
+            qty = isIncrease ? qty + 1 : Math.max(1, qty - 1);
+
+            qtyEl.textContent = qty;
+
+            const price = parseFloat(row.dataset.price);
+            totalEl.textContent = (price * qty).toLocaleString('vi-VN') + ' VNĐ';
+
+            fetch("{{ route('user.cart.updateItem') }}", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": "{{ csrf_token() }}"
+                },
+                body: JSON.stringify({
+                    cart_item_id: id,
+                    quantity: qty
+                })
+            });
+        });
+
+    });
+
+    // ======================
+    // CHECKBOX SELECT
+    // ======================
     const checkboxes = document.querySelectorAll('.select-item');
 
-    // ===== Thanh toán sản phẩm đã chọn =====
     const selectedInput = document.getElementById('selected-items');
     const checkoutBtn = document.getElementById('checkout-selected-btn');
 
     checkboxes.forEach(cb => {
         cb.addEventListener('change', () => {
+
             const selected = Array.from(checkboxes)
                 .filter(i => i.checked)
                 .map(i => i.value);
@@ -219,17 +274,21 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    // ===== Thanh toán tất cả =====
+    // ======================
+    // CHECKOUT ALL
+    // ======================
     const checkoutAllForm = document.getElementById('checkout-all-form');
-    const selectedAllInput = document.getElementById('selected-items-all');
 
     checkoutAllForm.addEventListener('submit', function () {
 
-        const allIds = Array.from(checkboxes)
-            .map(i => i.value);
+        const allIds = Array.from(checkboxes).map(i => i.value);
 
-        selectedAllInput.value = allIds.join(',');
+        if (allIds.length === 0) {
+            alert('Giỏ hàng trống');
+            return;
+        }
 
+        document.getElementById('selected-items-all').value = allIds.join(',');
     });
 
 });

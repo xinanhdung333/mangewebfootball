@@ -186,14 +186,26 @@ if(sort){
     document.getElementById('sort').value = sort;
 }
 </script>
-<div id="toast-noti" class="toast-noti">
+ <a href ="{{route('user.fields')}}">
+    <div id="toast-rule" class="toast-noti">
     <i class="bi bi-megaphone-fill"></i>
     <div class="toast-content">
         <strong>Thông báo</strong>
-        <p>🔥 Giờ cao điểm 17:00 - 20:00 (giá x1.5)</p>
+        <p>🔥 Giờ cao điểm {{optional($rule)->start_time}} - {{ optional($rule)->end_time }} (giá x{{ optional($rule)->multiplier }})</p>
     </div>
-    <span class="toast-close" onclick="hideToast()">×</span>
+    <span class="toast-close" onclick="hideToast('toast-rule')">×</span>
 </div>
+</a>
+<a href ="{{route('user.services')}}">
+    <div id="toast-news" class="toast-noti">
+    <i class="bi bi-info-circle-fill"></i>
+    <div class="toast-content">
+        <strong>Thông báo mới</strong>
+        <p>🔥 {{optional($ruleService)->note}}</p>
+    </div>
+    <span class="toast-close" onclick="hideToast('toast-news')">×</span>
+</div>
+</a>
 <style>
 .toast-noti {
     position: fixed;
@@ -211,6 +223,8 @@ if(sort){
     z-index: 9999;
     transition: all 0.4s ease;
     opacity: 0;
+        top: -100px; /* mặc định ẩn */
+
 }
 
 .toast-noti {
@@ -242,25 +256,30 @@ if(sort){
     color: #999;
 }
 </style>
-    <script>
-function showToast() {
-    const toast = document.getElementById('toast-noti');
+<script>
+function showToast(id, index = 0) {
+    const toast = document.getElementById(id);
+    if (!toast) return;
+
+    toast.style.top = (80 + index * 90) + "px"; // 👈 xếp tầng
     toast.classList.add('show');
 
-    // tự ẩn sau 5s
     setTimeout(() => {
-        hideToast();
-    }, 5000);
+        hideToast(id);
+    }, 10000);
 }
 
-function hideToast() {
-    const toast = document.getElementById('toast-noti');
+function hideToast(id) {
+    const toast = document.getElementById(id);
+    if (!toast) return;
+
     toast.classList.remove('show');
+    toast.style.top = "-100px";
 }
 
-// tự chạy khi load trang
 document.addEventListener('DOMContentLoaded', function () {
-    setTimeout(showToast, 800); // delay nhẹ cho giống Shopee
+    setTimeout(() => showToast('toast-rule', 0), 800);
+    setTimeout(() => showToast('toast-news', 1), 1200);
 });
 </script>
 @endsection

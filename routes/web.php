@@ -83,6 +83,8 @@ Route::get('/my-bookings', [BookingController::class, 'myBookings'])->name('book
 Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->group(function(){
     Route::get('/home', [HomeController::class, 'indexadmin'])->name('home');
 //setting 
+Route::get('settings', [\App\Http\Controllers\Admin\SettingController::class, 'index'])->name('settings');
+
  Route::get('settings/pricing', [\App\Http\Controllers\Admin\SettingController::class, 'pricing'])->name('settings.pricing');
     Route::post('settings/pricing', [\App\Http\Controllers\Admin\SettingController::class, 'storePricing'])->name('settings.pricing.store');
   // 🔥 SERVICE DISCOUNT
@@ -238,7 +240,8 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function(){
     Route::post('cart/add/checkoutAll', [CartController::class, 'checkoutAll'])->name('checkoutAll');
     Route::post('cart/add/checkoutSelected', [CartController::class, 'checkoutSelected'])->name('cart.add.checkoutSelected');
     Route::post('add/checkoutBuyNow', [CartController::class, 'checkoutBuyNow'])->name('add.checkoutBuyNow');
-
+Route::post('/user/cart/update-item', [CartController::class, 'updateItem'])
+    ->name('cart.updateItem');
     Route::post('/cart/add', [PagesController::class, 'addToCart'])->name('addToCart');
     Route::post('/cart/remove', [PagesController::class, 'removeFromCart'])->name('removeFromCart');
     Route::post('/cart/update-quantity', [PagesController::class, 'updateQuantity'])->name('updateQuantity');

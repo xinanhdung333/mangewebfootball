@@ -74,62 +74,7 @@ class PagesController extends Controller
         ]);
     }
 
-   private function createOrderFromItems($items, $user): Order
-{
-    $cart = $this->getOrCreateUserCart($user);
-    $total = 0;
-
-    foreach ($items as $item) {
-
-        $service = Service::findOrFail($item->service_id);
-
-        if ($service->quantity < $item->quantity) {
-            throw new \RuntimeException("Insufficient stock for service {$service->id}");
-        }
-
-        // 🔥 dùng giá đã giảm
-        $total += $item->price * $item->quantity;
-    }
-
-    $order = Order::create([
-        'user_id' => $user->id,
-        'cart_id' => $cart->id,
-        'status' => 'pending',
-        'total_amount' => $total,
-    ]);
-
-    foreach ($items as $item) {
-
-        $service = Service::findOrFail($item->service_id);
-
-        $originalPrice = $service->price;
-
-        $discountPercent = 0;
-
-        if ($item->price < $originalPrice) {
-            $discountPercent = round((1 - ($item->price / $originalPrice)) * 100);
-        }
-
-        OrderItem::create([
-            'order_id' => $order->id,
-            'service_id' => $service->id,
-
-            // 🔥 giá sau giảm
-            'price' => $item->price,
-
-            // 🔥 lưu thêm
-            'original_price' => $originalPrice,
-            'discount_percent' => $discountPercent,
-
-            'quantity' => $item->quantity,
-        ]);
-
-        $service->decrement('quantity', $item->quantity);
-    }
-
-    return $order;
-}
-
+  
     public function about()
     {
         return view('user.about');
@@ -143,24 +88,19 @@ class PagesController extends Controller
         $stats_total = $user ? $user->bookings()->count() : 0;
         $stats_confirmed = $user ? $user->bookings()->where('status', 'confirmed')->count() : 0;
         $stats_revenue = $user ? $user->bookings()->sum('total_price') : 0;
-            $response = Http::get('https://newsapi.org/v2/top-headlines', [
-        'country' => 'us',
-        'apiKey' => 'YOUR_API_KEY'
-   ]);
-
+            
         // Get recent bookings
         $bookings = $user ? $user->bookings()->latest()->take(5)->get() : [];
-            $news = collect($response->json()['articles'] ?? [])->map(function ($item) {
-                return (array) $item;
-            })->toArray();
-
+         $rule = PriceRule::first();
+        $ruleService = ServiceDiscount::first();
         return view('user.dashboard', [
             'user' => $user,
             'stats_total' => $stats_total,
             'stats_confirmed' => $stats_confirmed,
             'stats_revenue' => $stats_revenue,
             'bookings' => $bookings,
-            'news' => $news
+            'rule' => $rule,
+            'ruleService' => $ruleService
         ]);  
     }
   public function myBookings()
@@ -589,9 +529,14 @@ public function addAjax(Request $request)
     $qty = (int) ($request->quantity ?? 1);
 
     $this->syncCartItem($user, (int) $request->service_id, $qty);
+  $cart = $this->getOrCreateUserCart($user);
+
+    $total = \App\Models\CartItem::where('cart_id', $cart->id)
+        ->sum('quantity');
 
     return response()->json([
-        'success' => true
+        'success' => true,
+        'totalItems' => $total
     ]);
 }
  public function exportInvoice($id)
@@ -666,8 +611,12 @@ public function exportInvoicebooking($id)
     {
         // use the Eloquent scope to include ratings
         $fields = Field::get();
-
-        return view('user.fields', ['fields' => $fields]);
+$rule = PriceRule::first();
+$ruleService = ServiceDiscount::first();
+        return view('user.fields', ['fields' => $fields,
+        'rule' => $rule,
+        'ruleService' => $ruleService
+        ]);
     }
 
 
@@ -967,6 +916,8 @@ $flashSale = ServiceDiscount::where('is_active', 1)
 
 $flashStart = null;
 $flashEnd = null;
+$flashnote = null;
+
 $flashPercent = 0;
 
 if ($flashSale) {
@@ -975,25 +926,82 @@ if ($flashSale) {
     $flashPercent = (1 - $flashSale->multiplier) * 100;
     $flashnote = $flashSale->note;
 }
-
+$rule = PriceRule::first();
 return view('user.services', compact(
     'services',
     'totalItems',
     'flashStart',
     'flashEnd',
     'flashPercent',
-    'flashnote'
+    'flashnote',
+    'rule'
 ));
 }
 public function cart()
 {
     $user = auth()->user();
 
-    // lấy cart
-    $cartItems = $this->getCartItemsForUser($user)->get();
-    $totalPrice = $cartItems->sum(fn($item) => $item->price * $item->quantity);
+    $cartItemsRaw = $this->getCartItemsForUser($user)->with('service')->get();
 
-    // history giống code cũ
+    $cartItems = [];
+    $totalPrice = 0;
+
+    $now = Carbon::now();
+    $currentMin = $now->hour * 60 + $now->minute;
+
+    foreach ($cartItemsRaw as $item) {
+
+        $service = $item->service;
+        if (!$service) continue;
+
+        $finalPrice = $service->price;
+        $discountPercent = 0;
+
+        // ===== DISCOUNT RULE =====
+        $rules = ServiceDiscount::where(function ($q) use ($service) {
+                $q->where('service_id', $service->id)
+                  ->orWhereNull('service_id');
+            })
+            ->orderByRaw('service_id IS NULL')
+            ->get();
+
+        foreach ($rules as $rule) {
+
+            [$sh, $sm] = explode(':', $rule->start_time);
+            [$eh, $em] = explode(':', $rule->end_time);
+
+            $startMin = $sh * 60 + $sm;
+            $endMin   = $eh * 60 + $em;
+
+            $inTime =
+                ($startMin <= $endMin && $currentMin >= $startMin && $currentMin < $endMin)
+                ||
+                ($startMin > $endMin && ($currentMin >= $startMin || $currentMin < $endMin));
+
+            if ($inTime) {
+                $finalPrice = $service->price * $rule->multiplier;
+                $discountPercent = (1 - $rule->multiplier) * 100;
+                break;
+            }
+        }
+
+        $cartItems[] = [
+            'id' => $item->id,
+            'name' => $service->name,
+            'image' => $service->image,
+
+            // 🔥 quan trọng
+            'price' => $finalPrice,
+            'original_price' => $service->price,
+            'discount_percent' => $discountPercent,
+
+            'quantity' => $item->quantity,
+        ];
+
+        $totalPrice += $finalPrice * $item->quantity;
+    }
+
+    // history
     $serviceHistory = Order::where('user_id', $user->id)
         ->join('order_items', 'orders.id', '=', 'order_items.order_id')
         ->join('services', 'order_items.service_id', '=', 'services.id')
@@ -1008,7 +1016,11 @@ public function cart()
         ->orderByDesc('orders.created_at')
         ->get();
 
-    return view('user.cart', compact('cartItems', 'totalPrice', 'serviceHistory'));
+    return view('user.cart', compact(
+        'cartItems',
+        'totalPrice',
+        'serviceHistory'
+    ));
 }
 
     public function addToCart(Request $request, $id = null)
@@ -1124,80 +1136,6 @@ public function removeFromCart(Request $request)
     {
         return $this->updateQuantity($request);
     }
-public function checkoutMultiple(Request $request)
-{
-    $user = $request->user();
-    $selected = $request->input('selected_items', '[]');
-    $selectedIds = json_decode($selected, true);
-
-    if (!is_array($selectedIds) || empty($selectedIds)) {
-        return redirect()->route('user.cart')->with('error', 'Chưa chọn sản phẩm nào để thanh toán.');
-    }
-
-    $cartItems = $this->getCartItemsForUser($user)
-        ->whereIn('cart_items.id', $selectedIds)
-        ->get();
-
-    if ($cartItems->isEmpty()) {
-        return redirect()->route('user.cart')->with('error', 'Sản phẩm không tồn tại trong giỏ hàng.');
-    }
-
-    DB::beginTransaction();
-
-    try {
-        $order = $this->createOrderFromItems($cartItems, $user);
-
-        Payment::create([
-            'order_id' => $order->id,
-            'amount' => $order->total_amount,
-            'status' => 'pending'
-        ]);
-
-        DB::commit();
-
-        return redirect()->route('user.momo.pay', [
-            'order_id' => $order->id
-        ]);
-    } catch (\Exception $e) {
-        DB::rollBack();
-
-        return redirect()->route('user.cart')->with('error', 'Thanh toÃ¡n tháº¥t báº¡i.');
-    }
-
-    $createdOrders = [];
-
-    DB::transaction(function() use ($cartItems, $user, &$createdOrders) {
-        // Tạo order mới
-        $order = Order::create([
-            'user_id' => $user->id,
-            'total_amount' => $cartItems->sum(fn($item) => $item->price * $item->quantity),
-            'status' => 'pending',
-        ]);
-
-        foreach ($cartItems as $item) {
-            $orderItem = OrderItem::create([
-                'order_id' => $order->id,
-                'service_id' => $item->service_id,
-                'name' => $item->name,
-                'price' => $item->price,
-                'quantity' => $item->quantity,
-                'total' => $item->price * $item->quantity,
-            ]);
-
-            $createdOrders[] = [
-                'order_id' => $order->id,
-                'name' => $item->name,
-                'total' => $orderItem->total,
-            ];
-        }
-
-        // Xóa CartItem đã thanh toán
-        CartItem::whereIn('id', $cartItems->pluck('id'))->delete();
-    });
-
-    return view('user.checkout', compact('createdOrders'));
-}
-
 public function fieldSchedule(Request $request)
 {
     // Lấy danh sách sân
@@ -1220,166 +1158,6 @@ public function fieldSchedule(Request $request)
         'fields' => $fields,
         'bookingMap' => $bookingMap
     ]);
-}
-
-public function checkoutAll(Request $request)
-{
-    $user = $request->user();
-
-    $cartItems = $this->getCartItemsForUser($user)->get();
-    if ($cartItems->isEmpty()) {
-        return redirect()
-            ->route('user.cart')
-            ->with('error', 'Giỏ hàng trống');
-    }
-
-    DB::beginTransaction();
-
-    try {
-
-        $order = $this->createOrderFromItems(
-            $cartItems,
-            $user
-        );
-
-        Payment::create([
-            'order_id' => $order->id,
-            'amount' => $order->total_amount,
-            'status' => 'pending'
-        ]);
-
-        DB::commit();
-
-        return redirect()->route('user.momo.pay', [
-            'order_id' => $order->id
-        ]);
-
-        $createdOrders = [];
-
-foreach ($cartItems as $item){
-        $serviceId = $item->service_id;
-
-    $service = Service::find($serviceId);
-
-    $createdOrders[] = [
-        'order_id' => $order->id,
-        'name' => $service->name,
-        'total' => $service->price * $item->quantity
-    ];
-}
-
-        CartItem::whereIn(
-            'id',
-            $cartItems->pluck('id')
-        )->delete();
-
-        DB::commit();
-
-       return view('user.checkout', [
-    'createdOrders' => $createdOrders
-]);
-
-  }catch (\Exception $e) {
-
-    DB::rollback();
-
-    dd($e->getMessage());
-
-}
-}
-public function checkoutSelected(Request $request)
-{
-    $request->validate([
-        'selected_items' => 'required'
-    ]);
-
-    $user = $request->user();
-
-    $ids = $request->selected_items;
-
-    if (!is_array($ids)) {
-        $ids = explode(',', $ids);
-    }
-
-    $items = $this->getCartItemsForUser($user)
-        ->whereIn('cart_items.id', $ids)
-        ->get();
-
-    if ($items->isEmpty()) {
-        return back()->with('error', 'Chưa chọn sản phẩm');
-    }
-
-    DB::beginTransaction();
-
-    try {
-    $order = $this->createOrderFromItems($items, $user);
-
-            // tạo pending mới
-            $payment = Payment::create([
-                'order_id' => $order->id,
-                'amount' => $order->total_amount,
-                'status' => 'pending'
-            ]);
-     
-DB::commit();
-
-        return redirect()->route('user.momo.pay', [
-            'order_id' => $order->id
-        ]);
-
-    } catch (\Exception $e) {
-
-        DB::rollback();
-
-        return back()->with('error', 'Thanh toán thất bại');
-
-    }
-}
-public function checkoutBuyNow(Request $request)
-{
-    $request->validate([
-        'service_id' => 'required|exists:services,id',
-        'quantity' => 'nullable|integer|min:1'
-    ]);
-
-    $user = $request->user();
-
-    $service = Service::findOrFail($request->service_id);
-
-    // tạo object giống CartItem
-    $item = new \stdClass();
-    $item->service_id = $service->id;
-    $item->quantity = $request->quantity ?? 1;
-    $item->price = $service->price;
-
-    DB::beginTransaction();
-
-    try {
-
-        $order = $this->createOrderFromItems(
-            collect([$item]),
-            $user
-        );
-
-        Payment::create([
-            'order_id' => $order->id,
-            'amount' => $order->total_amount,
-            'status' => 'pending'
-        ]);
-
-        DB::commit();
-
-        return redirect()->route('user.momo.pay', [
-            'order_id' => $order->id
-        ]);
-
-    } catch (\Exception $e) {
-
-        DB::rollBack();
-
-        return back()->with('error', 'Thanh toán thất bại');
-
-    }
 }
 
 
