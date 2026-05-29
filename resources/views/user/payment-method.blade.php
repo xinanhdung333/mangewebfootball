@@ -221,12 +221,111 @@ $service->price * $service->quantity,
         <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
     </div>
 @endif
+@if($type === 'order')
+{{-- SHIPPING ADDRESS SECTION --}}
+<div class="card bg-light border-0 mb-4">
 
+<div class="card-body">
 
+<div class="d-flex align-items-center gap-2 mb-3">
+
+<i class="bi bi-geo-alt-fill text-primary fs-5"></i>
+
+<h5 class="mb-0">Địa chỉ giao hàng</h5>
+
+</div>
+
+@if(isset($addresses) && $addresses->count() > 0)
+
+<div class="row g-3">
+
+@foreach($addresses as $address)
+
+<div class="col-md-6">
+
+<label class="w-100">
+
+<input 
+type="radio" 
+name="address_id" 
+value="{{ $address->id }}" 
+class="d-none address-option"
+@if($address->is_default || $loop->first) checked @endif
+>
+
+<div class="card address-card border-2 h-100">
+
+<div class="card-body">
+
+<div class="d-flex justify-content-between align-items-start">
+
+<div class="flex-grow-1">
+
+<div class="fw-semibold">
+{{ $address->name ?? Auth::user()->name }}
+@if($address->is_default)
+<span class="badge bg-success ms-2">Mặc định</span>
+@endif
+</div>
+
+<p class="mb-1 text-muted small">
+<i class="bi bi-house"></i>
+{{ $address->street_address }}
+@if($address->ward), {{ $address->ward }}@endif
+@if($address->district), {{ $address->district }}@endif
+, {{ $address->city }}
+@if($address->postal_code)- {{ $address->postal_code }}@endif
+</p>
+
+@if($address->phone)
+<p class="mb-0 text-muted small">
+<i class="bi bi-telephone"></i>
+{{ $address->phone }}
+</p>
+@endif
+
+</div>
+
+</div>
+
+</div>
+
+</label>
+
+</div>
+
+@endforeach
+
+</div>
+
+<small class="d-block mt-3 text-muted">
+<i class="bi bi-info-circle"></i> 
+Chọn địa chỉ giao hàng cho đơn hàng của bạn
+</small>
+
+@else
+
+<div class="alert alert-warning">
+
+<i class="bi bi-exclamation-triangle"></i>
+Bạn chưa có địa chỉ giao hàng. 
+
+<a href="{{ route('user.profile') }}" class="alert-link">Thêm địa chỉ ngay</a>
+
+</div>
+
+@endif
+
+</div>
+
+</div>
+
+@endif
 {{-- PAYMENT FORM --}}
 <form method="POST" action="{{ $submitRoute }}">
 @csrf
 
+<input type="hidden" id="selectedAddressId" name="selected_address_id" value="">
 
 <div class="row g-4">
 
@@ -406,6 +505,47 @@ background: white;
 .ll{
     background: linear-gradient(90deg, #806e6e, #e0e0e0);
 }
+
+/* Address Card Styles */
+.address-card {
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border-color: #ddd !important;
+}
+
+.address-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.1);
+}
+
+.address-option:checked + .address-card {
+    border-color: #0d6efd !important;
+    background-color: #f0f7ff;
+    box-shadow: 0 0 0 0.2rem rgba(13,110,253,.15);
+}
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle address selection
+    const addressOptions = document.querySelectorAll('.address-option');
+    const selectedAddressInput = document.getElementById('selectedAddressId');
+    
+    // Set initial value
+    const checkedOption = document.querySelector('.address-option:checked');
+    if (checkedOption) {
+        selectedAddressInput.value = checkedOption.value;
+    }
+    
+    // Update hidden input when address is selected
+    addressOptions.forEach(option => {
+        option.addEventListener('change', function() {
+            if (this.checked) {
+                selectedAddressInput.value = this.value;
+            }
+        });
+    });
+});
+</script>
 
 @endsection

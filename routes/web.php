@@ -23,6 +23,7 @@ use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\AddressController;
 require __DIR__.'/auth.php';
 
 Route::get('/h', function () {
@@ -222,7 +223,21 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function(){
     // Profile
     Route::get('/profile', [PagesController::class, 'profile'])->name('profile');
     Route::post('/profile/update', [PagesController::class, 'updateProfile'])->name('profile.update');
-    
+
+    // Addresses
+    Route::post('/address/store', [AddressController::class, 'store'])->name('address.store');
+    Route::get('/address/list', [AddressController::class, 'list'])
+    ->name('address.list');
+    Route::put('/address/{address}/update', [AddressController::class, 'update'])->name('address.update');
+    Route::delete('/address/{address}/delete', [AddressController::class, 'delete'])->name('address.delete');
+    Route::get(
+        '/address/edit/{orderId}',
+        [AddressController::class, 'showEditAddressOrder']
+    )->name('address.order.edit.show');
+    Route::post(
+        '/address/edit/{orderId}',
+        [AddressController::class, 'editAddressOrder']
+    )->name('address.order.edit');
     // Booking
     Route::get('/my-bookings-fetch', [PagesController::class, 'myBookingsFetch'])->name('myBookings.fetch');
     Route::get('/bookingcreate', [PagesController::class, 'bookingcreate'])->name('bookingcreate');
@@ -277,7 +292,7 @@ Route::post('/user/cart/update-item', [CartController::class, 'updateItem'])
     Route::post('/feedback', [PagesController::class, 'sendFeedback'])->name('sendFeedback');
     // Chatbot
     Route::post('/chatbot/message', [ChatbotController::class, 'reply'])->name('chatbot.message');
-
+    
     Route::middleware(['auth'])->group(function () {
         // User chat support
         Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');

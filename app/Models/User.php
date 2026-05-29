@@ -76,4 +76,12 @@ class User extends Authenticatable
 {
     return $this->hasMany(Conversation::class, 'admin_id');
 }
+
+    /**
+     * Get all addresses for the user.
+     */
+    public function addresses()
+    {
+        return $this->hasMany(UserAddress::class, 'user_id');
+    }
 }

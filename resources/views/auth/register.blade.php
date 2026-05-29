@@ -91,7 +91,6 @@
 ```
 
 </div>
-
 <script>
 document.getElementById('registerForm').addEventListener('submit', function(e) {
 
@@ -110,26 +109,41 @@ document.getElementById('registerForm').addEventListener('submit', function(e) {
     if (name === '') {
         document.getElementById('nameError').innerText = 'Tên không được để trống';
         hasError = true;
+
+    } else if (name.length < 2) {
+        document.getElementById('nameError').innerText = 'Tên phải có ít nhất 2 ký tự';
+        hasError = true;
+
+    } else if (name.length > 20) {
+        document.getElementById('nameError').innerText = 'Tên không được vượt quá 20 ký tự';
+        hasError = true;
     }
 
     // EMAIL
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     if (!emailRegex.test(email)) {
         document.getElementById('emailError').innerText = 'Email không hợp lệ';
         hasError = true;
     }
 
     // PHONE
-    if (phone.length < 9) {
+    const phoneRegex = /^(0|\+84)[3|5|7|8|9][0-9]{8}$/;
+
+    if (phone.length < 9 || !phoneRegex.test(phone)) {
         document.getElementById('phoneError').innerText = 'Số điện thoại không hợp lệ';
         hasError = true;
     }
 
     // PASSWORD
-    if (password.length < 6) {
-        document.getElementById('passwordError').innerText = 'Mật khẩu phải >= 6 ký tự';
-        hasError = true;
-    }
+  const passwordRegex =
+/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/;
+
+if (!passwordRegex.test(password)) {
+    document.getElementById('passwordError').innerText =
+    'Mật khẩu phải có ít nhất 8 ký tự, gồm chữ hoa, chữ thường, số và ký tự đặc biệt';
+    hasError = true;
+}
 
     // CONFIRM PASSWORD
     if (password !== confirm) {

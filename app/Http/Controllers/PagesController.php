@@ -15,7 +15,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\PriceRule;
 use Carbon\Carbon;
-
+use App\Models\UserAddress;
 use App\Models\Booking;
 use App\Http\Controllers\Concerns\UsesServiceQuery;
 use Illuminate\Support\Facades\DB;
@@ -332,6 +332,8 @@ $service = DB::table('order_items as oi')
     ->select('s.name', 's.price', 's.image', 'oi.quantity')
     ->get();
 
+    // Get user addresses
+    $addresses = \App\Models\UserAddress::where('user_id', auth()->id())->get();
 
     return view('user.payment-method', [
         'type' => 'order',
@@ -341,7 +343,8 @@ $service = DB::table('order_items as oi')
         'title' => 'Chon phuong thuc thanh toan don hang',
         'description' => 'Don hang #' . $order->id,
         'payment' => $payment,
-        'services' => $service
+        'services' => $service,
+        'addresses' => $addresses
     ]);
 }
 private function toMinutes($time)
@@ -355,13 +358,20 @@ public function handleOrderPaymentMethod(Request $request, Order $order)
 
     $data = $request->validate([
         'payment_method' => 'required|in:momo,cash',
+        'selected_address_id' => 'nullable|exists:user_addresses,id',
     ]);
+
+    // Update order with selected address
+    if (!empty($data['selected_address_id'])) {
+        $order->update(['user_address_id' => $data['selected_address_id']]);
+    }
 
     $payment = Payment::updateOrCreate(
         ['order_id' => $order->id],
         [
             'amount' => $order->total_amount,
             'status' => 'pending',
+            'user_address_id' => $data['selected_address_id'] ?? null,
         ]
     );
     
@@ -417,6 +427,10 @@ public function showBookingPaymentMethod(Booking $booking)
     ->where('bs.booking_id', $booking->id)
     ->select('s.name', 's.price', 's.image', 'bs.quantity')
     ->get();
+    
+    // Get user addresses
+    $addresses = \App\Models\UserAddress::where('user_id', auth()->id())->get();
+    
     return view('user.payment-method', [
         'type' => 'booking',
         'item' => $booking,
@@ -425,7 +439,8 @@ public function showBookingPaymentMethod(Booking $booking)
         'title' => 'Chon phuong thuc thanh toan booking',
         'description' => 'Booking #' . $booking->id,
         'payment' => $payment,
-        'services' => $services
+        'services' => $services,
+        'addresses' => $addresses
     ]);
 }
 public function handleBookingPaymentMethod(Request $request, Booking $booking)
@@ -434,12 +449,18 @@ public function handleBookingPaymentMethod(Request $request, Booking $booking)
 
     $data = $request->validate([
         'payment_method' => 'required|in:momo,cash',
+        'selected_address_id' => 'nullable|exists:user_addresses,id',
     ]);
 
     $payment = $booking->payment;
 
     if (!$payment) {
         return back()->with('error', 'Không tìm thấy thông tin thanh toán');
+    }
+
+    // Update address_id if provided
+    if (!empty($data['selected_address_id'])) {
+        $payment->update(['user_address_id' => $data['selected_address_id']]);
     }
 
     // 👉 Lấy amount từ DB (chuẩn)
@@ -652,11 +673,16 @@ public function profile()
     ])
     ->get();
             $avatar = $user->avt;
+    
+    // 🔥 lấy danh sách địa chỉ
+    $addresses = \App\Models\UserAddress::where('user_id', $user->id)->get();
+    
     return view('user.profile', [
         'user' => $user,
         'bookingHistory' => $bookingHistory,
         'serviceHistory' => $serviceHistory, // 🔥 thêm dòng này
-        'avatar' => $avatar
+        'avatar' => $avatar,
+        'addresses' => $addresses
     ]);
 }
 public function updateProfile(Request $request)
@@ -1212,14 +1238,25 @@ public function serviceDetail($id)
 }
 public function orderDetail($id)
 {
-    $order = \App\Models\Order::with('items.service')
-        ->findOrFail($id);
+    $order = Order::with([
+        'items.service',
+        'userAddress'
+    ])->findOrFail($id);
 
     $orderItems = $order->items;
 
+    $addresses = UserAddress::where(
+        'user_id',
+        Auth::id()
+    )->get();
+
     return view(
         'user.order-detail',
-        compact('order','orderItems')
+        compact(
+            'order',
+            'orderItems',
+            'addresses'
+        )
     );
 }
 // taoj payment

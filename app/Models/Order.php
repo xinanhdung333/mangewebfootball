@@ -1,7 +1,7 @@
 <?php
 
 namespace App\Models;
-
+use App\Models\UserAddress;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -14,6 +14,7 @@ class Order extends Model
     protected $fillable = [
         'user_id',
         'cart_id',
+        'user_address_id',
         'total_amount',
         'status',
         'meta'
@@ -30,6 +31,16 @@ class Order extends Model
         return $this->belongsTo(User::class);
     }
 
+    public function payment()
+    {
+        return $this->hasOne(Payment::class);
+    }
+
+    /**
+     * Alias relation to keep compatibility with existing code using `userAddress`
+     */
+    
+
    public function items()
 {
     return $this->hasMany(OrderItem::class);
@@ -41,4 +52,11 @@ class Order extends Model
             ->withPivot('quantity', 'price')
             ->withTimestamps();
     }
+    public function userAddress()
+{
+    return $this->belongsTo(
+        UserAddress::class,
+        'user_address_id'
+    );
+}
 }

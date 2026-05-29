@@ -129,6 +129,189 @@
                 </form>
             </div>
         </div>
+
+        <!-- Phần Quản lý Địa chỉ -->
+        <div class="card mt-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5>
+                        <i class="bi bi-geo-alt"></i> Địa chỉ giao hàng
+                    </h5>
+                    <button type="button" class="btn btn-sm btn-success" data-bs-toggle="modal" data-bs-target="#addAddressModal">
+                        <i class="bi bi-plus-lg"></i> Thêm địa chỉ
+                    </button>
+                </div>
+
+                @if($addresses && count($addresses) > 0)
+                    <div class="list-group">
+                        @foreach($addresses as $address)
+                            <div class="list-group-item">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <h6 class="mb-1">
+                                            {{ $address->name ?? Auth::user()->name }}
+                                            @if($address->is_default)
+                                                <span class="badge bg-primary">Mặc định</span>
+                                            @endif
+                                        </h6>
+                                        <p class="mb-1 text-muted">
+                                            {{ $address->street_address }}
+                                            @if($address->ward)
+                                                , {{ $address->ward }}
+                                            @endif
+                                            @if($address->district)
+                                                , {{ $address->district }}
+                                            @endif
+                                            , {{ $address->city }}
+                                            @if($address->postal_code)
+                                                - {{ $address->postal_code }}
+                                            @endif
+                                        </p>
+                                        @if($address->phone)
+                                            <p class="mb-0"><small><i class="bi bi-telephone"></i> {{ $address->phone }}</small></p>
+                                        @endif
+                                    </div>
+                                    <div class="btn-group btn-group-sm">
+                                        <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editAddressModal{{ $address->id }}">
+                                            <i class="bi bi-pencil"></i>
+                                        </button>
+                                        <form method="POST" action="{{ route('user.address.delete', $address->id) }}" style="display:inline;" onsubmit="return confirm('Bạn chắc chắn muốn xóa địa chỉ này?');">
+                                            @csrf
+                                            @method('DELETE')
+                                            <button type="submit" class="btn btn-outline-danger">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Modal chỉnh sửa địa chỉ -->
+                            <div class="modal fade" id="editAddressModal{{ $address->id }}" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h5 class="modal-title">Chỉnh sửa địa chỉ</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form method="POST" action="{{ route('user.address.update', $address->id) }}">
+                                            @csrf
+                                            @method('PUT')
+                                            <div class="modal-body">
+                                                <div class="mb-3">
+                                                    <label class="form-label">Tên người nhận</label>
+                                                    <input type="text" name="name" class="form-control" value="{{ $address->name ?? Auth::user()->name }}">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Số điện thoại</label>
+                                                    <input type="text" name="phone" class="form-control" value="{{ $address->phone }}">
+                                                </div>
+                                                <div class="mb-3">
+                                                    <label class="form-label">Địa chỉ chi tiết *</label>
+                                                    <input type="text" name="street_address" class="form-control" value="{{ $address->street_address }}" required>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label">Phường/Xã</label>
+                                                        <input type="text" name="ward" class="form-control" value="{{ $address->ward }}">
+                                                    </div>
+                                                    <div class="col-md-6 mb-3">
+                                                        <label class="form-label">Quận/Huyện</label>
+                                                        <input type="text" name="district" class="form-control" value="{{ $address->district }}">
+                                                    </div>
+                                                </div>
+                                                <div class="row">
+                                                    <div class="col-md-8 mb-3">
+                                                        <label class="form-label">Tỉnh/Thành phố *</label>
+                                                        <input type="text" name="city" class="form-control" value="{{ $address->city }}" required>
+                                                    </div>
+                                                    <div class="col-md-4 mb-3">
+                                                        <label class="form-label">Mã bưu điện</label>
+                                                        <input type="text" name="postal_code" class="form-control" value="{{ $address->postal_code }}">
+                                                    </div>
+                                                </div>
+                                                <div class="mb-3 form-check">
+                                                    <input type="checkbox" name="is_default" class="form-check-input" value="1" @if($address->is_default) checked @endif>
+                                                    <label class="form-check-label">Đặt làm địa chỉ mặc định</label>
+                                                </div>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                                                <button type="submit" class="btn btn-primary">Cập nhật</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <p class="text-muted text-center py-4">
+                        <i class="bi bi-inbox"></i><br>
+                        Chưa có địa chỉ nào. Hãy thêm địa chỉ của bạn!
+                    </p>
+                @endif
+            </div>
+        </div>
+
+        <!-- Modal thêm địa chỉ mới -->
+        <div class="modal fade" id="addAddressModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Thêm địa chỉ mới</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <form method="POST" action="{{ route('user.address.store') }}">
+                        @csrf
+                        <div class="modal-body">
+                            <div class="mb-3">
+                                <label class="form-label">Tên người nhận</label>
+                                <input type="text" name="name" class="form-control" value="{{ Auth::user()->name }}">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Số điện thoại</label>
+                                <input type="text" name="phone" class="form-control" value="{{ Auth::user()->phone }}">
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Địa chỉ chi tiết *</label>
+                                <input type="text" name="street_address" class="form-control" placeholder="Số nhà, tên đường..." required>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Phường/Xã</label>
+                                    <input type="text" name="ward" class="form-control">
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Quận/Huyện</label>
+                                    <input type="text" name="district" class="form-control">
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-8 mb-3">
+                                    <label class="form-label">Tỉnh/Thành phố *</label>
+                                    <input type="text" name="city" class="form-control" placeholder="TP. Hồ Chí Minh" required>
+                                </div>
+                                <div class="col-md-4 mb-3">
+                                    <label class="form-label">Mã bưu điện</label>
+                                    <input type="text" name="postal_code" class="form-control">
+                                </div>
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" name="is_default" class="form-check-input" value="1">
+                                <label class="form-check-label">Đặt làm địa chỉ mặc định</label>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                            <button type="submit" class="btn btn-success">
+                                <i class="bi bi-plus-lg"></i> Thêm địa chỉ
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 @endsection
