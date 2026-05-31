@@ -38,7 +38,10 @@
                             <div class="mb-3">
                                 <div class="d-flex justify-content-end align-items-end">
                                     <div class="bg-primary text-white p-3 rounded" style="max-width: 80%;">
-                                        {{ $message->message }}
+                                        @if($message->message !== '')
+                                            <div>{{ $message->message }}</div>
+                                        @endif
+                                        @include('chat._message_attachment', ['message' => $message])
                                         <div class="text-end text-xs text-light mt-1">{{ $message->created_at->format('H:i d/m/Y') }}</div>
                                     </div>
                                 </div>
@@ -48,7 +51,11 @@
                                 <div class="d-flex justify-content-start align-items-start">
                                     <img src="{{ $senderAvatar }}" alt="Avatar" class="rounded-circle me-2" style="width:40px;height:40px;object-fit:cover;">
                                     <div class="bg-light p-3 rounded" style="max-width: 80%;">
-                                        <strong>Admin:</strong> {{ $message->message }}
+                                        <strong>Admin:</strong>
+                                        @if($message->message !== '')
+                                            <div>{{ $message->message }}</div>
+                                        @endif
+                                        @include('chat._message_attachment', ['message' => $message])
                                         <div class="text-end text-xs text-muted mt-1">{{ $message->created_at->format('H:i d/m/Y') }}</div>
                                     </div>
                                 </div>
@@ -57,12 +64,17 @@
                     @endforeach
                 </div>
                 <div class="card-footer">
-                    <form id="chat-form" action="{{ route('user.chat.send') }}" method="POST">
+                    <form id="chat-form" action="{{ route('user.chat.send') }}" method="POST" enctype="multipart/form-data">
                         @csrf
+                        <input type="file" name="attachment" id="chat-attachment" class="d-none">
                         <div class="input-group">
+                            <button class="btn btn-outline-secondary" type="button" id="chat-file-button" title="Gui anh hoac file">
+                                <i class="bi bi-paperclip"></i>
+                            </button>
                             <input type="text" name="message" class="form-control" placeholder="Nhập tin nhắn..." required>
                             <button class="btn btn-primary" type="submit">Gửi</button>
                         </div>
+                        <div id="chat-file-preview" class="small text-muted mt-2 d-none"></div>
                     </form>
                 </div>
             </div>
@@ -77,14 +89,56 @@
     const userChatBody = document.getElementById('user-chat-body');
     const chatForm = document.getElementById('chat-form');
     const messageInput = chatForm.querySelector('[name="message"]');
+    const attachmentInput = document.getElementById('chat-attachment');
+    const fileButton = document.getElementById('chat-file-button');
+    const filePreview = document.getElementById('chat-file-preview');
     const csrfToken = chatForm.querySelector('[name="_token"]').value;
     const wsEndpoint = '{{ env('WS_ENDPOINT', 'ws://127.0.0.1:6001') }}';
     const currentUserAvatar = '{{ auth()->user()->avt ? asset('uploads/avatars/'.auth()->user()->avt) : asset('assets/images/default.png') }}';
     const defaultAvatar = '{{ asset('assets/images/default.png') }}';
     const pendingMessages = [];
+
+    messageInput.required = false;
     
     console.log('🔌 Connecting to WebSocket:', wsEndpoint);
     const userWs = new WebSocket(wsEndpoint);
+
+    function escapeHtml(value) {
+        return String(value || '').replace(/[&<>"']/g, char => ({
+            '&': '&amp;',
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#039;',
+        }[char]));
+    }
+
+    function renderAttachment(message) {
+        if (!message.attachment_url && !message.attachment_name) {
+            return '';
+        }
+
+        const name = escapeHtml(message.attachment_name || 'File dinh kem');
+        if (!message.attachment_url) {
+            return `<div class="small mt-2"><i class="bi bi-paperclip"></i> ${name}</div>`;
+        }
+
+        const url = encodeURI(message.attachment_url);
+
+        if (message.attachment_is_image) {
+            return `<a href="${url}" target="_blank" class="d-block mt-2" title="Xem anh">
+                <img src="${url}" alt="${name}" class="img-fluid rounded" style="max-height:220px;object-fit:contain;">
+            </a>`;
+        }
+
+        return `<a href="${url}" target="_blank" download="${name}" class="btn btn-sm btn-light text-dark border mt-2">
+            <i class="bi bi-download"></i> Tai file: ${name}
+        </a>`;
+    }
+
+    function renderMessageBody(message, prefix = '') {
+        return `${prefix}${message.message ? `<div>${escapeHtml(message.message)}</div>` : ''}${renderAttachment(message)}`;
+    }
 
     function appendMessage(message, isPending = false) {
         console.log('🧩 appendMessage', message, 'pending=', isPending);
@@ -111,7 +165,7 @@
             <div class="d-flex ${isCurrentUser ? 'justify-content-end align-items-end' : 'justify-content-start align-items-start'}">
                 ${isCurrentUser ? '' : `<img src="${avatarUrl}" class="rounded-circle me-2" style="width:40px;height:40px;object-fit:cover;" alt="Avatar">`}
                 <div class="${isCurrentUser ? 'bg-primary text-white' : 'bg-light'} p-3 rounded" style="max-width: 80%;">
-                    ${isCurrentUser ? '' : '<strong>Admin:</strong> '}${message.message}
+                    <div class="message-content">${renderMessageBody(message, isCurrentUser ? '' : '<strong>Admin:</strong> ')}</div>
                     <div class="text-end text-xs ${isCurrentUser ? 'text-light' : 'text-muted'} mt-1 timestamp">${message.created_at}</div>
                 </div>
                 ${isCurrentUser ? `<img src="${avatarUrl}" class="rounded-circle ms-2" style="width:40px;height:40px;object-fit:cover;" alt="Avatar">` : ''}
@@ -133,7 +187,7 @@
     }
 
     function resolvePendingMessage(message) {
-        const pendingIndex = pendingMessages.findIndex(p => p.text === message.message && p.sender_id === currentUserId);
+        const pendingIndex = pendingMessages.findIndex(p => p.clientTempId && p.clientTempId === message.client_temp_id);
         if (pendingIndex === -1) {
             return false;
         }
@@ -148,6 +202,10 @@
             if (timestamp) {
                 timestamp.textContent = message.created_at;
             }
+            const content = existing.querySelector('.message-content');
+            if (content) {
+                content.innerHTML = renderMessageBody(message);
+            }
             pendingMessages.splice(pendingIndex, 1);
             console.log('✅ Resolved pending message to actual id', message.id);
             return true;
@@ -157,11 +215,26 @@
         return false;
     }
 
+    fileButton.addEventListener('click', () => attachmentInput.click());
+
+    attachmentInput.addEventListener('change', () => {
+        const file = attachmentInput.files[0];
+        if (!file) {
+            filePreview.classList.add('d-none');
+            filePreview.textContent = '';
+            return;
+        }
+
+        filePreview.classList.remove('d-none');
+        filePreview.textContent = `Da chon: ${file.name}`;
+    });
+
     chatForm.addEventListener('submit', async (event) => {
         event.preventDefault();
 
         const messageText = messageInput.value.trim();
-        if (!messageText) {
+        const selectedFile = attachmentInput.files[0] || null;
+        if (!messageText && !selectedFile) {
             return;
         }
 
@@ -174,14 +247,17 @@
             sender_id: currentUserId,
             sender_name: '',
             message: messageText,
+            attachment_name: selectedFile ? selectedFile.name : null,
+            attachment_url: null,
+            attachment_is_image: selectedFile ? selectedFile.type.startsWith('image/') : false,
             created_at: localCreatedAt,
         };
-        pendingMessages.push({ tempId, text: messageText, sender_id: currentUserId });
+        pendingMessages.push({ tempId, clientTempId: tempId, sender_id: currentUserId });
         appendMessage(pendingMessage, true);
 
-        const payload = {
-            message: messageText,
-        };
+        const payload = new FormData(chatForm);
+        payload.set('message', messageText);
+        payload.set('client_temp_id', tempId);
 
         console.log('📤 Sending chat message', payload);
 
@@ -189,12 +265,11 @@
             const response = await fetch(chatForm.action, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json',
                     'Accept': 'application/json',
                     'X-Requested-With': 'XMLHttpRequest',
                     'X-CSRF-TOKEN': csrfToken,
                 },
-                body: JSON.stringify(payload),
+                body: payload,
             });
 
             console.log('📶 Send response status', response.status, response.statusText);
@@ -213,9 +288,14 @@
 
             if (!(data && data.status === 'ok')) {
                 console.error('Send returned invalid response', data);
+            } else {
+                resolvePendingMessage(data.message);
             }
 
             messageInput.value = '';
+            attachmentInput.value = '';
+            filePreview.classList.add('d-none');
+            filePreview.textContent = '';
             messageInput.focus();
         } catch (error) {
             console.error('Send error', error);

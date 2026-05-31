@@ -115,6 +115,15 @@
                     <i class="bi bi-shield-check"></i> 100% Authentic • 30 Days Free Return
                 </div>
 
+                <div class="mb-3">
+                    <span class="text-muted">Tồn kho:</span>
+                    @if($service->quantity > 0)
+                        <strong class="text-success">{{ $service->quantity }}</strong>
+                    @else
+                        <strong class="text-danger">Hết hàng</strong>
+                    @endif
+                </div>
+
                 <!-- QUANTITY SELECTOR -->
                 <div class="mb-4">
                     <label class="form-label fw-bold">Số lượng</label>
@@ -182,6 +191,28 @@ document.addEventListener('DOMContentLoaded', function() {
     const qtyEl = document.getElementById('qty');
     const buyNowQtyEl = document.getElementById('buyNowQty');
     const maxQty = {{ $service->quantity }};
+    const addToCartBtn = document.getElementById('btnAddToCart');
+    const increaseBtn = document.getElementById('increaseQty');
+    const decreaseBtn = document.getElementById('decreaseQty');
+
+    if (maxQty <= 0) {
+        if (addToCartBtn) addToCartBtn.disabled = true;
+        if (increaseBtn) increaseBtn.disabled = true;
+        if (decreaseBtn) decreaseBtn.disabled = true;
+        if (buyNowQtyEl) buyNowQtyEl.value = 0;
+        if (qtyEl) qtyEl.innerText = '0';
+    }
+
+    const buyNowForm = document.querySelector('form[action="{{ route('user.add.checkoutBuyNow') }}"]');
+    if (buyNowForm) {
+        buyNowForm.addEventListener('submit', function(e) {
+            if (maxQty <= 0) {
+                e.preventDefault();
+                alert('Dich vu nay da het hang');
+                return;
+            }
+        }, true);
+    }
 
     // Thumbnail click
     document.querySelectorAll('.thumb').forEach(thumb => {

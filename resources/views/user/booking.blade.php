@@ -1,6 +1,20 @@
 @extends('layouts.app')
 @section('content')
+@if(session('success'))
+    <div id="success-alert" class="alert alert-success">
+        {{ session('success') }}
+    </div>
 
+    <script>
+        setTimeout(() => {
+            document.getElementById('success-alert').remove();
+        }, 2500);
+
+        setTimeout(() => {
+            window.location.href = "{{ route('user.myBookings') }}";
+        }, 3000);
+    </script>
+@endif
 <div class="container-fluid py-4">
     <div class="row mb-4">
         <div class="col-md-12">
@@ -19,7 +33,7 @@
             <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
         </div>
     @endif
-
+<div id="client-errors" class="alert alert-danger d-none mb-3"></div>
     @if(session('success'))
         <div class="alert alert-success alert-dismissible fade show" role="alert">
             {{ session('success') }}
@@ -200,6 +214,17 @@
 }
 </style>
 <script>
+    const errorBox = document.getElementById('client-errors');
+
+function showError(message) {
+    errorBox.innerHTML = message;
+    errorBox.classList.remove('d-none');
+}
+
+function clearError() {
+    errorBox.innerHTML = '';
+    errorBox.classList.add('d-none');
+}
 document.addEventListener('DOMContentLoaded', function () {
 
     const fieldPricePerHour = {{ $field->price_per_hour }};
@@ -301,7 +326,7 @@ if (noteBox) {
             let qty = parseInt(input.value) || 0;
 
             if (qty >= maxQty) {
-                alert('Vượt quá số lượng!');
+               showError('Vượt quá số lượng dịch vụ còn lại');
                 return;
             }
 
@@ -382,36 +407,42 @@ if (noteBox) {
             return;
         }
 
-        const bookingDate = document.getElementById('booking_date').value;
-        const startTime = document.getElementById('start_time').value;
-        const endTime = document.getElementById('end_time').value;
+     clearError();
 
-        if (!bookingDate || !startTime || !endTime) {
-            e.preventDefault();
-            alert('Vui lòng nhập đủ thông tin');
-            return;
-        }
+const bookingDate = document.getElementById('booking_date').value;
+const startTime = document.getElementById('start_time').value;
+const endTime = document.getElementById('end_time').value;
 
-        if (startTime === endTime) {
-            e.preventDefault();
-            alert('Thời gian không hợp lệ');
-            return;
-        }
+if (!bookingDate || !startTime || !endTime) {
+    e.preventDefault();
+    showError('Vui lòng nhập đủ thông tin');
+    return;
+}
 
-        const today = new Date();
-        today.setHours(0,0,0,0);
-        const selectedDate = new Date(bookingDate);
+if (startTime === endTime) {
+    e.preventDefault();
+    showError('Không cho phép đặt sân');
+    return;
+}
+if (startTime >= endTime) {
+    e.preventDefault();
+    showError('Giờ kết thúc phải lớn hơn giờ bắt đầu');
+    return;
+}
+const today = new Date();
+today.setHours(0,0,0,0);
 
-        if (selectedDate < today) {
-            e.preventDefault();
-            alert('Ngày không hợp lệ');
-            return;
-        }
+const selectedDate = new Date(bookingDate);
 
-        submitBtn.disabled = true;
-        submitBtn.innerHTML = 'Đang xử lý...';
-    });
+if (selectedDate < today) {
+    e.preventDefault();
+    showError('Ngày không hợp lệ');
+    return;
+}
 
+submitBtn.disabled = true;
+submitBtn.innerHTML = 'Đang xử lý...';
+        });
     // ===== INIT =====
     updateTotal();
 });

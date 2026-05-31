@@ -27,7 +27,18 @@
                                 <tr>
                                     <td>{{ $conversation->id }}</td>
                                     <td>{{ $conversation->user->name ?? 'Người dùng' }}</td>
-                                    <td>{{ optional($conversation->messages()->latest()->first())->message ?? 'Chưa có tin nhắn' }}</td>
+                                    @php($latestMessage = $conversation->messages()->latest()->first())
+                                    <td>
+                                        @if(!$latestMessage)
+                                            Chưa có tin nhắn
+                                        @elseif($latestMessage->message !== '')
+                                            {{ $latestMessage->message }}
+                                        @elseif($latestMessage->hasAttachment())
+                                            <i class="bi bi-paperclip"></i> {{ $latestMessage->attachment_original_name }}
+                                        @else
+                                            Chưa có tin nhắn
+                                        @endif
+                                    </td>
                                     <td>{{ $conversation->updated_at->format('H:i d/m/Y') }}</td>
                                     <td>
                                         @if($conversation->admin_id && $conversation->admin_id !== auth()->id())

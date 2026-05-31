@@ -60,10 +60,18 @@ class PagesController extends Controller
             ->first();
 
         if ($item) {
+            if ($item->quantity + $quantity > $service->quantity) {
+                throw new \RuntimeException('So luong vuot qua ton kho');
+            }
+
             $item->quantity += $quantity;
             $item->price = $service->price;
             $item->save();
             return;
+        }
+
+        if ($quantity > $service->quantity) {
+            throw new \RuntimeException('So luong vuot qua ton kho');
         }
 
         CartItem::create([
@@ -166,6 +174,7 @@ public function storeBooking(Request $request)
     // ===== check trùng =====
     $exists = Booking::where('field_id', $data['field_id'])
         ->where('booking_date', $data['booking_date'])
+        ->whereNotIn('status', ['cancelled', 'expired'])
         ->where(function ($q) use ($data) {
             $q->whereBetween('start_time', [$data['start_time'], $data['end_time']])
               ->orWhereBetween('end_time', [$data['start_time'], $data['end_time']])
@@ -178,6 +187,18 @@ public function storeBooking(Request $request)
 
     if ($exists) {
         return back()->with('error', 'Khung giờ đã có người đặt');
+    }
+
+    foreach ($request->input('services', []) as $serviceId => $qty) {
+        $qty = (int) $qty;
+        if ($qty <= 0) {
+            continue;
+        }
+
+        $service = Service::find($serviceId);
+        if (!$service || $service->quantity < $qty) {
+            return back()->with('error', 'Dich vu da het hang hoac khong du so luong');
+        }
     }
 
     $booking = DB::transaction(function () use ($data, $user, $request) {
@@ -245,7 +266,7 @@ public function storeBooking(Request $request)
 
             if ($qty > 0) {
 
-                $service = Service::find($serviceId);
+                $service = Service::whereKey($serviceId)->lockForUpdate()->first();
 
                 if ($service && $service->quantity >= $qty) {
 
@@ -256,6 +277,8 @@ public function storeBooking(Request $request)
                     ]);
 
                     $service->decrement('quantity', $qty);
+                } else {
+                    throw new \RuntimeException('Dich vu da het hang hoac khong du so luong');
                 }
             }
         }
@@ -1128,7 +1151,11 @@ public function cart()
         }
 
         $user = $request->user();
-        $this->syncCartItem($user, (int) $serviceId, (int) $data['quantity']);
+        try {
+            $this->syncCartItem($user, (int) $serviceId, (int) $data['quantity']);
+        } catch (\RuntimeException $e) {
+            return redirect()->back()->with('error', $e->getMessage());
+        }
 
         if ($request->has('buy_now')) {
             return $this->checkoutBuyNow($request);
@@ -1217,6 +1244,12 @@ public function removeFromCart(Request $request)
                 ->first();
 
             if ($cartItem) {
+                $cartItem->load('service');
+                if ($cartItem->service && $qty > $cartItem->service->quantity) {
+                    return redirect()->route('user.cart')
+                        ->with('error', 'So luong vuot qua ton kho');
+                }
+
                 $cartItem->quantity = max(1, $qty);
                 $cartItem->save();
             }

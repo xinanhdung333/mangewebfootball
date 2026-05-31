@@ -9,6 +9,68 @@ use Illuminate\Support\Facades\Http;
 
 class ChatController extends Controller
 {
+    private const ATTACHMENT_MAX_KB = 10240;
+
+    private function validateMessageRequest(Request $request): array
+    {
+        return $request->validate([
+            'message' => 'nullable|string|max:2000|required_without:attachment',
+            'attachment' => 'nullable|file|max:' . self::ATTACHMENT_MAX_KB,
+            'client_temp_id' => 'nullable|string|max:80',
+        ]);
+    }
+
+    private function attachmentData(Request $request): array
+    {
+        if (!$request->hasFile('attachment')) {
+            return [];
+        }
+
+        $file = $request->file('attachment');
+        $path = $file->store('chat-attachments', 'public');
+
+        return [
+            'attachment_path' => $path,
+            'attachment_original_name' => $file->getClientOriginalName(),
+            'attachment_mime' => $file->getMimeType(),
+            'attachment_size' => $file->getSize(),
+        ];
+    }
+
+    private function messagePayload(Message $message, ?string $clientTempId = null): array
+    {
+        $message->loadMissing('sender');
+        $sender = $message->sender;
+
+        return [
+            'id' => $message->id,
+            'conversation_id' => $message->conversation_id,
+            'sender_id' => $message->sender_id,
+            'sender_name' => $sender?->name,
+            'sender_avatar' => $sender && $sender->avt ? asset('uploads/avatars/'.$sender->avt) : asset('assets/images/default.png'),
+            'message' => $message->message,
+            'attachment_url' => $message->attachmentUrl(),
+            'attachment_name' => $message->attachment_original_name,
+            'attachment_mime' => $message->attachment_mime,
+            'attachment_size' => $message->attachment_size,
+            'attachment_is_image' => $message->attachmentIsImage(),
+            'created_at' => $message->created_at->format('H:i d/m/Y'),
+            'client_temp_id' => $clientTempId,
+        ];
+    }
+
+    private function broadcastMessage(Conversation $conversation, array $payload): void
+    {
+        try {
+            Http::timeout(1)->post(env('WS_SERVER_URL', 'http://127.0.0.1:6001').'/broadcast', [
+                'conversation_id' => $conversation->id,
+                'message' => $payload,
+            ]);
+        } catch (\Throwable $e) {
+            // ignore websocket broadcast failure
+        }
+    }
+
     public function index()
     {
         $user = auth()->user();
@@ -26,9 +88,7 @@ class ChatController extends Controller
 
     public function send(Request $request)
     {
-        $request->validate([
-            'message' => 'required|string|max:2000',
-        ]);
+        $data = $this->validateMessageRequest($request);
 
         $user = auth()->user();
 
@@ -39,39 +99,15 @@ class ChatController extends Controller
 
         $message = $conversation->messages()->create([
             'sender_id' => $user->id,
-            'message' => $request->message,
+            'message' => $data['message'] ?? '',
             'is_read' => false,
-        ]);
-
-        try {
-            Http::timeout(1)->post(env('WS_SERVER_URL', 'http://127.0.0.1:6001').'/broadcast', [
-                'conversation_id' => $conversation->id,
-                'message' => [
-                    'id' => $message->id,
-                    'conversation_id' => $conversation->id,
-                    'sender_id' => $message->sender_id,
-                    'sender_name' => $user->name,
-                    'sender_avatar' => $user->avt ? asset('uploads/avatars/'.$user->avt) : asset('assets/images/default.png'),
-                    'message' => $message->message,
-                    'created_at' => $message->created_at->format('H:i d/m/Y'),
-                ],
-            ]);
-        } catch (\Throwable $e) {
-            // ignore websocket broadcast failure
-        }
+        ] + $this->attachmentData($request));
 
         $conversation->touch();
 
-        $payload = [
-            'id' => $message->id,
-            'conversation_id' => $conversation->id,
-            'sender_id' => $message->sender_id,
-            'sender_name' => $user->name,
-            'sender_avatar' => $user->avt ? asset('uploads/avatars/'.$user->avt) : asset('assets/images/default.png'),
-            'message' => $message->message,
-            'created_at' => $message->created_at->format('H:i d/m/Y'),
-            'admin_id' => $conversation->admin_id,
-        ];
+        $payload = $this->messagePayload($message, $data['client_temp_id'] ?? null);
+        $payload['admin_id'] = $conversation->admin_id;
+        $this->broadcastMessage($conversation, $payload);
 
         if ($request->ajax()) {
             return response()->json(['status' => 'ok', 'message' => $payload]);
@@ -112,37 +148,16 @@ class ChatController extends Controller
             ], 403);
         }
 
-        $request->validate([
-            'message' => 'required|string|max:2000',
-        ]);
+        $data = $this->validateMessageRequest($request);
 
         $message = $conversation->messages()->create([
             'sender_id' => auth()->id(),
-            'message' => $request->message,
+            'message' => $data['message'] ?? '',
             'is_read' => false,
-        ]);
+        ] + $this->attachmentData($request));
 
-        $payload = [
-            'id' => $message->id,
-            'conversation_id' => $conversation->id,
-            'sender_id' => $message->sender_id,
-            'sender_name' => auth()->user()->name,
-            'sender_avatar' => auth()->user()->avt ? asset('uploads/avatars/'.auth()->user()->avt) : asset('assets/images/default.png'),
-            'message' => $message->message,
-            'created_at' => $message->created_at->format('H:i d/m/Y'),
-        ];
-
-       try {
-    Http::timeout(1)->post(
-        env('WS_SERVER_URL') . '/broadcast',
-        [
-            'conversation_id' => $conversation->id,
-            'message' => $payload,
-        ]
-    );
-} catch (\Throwable $e) {
-            // ignore websocket broadcast failure
-        }
+        $payload = $this->messagePayload($message, $data['client_temp_id'] ?? null);
+        $this->broadcastMessage($conversation, $payload);
 
         $conversation->touch();
 

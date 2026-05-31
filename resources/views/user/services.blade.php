@@ -112,9 +112,18 @@
                 @endif
             </div>
 
-            <button class="btn-add-cart" data-service-id="{{ $service->id }}">
-                +
-            </button>
+            <div style="padding:0 8px 12px; display:flex; align-items:center; justify-content:space-between; gap:10px;">
+                <span style="font-size:12px; color:{{ $service->quantity > 0 ? '#6c757d' : '#dc3545' }};">
+                    {{ $service->quantity > 0 ? 'Còn: ' . $service->quantity : 'Hết hàng' }}
+                </span>
+
+                <button class="btn-add-cart"
+                        data-service-id="{{ $service->id }}"
+                        data-stock="{{ $service->quantity }}"
+                        @if($service->quantity <= 0) disabled @endif>
+                    +
+                </button>
+            </div>
 
         </div>
 
@@ -146,9 +155,6 @@
 }
 
 .btn-add-cart{
-    position:absolute;
-    bottom:10px;
-    right:10px;
     width:36px;
     height:36px;
     border-radius:50%;
@@ -156,6 +162,12 @@
     background:#28a745;
     color:#fff;
     font-weight:bold;
+    flex:0 0 auto;
+}
+
+.btn-add-cart:disabled{
+    background:#adb5bd;
+    cursor:not-allowed;
 }
 </style>
 <a href="{{route('user.fields')}}">
@@ -247,6 +259,12 @@ document.addEventListener('DOMContentLoaded', function () {
         let isLoading = false;
 
         btn.addEventListener('click', function () {
+
+            const stock = parseInt(this.dataset.stock || '0', 10);
+            if (stock <= 0) {
+                alert('Dich vu nay da het hang');
+                return;
+            }
 
             if(isLoading) return;
             isLoading = true;

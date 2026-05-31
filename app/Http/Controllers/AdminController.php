@@ -586,8 +586,8 @@ public function updateService(Request $request)
 
     $validated = $request->validate([
         'name' => 'required|string',
-        'price' => 'required|numeric',
-        'quantity' => 'required|integer',
+        'price' => 'required|numeric|min:0',
+        'quantity' => 'required|integer|min:0',
         'status' => 'required|in:active,inactive',
         'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
     ]);

@@ -67,12 +67,25 @@ class CartController extends Controller
             ]);
 
             $service = Service::findOrFail($request->service_id);
+            if ($service->quantity < 1) {
+                return response()->json([
+                    'success' => false,
+                    'error' => 'Dich vu da het hang',
+                ], 422);
+            }
 
             $item = CartItem::where('cart_id', $cart->id)
                 ->where('service_id', $service->id)
                 ->first();
 
             if ($item) {
+                if ($item->quantity + 1 > $service->quantity) {
+                    return response()->json([
+                        'success' => false,
+                        'error' => 'So luong vuot qua ton kho',
+                    ], 422);
+                }
+
                 $item->quantity += 1;
                 $item->save();
             } else {
@@ -172,7 +185,10 @@ class CartController extends Controller
 
     foreach ($items as $item) {
 
-        $service = Service::findOrFail($item->service_id);
+        $service = Service::whereKey($item->service_id)->lockForUpdate()->firstOrFail();
+        if ($service->quantity < $item->quantity) {
+            throw new \RuntimeException("Dich vu {$service->name} chi con {$service->quantity} san pham");
+        }
 
         $originalPrice = $service->price;
 
@@ -223,6 +239,9 @@ class CartController extends Controller
 
             $user = $request->user();
             $service = Service::findOrFail($request->service_id);
+            if ($service->quantity < $request->quantity) {
+                return back()->with('error', 'So luong vuot qua ton kho');
+            }
 
             $item = new \stdClass();
             $item->service_id = $service->id;
@@ -387,6 +406,15 @@ public function updateItem(Request $request)
 
     if (!$item) {
         return response()->json(['success' => false], 404);
+    }
+
+    $item->load('service');
+    if ($item->service && $request->quantity > $item->service->quantity) {
+        return response()->json([
+            'success' => false,
+            'message' => 'So luong vuot qua ton kho',
+            'max_quantity' => $item->service->quantity,
+        ], 422);
     }
 
     $item->quantity = $request->quantity;

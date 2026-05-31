@@ -16,6 +16,10 @@ return new class extends Migration
             $table->foreignId('conversation_id')->constrained()->cascadeOnDelete();
             $table->foreignId('sender_id')->constrained('users')->cascadeOnDelete();
             $table->text('message');
+            $table->string('attachment_path')->nullable();
+            $table->string('attachment_original_name')->nullable();
+            $table->string('attachment_mime')->nullable();
+            $table->unsignedBigInteger('attachment_size')->nullable();
             $table->boolean('is_read')->default(false);
             $table->timestamps();
         });
