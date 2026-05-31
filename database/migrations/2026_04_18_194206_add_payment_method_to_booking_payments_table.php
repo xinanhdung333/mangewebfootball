@@ -15,7 +15,8 @@ return new class extends Migration
        $table->enum('payment_method', [
     'momo',
     'vnpay',
-    'cash'
+    'cash',
+    'bank_transfer'
 ])->default('cash');
     });
     }

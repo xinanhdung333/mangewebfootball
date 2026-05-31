@@ -331,7 +331,7 @@ Bạn chưa có địa chỉ giao hàng.
 
 
 {{-- MOMO --}}
-<div class="col-md-6">
+<div class="col-md-4">
 
 <label class="w-100">
 
@@ -387,7 +387,7 @@ Thanh toán online nhanh chóng
 
 
 {{-- CASH --}}
-<div class="col-md-6">
+<div class="col-md-4">
 
 <label class="w-100">
 
@@ -435,7 +435,122 @@ Thanh toán trực tiếp tại sân
 
 </div>
 
+{{-- BANK TRANSFER --}}
+<div class="col-md-4">
 
+<label class="w-100">
+
+<input
+type="radio"
+name="payment_method"
+value="bank_transfer"
+class="d-none payment-option"
+@disabled(empty($bankTransfer['account_no'] ?? null))
+>
+
+<div class="card payment-card border-2 h-100 bank">
+
+<div class="card-body">
+
+<div class="d-flex align-items-center gap-3 mb-3">
+
+<span class="fs-2"><i class="bi bi-qr-code-scan"></i></span>
+
+<div>
+
+<h5 class="mb-1">
+Chuy&#7875;n kho&#7843;n MBBank
+</h5>
+
+<div class="text-muted small">
+Qu&#233;t m&#227; VietQR b&#7857;ng app ng&#226;n h&#224;ng
+</div>
+
+</div>
+
+</div>
+
+<div class="small text-muted">
+
+&#10004; T&#7921; &#273;i&#7873;n s&#7889; ti&#7873;n  
+&#10004; C&#243; n&#7897;i dung &#273;&#7889;i so&#225;t  
+&#10004; X&#225;c nh&#7853;n sau khi ki&#7875;m tra
+
+</div>
+
+@if(empty($bankTransfer['account_no'] ?? null))
+<div class="alert alert-warning small mt-3 mb-0 py-2">
+Ch&#432;a c&#7845;u h&#236;nh t&#224;i kho&#7843;n MBBank.
+</div>
+@endif
+
+</div>
+
+</div>
+
+</label>
+
+</div>
+
+
+</div>
+
+<div id="bankTransferDetails" class="card border-0 bg-light mt-4 d-none">
+<div class="card-body">
+<div class="row g-4 align-items-center">
+
+<div class="col-md-4 text-center">
+@if(!empty($bankTransfer['qr_url'] ?? null))
+<img
+src="{{ $bankTransfer['qr_url'] }}"
+alt="MBBank VietQR"
+class="img-fluid rounded shadow-sm bg-white p-2"
+style="max-height:260px"
+>
+@else
+<div class="alert alert-warning mb-0">
+Ch&#432;a c&#243; QR v&#236; thi&#7871;u s&#7889; t&#224;i kho&#7843;n MBBank trong .env
+</div>
+@endif
+</div>
+
+<div class="col-md-8">
+<h5 class="fw-semibold mb-3">Th&#244;ng tin chuy&#7875;n kho&#7843;n</h5>
+
+<div class="row g-3">
+<div class="col-sm-6">
+<div class="small text-muted">Ng&#226;n h&#224;ng</div>
+<div class="fw-semibold">{{ $bankTransfer['bank_name'] ?? 'MBBank' }}</div>
+</div>
+
+<div class="col-sm-6">
+<div class="small text-muted">S&#7889; t&#224;i kho&#7843;n</div>
+<div class="fw-semibold">{{ $bankTransfer['account_no'] ?? 'Chua cau hinh' }}</div>
+</div>
+
+<div class="col-sm-6">
+<div class="small text-muted">Ch&#7911; t&#224;i kho&#7843;n</div>
+<div class="fw-semibold">{{ $bankTransfer['account_name'] ?? 'Chua cau hinh' }}</div>
+</div>
+
+<div class="col-sm-6">
+<div class="small text-muted">S&#7889; ti&#7873;n</div>
+<div class="fw-semibold text-primary">{{ number_format($amount,0,',','.') }}&#273;</div>
+</div>
+
+<div class="col-12">
+<div class="small text-muted">N&#7897;i dung chuy&#7875;n kho&#7843;n</div>
+<div class="fw-bold text-danger">{{ $bankTransfer['transfer_code'] ?? '' }}</div>
+</div>
+</div>
+
+<div class="alert alert-info small mt-3 mb-0">
+Sau khi chuy&#7875;n kho&#7843;n, b&#7845;m "Ti&#7871;p t&#7909;c thanh to&#225;n" &#273;&#7875; h&#7879; th&#7889;ng ghi nh&#7853;n v&#224; ch&#7901; &#273;&#7889;i so&#225;t.
+</div>
+</div>
+
+</div>
+</div>
 </div>
 
 
@@ -485,6 +600,9 @@ background: linear-gradient(90deg, #ecb8d9, #e57dcd);
 .gion{
     background: linear-gradient(90deg, #a1c4fd, #c2e9fb);
 }
+.bank{
+    background: linear-gradient(90deg, #d7f9f1, #bce7ff);
+}
 .payment-card{
 cursor:pointer;
 transition:.2s;
@@ -498,6 +616,10 @@ box-shadow:0 10px 25px rgba(0,0,0,.12);
 .payment-option:checked + .payment-card{
 border-color:#0d6efd;
 box-shadow:0 0 0 0.2rem rgba(13,110,253,.15);
+}
+.payment-option:disabled + .payment-card{
+opacity:.6;
+cursor:not-allowed;
 }
 .back{
 background: white;
@@ -545,6 +667,24 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+
+    const paymentOptions = document.querySelectorAll('.payment-option');
+    const bankTransferDetails = document.getElementById('bankTransferDetails');
+
+    function toggleBankTransferDetails() {
+        const checkedPayment = document.querySelector('.payment-option:checked');
+        if (!bankTransferDetails || !checkedPayment) {
+            return;
+        }
+
+        bankTransferDetails.classList.toggle('d-none', checkedPayment.value !== 'bank_transfer');
+    }
+
+    paymentOptions.forEach(option => {
+        option.addEventListener('change', toggleBankTransferDetails);
+    });
+
+    toggleBankTransferDetails();
 });
 </script>
 

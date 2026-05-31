@@ -35,4 +35,11 @@ return [
         ],
     ],
 
+    'mbbank' => [
+        'bank_bin' => env('MBBANK_BIN', '970422'),
+        'account_no' => env('MBBANK_ACCOUNT_NO'),
+        'account_name' => env('MBBANK_ACCOUNT_NAME'),
+        'qr_template' => env('MBBANK_QR_TEMPLATE', 'compact2'),
+    ],
+
 ];

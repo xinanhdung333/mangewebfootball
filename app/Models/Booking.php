@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\DB;
 
 class Booking extends Model
 {
@@ -58,7 +59,7 @@ public function payment()
     {
         $query = self::where('field_id', $fieldId)
             ->whereDate('booking_date', $date)
-            ->where('status', '!=', 'cancelled')
+            ->whereNotIn('status', ['cancelled', 'expired'])
             ->where(function($q) use ($startTime, $endTime) {
                 $q->where('start_time', '<', $endTime)
                   ->where('end_time', '>', $startTime);
@@ -85,19 +86,47 @@ public function payment()
     /**
      * Auto-update booking status
      */
-    public static function autoUpdateBookingStatus()
+    public static function autoUpdateBookingStatus(): array
     {
         $now = now();
+        $expireBefore = $now->copy()->subMinutes(config('booking.pending_expire_minutes', 15));
+
+        $expiredIds = self::query()
+            ->where('status', 'pending')
+            ->where(function ($query) use ($now, $expireBefore) {
+                $query->where('created_at', '<=', $expireBefore)
+                    ->orWhereRaw("CONCAT(booking_date, ' ', start_time) <= ?", [$now]);
+            })
+            ->whereDoesntHave('payment', function ($query) {
+                $query->where('status', 'success');
+            })
+            ->pluck('id');
+
+        if ($expiredIds->isNotEmpty()) {
+            DB::transaction(function () use ($expiredIds) {
+                self::whereIn('id', $expiredIds)->update(['status' => 'expired']);
+
+                BookingPayment::whereIn('booking_id', $expiredIds)
+                    ->where('status', 'pending')
+                    ->update(['status' => 'failed']);
+            });
+        }
         
         // confirmed -> in_progress
-        self::where('status', 'confirmed')
+        $inProgress = self::where('status', 'confirmed')
             ->whereRaw("CONCAT(booking_date, ' ', start_time) <= ?", [$now])
             ->whereRaw("CONCAT(booking_date, ' ', end_time) >= ?", [$now])
             ->update(['status' => 'in_progress']);
 
         // in_progress -> completed
-        self::where('status', 'in_progress')
+        $completed = self::where('status', 'in_progress')
             ->whereRaw("CONCAT(booking_date, ' ', end_time) < ?", [$now])
             ->update(['status' => 'completed']);
+
+        return [
+            'expired' => $expiredIds->count(),
+            'in_progress' => $inProgress,
+            'completed' => $completed,
+        ];
     }
 }

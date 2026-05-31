@@ -344,7 +344,8 @@ $service = DB::table('order_items as oi')
         'description' => 'Don hang #' . $order->id,
         'payment' => $payment,
         'services' => $service,
-        'addresses' => $addresses
+        'addresses' => $addresses,
+        'bankTransfer' => $this->mbBankQrData('order', $order->id, (int) $order->total_amount),
     ]);
 }
 private function toMinutes($time)
@@ -352,12 +353,45 @@ private function toMinutes($time)
     [$h, $m] = explode(':', $time);
     return $h * 60 + $m;
 }
+
+private function mbBankQrData(string $type, int $id, int $amount): array
+{
+    $bankBin = config('services.mbbank.bank_bin', '970422');
+    $accountNo = config('services.mbbank.account_no');
+    $accountName = config('services.mbbank.account_name');
+    $template = config('services.mbbank.qr_template', 'compact2');
+    $transferCode = strtoupper($type) . $id;
+    $qrUrl = null;
+
+    if ($accountNo) {
+        $qrUrl = 'https://img.vietqr.io/image/'
+            . rawurlencode($bankBin) . '-'
+            . rawurlencode($accountNo) . '-'
+            . rawurlencode($template) . '.png?amount='
+            . (int) $amount
+            . '&addInfo=' . rawurlencode($transferCode);
+
+        if ($accountName) {
+            $qrUrl .= '&accountName=' . rawurlencode($accountName);
+        }
+    }
+
+    return [
+        'bank_name' => 'MBBank',
+        'bank_bin' => $bankBin,
+        'account_no' => $accountNo,
+        'account_name' => $accountName,
+        'transfer_code' => $transferCode,
+        'qr_url' => $qrUrl,
+    ];
+}
+
 public function handleOrderPaymentMethod(Request $request, Order $order)
 {
     abort_unless($order->user_id === auth()->id(), 403);
 
     $data = $request->validate([
-        'payment_method' => 'required|in:momo,cash',
+        'payment_method' => 'required|in:momo,cash,bank_transfer',
         'selected_address_id' => 'nullable|exists:user_addresses,id',
     ]);
 
@@ -381,6 +415,22 @@ public function handleOrderPaymentMethod(Request $request, Order $order)
         }
 
         return redirect()->route('user.momo.pay', ['order_id' => $order->id]);
+    }
+
+    if ($data['payment_method'] === 'bank_transfer') {
+        $payment->update([
+            'status' => 'success',
+            'paid_at' => null,
+            'payment_method' => 'bank_transfer',
+        ]);
+
+        $order->update([
+            'status' => 'confirmed',
+            'payment_method' => 'bank_transfer',
+        ]);
+
+        return redirect()->route('user.myServices')
+            ->with('success', 'Da ghi nhan yeu cau chuyen khoan MBBank. Don hang se duoc xac nhan sau khi doi soat.');
     }
 
     DB::transaction(function () use ($order, $payment) {
@@ -440,7 +490,8 @@ public function showBookingPaymentMethod(Booking $booking)
         'description' => 'Booking #' . $booking->id,
         'payment' => $payment,
         'services' => $services,
-        'addresses' => $addresses
+        'addresses' => $addresses,
+        'bankTransfer' => $this->mbBankQrData('booking', $booking->id, (int) $booking->total_price),
     ]);
 }
 public function handleBookingPaymentMethod(Request $request, Booking $booking)
@@ -448,7 +499,7 @@ public function handleBookingPaymentMethod(Request $request, Booking $booking)
     abort_unless($booking->user_id === auth()->id(), 403);
 
     $data = $request->validate([
-        'payment_method' => 'required|in:momo,cash',
+        'payment_method' => 'required|in:momo,cash,bank_transfer',
         'selected_address_id' => 'nullable|exists:user_addresses,id',
     ]);
 
@@ -479,6 +530,21 @@ public function handleBookingPaymentMethod(Request $request, Booking $booking)
     }
 
     // 👉 CASH
+    if ($data['payment_method'] === 'bank_transfer') {
+        $payment->update([
+            'status' => 'success',
+            'paid_at' => null,
+            'payment_method' => 'bank_transfer',
+        ]);
+
+        $booking->update([
+            'status' => 'confirmed',
+        ]);
+
+        return redirect()->route('user.myBookings')
+            ->with('success', 'Da ghi nhan yeu cau chuyen khoan MBBank. Booking se duoc xac nhan sau khi doi soat.');
+    }
+
     $payment->update([
         'status' => 'success',
         'paid_at' => now(),
