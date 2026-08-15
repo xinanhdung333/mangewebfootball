@@ -553,7 +553,7 @@ public function storeService(Request $request)
         'price' => 'required|numeric|min:0|max:9999999999999',
         'quantity' => 'required|integer|min:0',
         'status' => 'required|in:active,inactive',
-        'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+        'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,avif|max:4096'
     ]);
 
     try {
@@ -593,7 +593,7 @@ public function updateService(Request $request)
         'price' => 'required|numeric|min:0',
         'quantity' => 'required|integer|min:0',
         'status' => 'required|in:active,inactive',
-        'image' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048'
+        'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,avif|max:4096'
     ]);
 
     try {

@@ -47,7 +47,7 @@
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
       <a class="navbar-brand" href="{{ route('home') }}">
-    <i class="bi bi-dribbble"></i> Football Booking
+    <i class="bi bi-dribbble"></i> SportsHub
 </a>
 
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">

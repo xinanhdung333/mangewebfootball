@@ -338,7 +338,7 @@ class BossController extends Controller
             'description' => 'required|string',
             'price_per_hour' => 'required|numeric|min:0',
             'status' => 'required|in:active,inactive',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,avif|max:2048',
+            'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,avif|max:4096',
         ]);
 
         $imageName = null;
@@ -369,7 +369,7 @@ class BossController extends Controller
             'description' => 'required|string',
             'price_per_hour' => 'required|numeric|min:0',
             'status' => 'required|in:active,inactive',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,avif|max:2048',
+            'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,avif|max:4096',
         ]);
 
         $field = Field::findOrFail($validated['id']);
@@ -519,7 +519,7 @@ class BossController extends Controller
             'price' => 'required|numeric|min:0',
             'quantity' => 'required|integer|min:0',
             'status' => 'required|in:active,inactive',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,avif|max:2048',
+            'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,avif|max:4096',
         ]);
 
         $imageName = null;
@@ -550,7 +550,7 @@ class BossController extends Controller
             'price' => 'required|numeric|min:0',
             'quantity' => 'required|integer|min:0',
             'status' => 'required|in:active,inactive',
-            'image' => 'nullable|image|mimes:jpeg,png,jpg,gif,avif|max:2048',
+            'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,avif|max:4096',
         ]);
 
         $service = Service::findOrFail($validated['id']);

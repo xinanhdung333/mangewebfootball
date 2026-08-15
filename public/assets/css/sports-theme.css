@@ -1,0 +1,36 @@
+:root { --sport-orange:#ff5b16; --sport-orange-dark:#d94108; --sport-ink:#12161c; --sport-surface:#f5f7fa; }
+body { background:radial-gradient(circle at top right,#fff2e9 0,transparent 28%),linear-gradient(180deg,#f6f8fb 0%,#eef1f5 100%)!important; color:#20242a; }
+.navbar.bg-dark { background:linear-gradient(100deg,#101419,#1e252e)!important; box-shadow:0 4px 18px rgba(0,0,0,.16); }
+.navbar-brand { letter-spacing:.4px; font-weight:800; }
+.navbar-brand i { color:var(--sport-orange); }
+.navbar .nav-link { border-radius:8px; font-weight:600; color:#e8ebef!important; }
+.navbar .nav-link:hover,.navbar .nav-link:focus { color:#fff!important; background:rgba(255,91,22,.18); }
+.navbar .dropdown-menu { border-radius:12px; padding:.45rem; min-width:190px; }
+.navbar .dropdown-item { border-radius:8px; padding:.6rem .75rem; font-weight:600; color:#303740; }
+.navbar .dropdown-item:hover,.navbar .dropdown-item:focus { color:var(--sport-orange-dark); background:#fff1e9; }
+.btn-primary { --bs-btn-bg:var(--sport-orange); --bs-btn-border-color:var(--sport-orange); --bs-btn-hover-bg:var(--sport-orange-dark); --bs-btn-hover-border-color:var(--sport-orange-dark); }
+.btn-outline-primary { --bs-btn-color:var(--sport-orange); --bs-btn-border-color:var(--sport-orange); --bs-btn-hover-bg:var(--sport-orange); --bs-btn-hover-border-color:var(--sport-orange); }
+.card { border:0; border-radius:16px; box-shadow:0 12px 28px rgba(18,22,28,.09); }
+.table thead th { background:#1c232c; color:#fff; border:0; }
+.site-footer { background:linear-gradient(120deg,#101419,#1c2631)!important; border-top:3px solid var(--sport-orange)!important; }
+
+.auth-page { min-height:100vh; display:grid; grid-template-columns:minmax(0,1.08fr) minmax(440px,.92fr); background:#fff; }
+.auth-visual { min-height:100vh; position:relative; background:linear-gradient(90deg,rgba(5,8,12,.64),rgba(5,8,12,.12)),url('../images/BANNERr.jpg') center/cover no-repeat; color:#fff; display:flex; align-items:flex-end; padding:clamp(2rem,6vw,5.5rem); }
+.auth-visual::after { content:''; position:absolute; inset:0; background:linear-gradient(0deg,rgba(0,0,0,.62),transparent 55%); }
+.auth-visual-copy { position:relative; z-index:1; max-width:480px; }
+.auth-kicker { color:#ff7a45; font-weight:800; text-transform:uppercase; letter-spacing:2px; font-size:.78rem; }
+.auth-visual h1 { font-weight:800; font-size:clamp(2rem,4vw,4.2rem); line-height:1.02; margin:.75rem 0; }
+.auth-panel { display:flex; align-items:center; justify-content:center; padding:48px 32px; background:#fff; }
+.auth-card { width:min(100%,470px); }
+.auth-brand { color:var(--sport-ink); font-weight:900; font-size:1.55rem; letter-spacing:.5px; text-decoration:none; display:inline-flex; align-items:center; gap:.5rem; }
+.auth-brand i { color:var(--sport-orange); font-size:1.7rem; }
+.auth-title { font-size:2rem; font-weight:800; margin:2.25rem 0 .35rem; color:var(--sport-ink); }
+.auth-subtitle { color:#6d737b; margin-bottom:2rem; }
+.auth-card .form-label { font-weight:700; color:#333941; margin-bottom:.45rem; }
+.auth-card .form-control { min-height:50px; border:1px solid #d9dde2; border-radius:10px; padding:.7rem .9rem; }
+.auth-card .form-control:focus { border-color:var(--sport-orange); box-shadow:0 0 0 .2rem rgba(255,91,22,.14); }
+.auth-submit { min-height:52px; border-radius:10px; font-size:1.05rem; font-weight:800; background:linear-gradient(100deg,#ff7a19,#f34a10); border:0; box-shadow:0 8px 18px rgba(243,74,16,.24); }
+.auth-link { color:var(--sport-orange-dark); font-weight:700; text-decoration:none; }.auth-link:hover { color:var(--sport-orange); }
+.auth-separator { display:flex; align-items:center; gap:12px; color:#757b83; margin:1.6rem 0; }.auth-separator::before,.auth-separator::after { content:''; height:1px; flex:1; background:#e4e6e9; }
+.auth-note { font-size:.92rem; color:#717780; }
+@media (max-width:900px) { .auth-page { grid-template-columns:1fr; }.auth-visual { display:none; }.auth-panel { min-height:100vh; background:linear-gradient(rgba(10,14,18,.52),rgba(10,14,18,.52)),url('../images/BANNERr.jpg') center/cover; }.auth-card { padding:32px 26px; background:#fff; border-radius:18px; box-shadow:0 18px 50px rgba(0,0,0,.28); } .auth-title { margin-top:1.6rem; } }

@@ -37,8 +37,9 @@
 
 <div class="row">
     <div class="col-md-12">
+        @include('partials.admin-table-search', ['tableId' => 'boss-users-table', 'placeholder' => 'Tìm theo tên, email, SĐT...'])
         <div class="table-responsive">
-            <table class="table table-striped table-hover">
+            <table id="boss-users-table" class="table table-striped table-hover">
                 <thead>
                     <tr>
                         <th>ID</th>

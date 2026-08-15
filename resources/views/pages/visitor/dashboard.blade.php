@@ -160,29 +160,29 @@ footer {
 
     <section class="hero-modern">
         <div class="hero-content-modern">
-            <h1 class="hero-title">Chào mừng — Đặt sân nhanh, chơi đã</h1>
-            <p class="hero-subtitle">Nhanh chóng chọn sân, giờ, và dịch vụ. Trải nghiệm đặt sân mượt mà trên mọi thiết bị.</p>
+            <h1 class="hero-title">Chào mừng — Mua hàng nhanh, chơi đã</h1>
+            <p class="hero-subtitle">Nhanh chóng chọn sản phẩm, giờ, và Sản phẩm. Trải nghiệm Mua hàng mượt mà trên mọi thiết bị.</p>
             <div class="hero-ctas">
                 <a href="{{ route('visitor.fields') }}" class="hero-btn primary"><i class="bi bi-geo-alt-fill"></i> Tìm sân gần bạn</a>
-                <a href="{{ route('myServices') }}" class="hero-btn ghost"><i class="bi bi-bag"></i> Dịch vụ & đồ ăn</a>
+                <a href="{{ route('myServices') }}" class="hero-btn ghost"><i class="bi bi-bag"></i> Sản phẩm & đồ ăn</a>
             </div>
         </div>
     </section>
 
         <div class="row stats-row">
-            <div class="stat-card stat-1"><div class="stat-icon"><i class="bi bi-calendar-check"></i></div><h5>Tổng đặt sân</h5><p class="value">{{ $stats_total }}</p></div>
-            <div class="stat-card stat-2"><div class="stat-icon"><i class="bi bi-patch-check"></i></div><h5>Sân đã xác nhận</h5><p class="value">{{ $stats_confirmed }}</p></div>
+            <div class="stat-card stat-1"><div class="stat-icon"><i class="bi bi-calendar-check"></i></div><h5>Tổng Mua hàng</h5><p class="value">{{ $stats_total }}</p></div>
+            <div class="stat-card stat-2"><div class="stat-icon"><i class="bi bi-patch-check"></i></div><h5>sản phẩm đã xác nhận</h5><p class="value">{{ $stats_confirmed }}</p></div>
             <div class="stat-card stat-3"><div class="stat-icon"><i class="bi bi-cash-stack"></i></div><h5>Tổng chi phí</h5><p class="value">{{ formatCurrency($stats_revenue) }}</p></div>
         </div>
 
         <div class="row g-4 mt-2">
             <div class="col-lg-8">
                 <div class="section-block">
-                    <h3><i class="bi bi-clock-history"></i> Đặt sân gần đây</h3>
+                    <h3><i class="bi bi-clock-history"></i> Mua hàng gần đây</h3>
                     <div class="table-wrap">
                         @if($bookings && count($bookings) > 0)
                         <table class="table table-hover table-custom align-middle mb-0">
-                            <thead><tr><th>Sân</th><th>Ngày</th><th>Giờ</th><th>Giá</th><th>Trạng thái</th><th></th></tr></thead>
+                            <thead><tr><th>sản phẩm</th><th>Ngày</th><th>Giờ</th><th>Giá</th><th>Trạng thái</th><th></th></tr></thead>
                             <tbody>
                             @foreach(array_slice($bookings->toArray(), 0, 6) as $b)
                                 <tr>
@@ -197,7 +197,7 @@ footer {
                             </tbody>
                         </table>
                         @else
-                        <div class="p-4">Chưa có đặt sân nào. <a href="{{ route('visitor.fields') }}">Đặt ngay</a></div>
+                        <div class="p-4">Chưa có Mua hàng nào. <a href="{{ route('visitor.fields') }}">Đặt ngay</a></div>
                         @endif
                     </div>
                     <a href="{{ route('user.bookingcreate') }}" class="btn btn-outline-primary mt-2">Xem tất cả</a>
@@ -214,7 +214,7 @@ footer {
                 <div class="section-block mt-4">
     <h3><i class="bi bi-people"></i> Đánh giá gần đây</h3>
     <div class="intro-box">
-        <p>Sân đẹp, nhân viên thân thiện, dịch vụ tốt. Sẽ quay lại!</p>
+        <p>sản phẩm đẹp, nhân viên thân thiện, Sản phẩm tốt. Sẽ quay lại!</p>
         <a href="{{ route('user.feedback') }}" 
            class="btn btn-sm btn-info">
            Xem tất cả đánh giá
@@ -229,7 +229,7 @@ footer {
                 <div class="section-block">
                     <h3><i class="bi bi-info-circle"></i> Giới thiệu</h3>
                     <div class="intro-box">
-                        <p>Hệ thống sân bóng hiện đại, đạt chuẩn thi đấu – chiếu sáng LED, cỏ nhân tạo cao cấp, khu dịch vụ tiện nghi. Trải nghiệm tốt nhất cho người chơi bóng phong trào.</p>
+                        <p>Hệ thống sản phẩm bóng hiện đại, đạt chuẩn thi đấu – chiếu sáng LED, cỏ nhân tạo cao cấp, khu Sản phẩm tiện nghi. Trải nghiệm tốt nhất cho người chơi bóng phong trào.</p>
                         <a href="{{ route('about') }}" class="btn btn-sm btn-primary">Tìm hiểu thêm</a>
                     </div>
                 </div>
@@ -237,7 +237,7 @@ footer {
                 <div class="section-block mt-4">
                     <h3><i class="bi bi-info-circle"></i> Về chúng tôi</h3>
                     <div class="intro-box">
-                        <p>Hệ thống sân bóng hiện đại, đạt chuẩn thi đấu – chiếu sáng LED, cỏ nhân tạo cao cấp, khu dịch vụ tiện nghi. Trải nghiệm tốt nhất cho người chơi bóng phong trào.</p>
+                        <p>Hệ thống sản phẩm bóng hiện đại, đạt chuẩn thi đấu – chiếu sáng LED, cỏ nhân tạo cao cấp, khu Sản phẩm tiện nghi. Trải nghiệm tốt nhất cho người chơi bóng phong trào.</p>
                         <a href="{{ route('about') }}" class="btn btn-sm btn-primary">Tìm hiểu thêm</a>
                     </div>
                 </div>

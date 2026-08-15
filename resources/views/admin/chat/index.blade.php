@@ -12,7 +12,8 @@
         <div class="col-12">
             <div class="card">
                 <div class="card-body table-responsive">
-                    <table class="table table-hover">
+                    @include('partials.admin-table-search', ['tableId' => 'admin-conversations-table', 'placeholder' => 'Tìm người dùng hoặc tin nhắn...'])
+                    <table id="admin-conversations-table" class="table table-hover">
                         <thead>
                             <tr>
                                 <th>#</th>

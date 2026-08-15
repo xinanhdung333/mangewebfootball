@@ -1,71 +1,12 @@
-@extends('layouts.applogin')
-
+@extends('layouts.auth')
 @section('content')
-<div class="container">
-    <div class="row justify-content-center align-items-center" style="min-height:80vh;">
-        <div class="col-md-5">
-            <div class="card shadow-lg border-0 rounded-4">
-                <div class="card-body p-5">
-                    <h2 class="card-title text-center mb-4 fw-bold text-primary">
-                        <i class="bi bi-box-arrow-in-right me-2"></i> Đăng nhập
-                    </h2>
-
-                    @if($errors->any())
-                        <div class="alert alert-danger">{{ $errors->first() }}</div>
-                        <div class="alert alert-danger">{{ $errors->first() }}</div>
-                    @endif
-                    @if(session('success'))
-                        <div class="alert alert-success">{{ session('success') }}</div>
-                    @endif
-
-                    <form method="POST" action="{{ route('login.post') }}">
-                        @csrf
-                        <div class="mb-3">
-                            <label class="form-label fw-semibold">Email</label>
-                            <input type="email" class="form-control form-control-lg" name="email" value="{{ old('email') }}" placeholder="Nhập email của bạn" required>
-                        </div>
-
-                        <div class="mb-3 position-relative">
-                            <label class="form-label fw-semibold">Mật khẩu</label>
-                            <input type="password" class="form-control form-control-lg" id="password" name="password" placeholder="Nhập mật khẩu" required>
-                            <span 
-                                class="position-absolute top-50 end-0 translate-middle-y me-3"
-                                onclick="togglePassword()" 
-                                style="cursor: pointer;">
-                                <i id="eyeIcon" class="bi bi-eye-slash fs-5 text-secondary"></i>
-                            </span>
-                        </div>
-
-                        <button type="submit" class="btn btn-primary btn-lg w-100 fw-semibold">Đăng nhập</button>
-                    </form>
-                    <a style="float:right" href="{{ route('password.request') }}">Quên mật khẩu?</a>
-
-                    <hr class="my-4">
-
-                    <p class="text-center mb-0">
-                        Chưa có tài khoản? <a href="{{ route('register') }}" class="text-primary fw-semibold">Đăng ký ngay</a>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-@push('scripts')
-<script>
-function togglePassword() {
-    const password = document.getElementById("password");
-    const icon = document.getElementById("eyeIcon");
-
-    if (password.type === "password") {
-        password.type = "text";
-        icon.classList.replace("bi-eye-slash", "bi-eye");
-    } else {
-        password.type = "password";
-        icon.classList.replace("bi-eye", "bi-eye-slash");
-    }
-}
-</script>
-@endpush
-
+<a class="auth-brand" href="{{ route('home') }}"><i class="bi bi-lightning-charge-fill"></i> SPORTSHUB</a>
+<h1 class="auth-title">Chào mừng trở lại</h1><p class="auth-subtitle">Đăng nhập để tiếp tục trải nghiệm thể thao cùng SportsHub.</p>
+@if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif @if($errors->any())<div class="alert alert-danger">{{ $errors->first() }}</div>@endif
+<form method="POST" action="{{ route('login.post') }}">@csrf
+<div class="mb-3"><label class="form-label" for="email">Email</label><div class="input-group"><span class="input-group-text bg-white border-end-0"><i class="bi bi-envelope"></i></span><input id="email" class="form-control border-start-0" name="email" type="email" value="{{ old('email') }}" placeholder="you@example.com" required autofocus></div></div>
+<div class="mb-3"><label class="form-label" for="password">Mật khẩu</label><div class="input-group"><span class="input-group-text bg-white border-end-0"><i class="bi bi-lock"></i></span><input id="password" class="form-control border-start-0 border-end-0" name="password" type="password" placeholder="Nhập mật khẩu" required><button class="btn btn-outline-secondary border-start-0" type="button" id="togglePassword"><i class="bi bi-eye"></i></button></div></div>
+<div class="d-flex justify-content-between align-items-center mb-4"><div class="form-check"><input class="form-check-input" type="checkbox" name="remember" id="remember"><label class="form-check-label auth-note" for="remember">Ghi nhớ đăng nhập</label></div><a class="auth-link small" href="{{ route('password.request') }}">Quên mật khẩu?</a></div><button class="btn btn-primary auth-submit w-100">Đăng nhập</button></form>
+<p class="text-center auth-note mt-4 mb-0">Chưa có tài khoản? <a class="auth-link" href="{{ route('register') }}">Đăng ký ngay</a></p>
+@push('scripts')<script>document.getElementById('togglePassword').addEventListener('click',function(){const p=document.getElementById('password'),i=this.querySelector('i'),show=p.type==='password';p.type=show?'text':'password';i.className=show?'bi bi-eye-slash':'bi bi-eye';});</script>@endpush
 @endsection

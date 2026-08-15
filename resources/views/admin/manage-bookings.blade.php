@@ -45,8 +45,9 @@
 
 <div class="row">
     <div class="col-md-12">
+        @include('partials.admin-table-search', ['tableId' => 'admin-bookings-table', 'placeholder' => 'Tìm khách hàng, sân, ngày đặt...'])
         <div class="table-responsive">
-            <table class="table table-striped table-hover">
+            <table id="admin-bookings-table" class="table table-striped table-hover">
                 <thead>
                     <tr>
                         <th>ID</th>

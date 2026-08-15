@@ -12,8 +12,9 @@
 @include('partials.category-alerts')
 
 <div class="card shadow-sm border-0">
+    @include('partials.admin-table-search', ['tableId' => 'boss-categories-table', 'placeholder' => 'Tìm theo tên danh mục...'])
     <div class="table-responsive">
-        <table class="table table-hover align-middle mb-0">
+        <table id="boss-categories-table" class="table table-hover align-middle mb-0">
             <thead class="table-light"><tr><th class="ps-3">#</th><th>Tên danh mục</th><th>Số sản phẩm</th><th class="text-end pe-3">Thao tác</th></tr></thead>
             <tbody>
             @forelse($categories as $category)

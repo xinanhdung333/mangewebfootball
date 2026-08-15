@@ -15,11 +15,12 @@
 <div class="tab-content mt-3">
     <!-- ================= TAB DỊCH VỤ ================= -->
     <div class="tab-pane fade show active" id="serviceTab">
+        @include('partials.admin-table-search', ['tableId' => 'admin-service-feedback-table', 'placeholder' => 'Tìm feedback sản phẩm...'])
         <div class="table-responsive">
             @if($serviceFeedbacks->isEmpty())
                 <div class="alert alert-info mt-3">Không có feedback dịch vụ.</div>
             @else
-                <table class="table table-striped">
+                <table id="admin-service-feedback-table" class="table table-striped">
                     <thead>
                         <tr>
                             <th>#ID</th>
@@ -62,11 +63,12 @@
 
     <!-- ================= TAB BOOKING ================= -->
     <div class="tab-pane fade" id="bookingTab">
+        @include('partials.admin-table-search', ['tableId' => 'admin-booking-feedback-table', 'placeholder' => 'Tìm feedback đặt sân...'])
         <div class="table-responsive">
             @if($bookingFeedbacks->isEmpty())
                 <div class="alert alert-info mt-3">Không có feedback booking sân.</div>
             @else
-                <table class="table table-striped">
+                <table id="admin-booking-feedback-table" class="table table-striped">
                     <thead>
                         <tr>
                             <th>#ID</th>

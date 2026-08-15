@@ -69,8 +69,9 @@
 
     <div class="card-body">
         @if($orders->count() > 0)
+            @include('partials.admin-table-search', ['tableId' => 'boss-orders-table', 'placeholder' => 'Tìm khách hàng, sản phẩm, đơn hàng...'])
             <div class="table-responsive">
-                <table class="table table-striped align-middle">
+                <table id="boss-orders-table" class="table table-striped align-middle">
                     <thead>
                         <tr>
                             <th style="width: 80px;">Mã ĐH</th>

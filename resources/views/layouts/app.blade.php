@@ -14,6 +14,7 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/sports-theme.css') }}">
 
     <style>
     
@@ -281,12 +282,17 @@
                                                 <li class="nav-item"><a class="nav-link" href="{{ route('user.services') }}"><i class="bi bi-bag"></i> Sản phẩm</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('user.myServices') }}"><i class="bi bi-bag-check"></i> Sản phẩm đã mua</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('cart.index') }}"><i class="bi bi-cart-fill"></i> Giỏ hàng</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('user.chat.index') }}"><i class="bi bi-chat-left-text"></i> Chat Admin</a></li>
-
-                        <li class="nav-item"><a class="nav-link" href="{{ route('user.fields') }}"><i class="bi bi-grid"></i> Sân</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('user.myBookings') }}"><i class="bi bi-calendar"></i> Sân đã đặt</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('user.feedback') }}"><i class="bi bi-chat-dots"></i> Feedback</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('about') }}"><i class="bi bi-chat-dots"></i> About</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('user.chat.index') }}"><i class="bi bi-chat-left-text"></i> Hỗ trợ</a></li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-grid-3x3-gap"></i> Dịch vụ khác</a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                <li><a class="dropdown-item" href="{{ route('user.fields') }}"><i class="bi bi-trophy me-2"></i>Đặt sân</a></li>
+                                <li><a class="dropdown-item" href="{{ route('user.myBookings') }}"><i class="bi bi-calendar-check me-2"></i>Sân đã đặt</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ route('user.feedback') }}"><i class="bi bi-chat-dots me-2"></i>Đánh giá</a></li>
+                                <li><a class="dropdown-item" href="{{ route('about') }}"><i class="bi bi-info-circle me-2"></i>Giới thiệu</a></li>
+                            </ul>
+                        </li>
                         
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
@@ -301,10 +307,16 @@
                     @endif
 
                     @if(auth()->user()->role === 'admin')
-                        <li class="nav-item"><a class="nav-link" href="{{ route('admin.manage.fields') }}"><i class="bi bi-gear"></i> Quản lý sân</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('admin.manage.bookings') }}"><i class="bi bi-clipboard-check"></i> Quản lý đặt sân</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('admin.manage.services') }}"><i class="bi bi-grid"></i> Quản lý Sản phẩm</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('admin.manage.categories') }}"><i class="bi bi-tags"></i> Quản lý danh mục</a></li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-boxes"></i> Quản lý dịch vụ</a>
+                            <ul class="dropdown-menu shadow border-0">
+                                <li><a class="dropdown-item" href="{{ route('admin.manage.services') }}"><i class="bi bi-bag me-2"></i>Sản phẩm</a></li>
+                                <li><a class="dropdown-item" href="{{ route('admin.manage.categories') }}"><i class="bi bi-tags me-2"></i>Danh mục</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ route('admin.manage.fields') }}"><i class="bi bi-trophy me-2"></i>Sân bóng</a></li>
+                                <li><a class="dropdown-item" href="{{ route('admin.manage.bookings') }}"><i class="bi bi-calendar-check me-2"></i>Đặt sân</a></li>
+                            </ul>
+                        </li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('admin.manage.orders') }}"><i class="bi bi-bag-check"></i> Chi tiết mua hàng</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('admin.manage.feedback') }}"><i class="bi bi-chat-dots"></i> Quản lý Feedback</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('admin.chat.index') }}"><i class="bi bi-chat-left-text"></i> Chat Admin</a></li>
@@ -328,10 +340,16 @@
                     @endif
 
                     @if(auth()->user()->role === 'boss')
-                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.manage.fields') }}"><i class="bi bi-gear"></i> Quản lý sân</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.manage.bookings') }}"><i class="bi bi-clipboard-check"></i> Quản lý đặt sân</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.manage.services') }}"><i class="bi bi-grid"></i> Quản lý Sản phẩm</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.manage.categories') }}"><i class="bi bi-tags"></i> Quản lý danh mục</a></li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-boxes"></i> Quản lý dịch vụ</a>
+                            <ul class="dropdown-menu shadow border-0">
+                                <li><a class="dropdown-item" href="{{ route('boss.manage.services') }}"><i class="bi bi-bag me-2"></i>Sản phẩm</a></li>
+                                <li><a class="dropdown-item" href="{{ route('boss.manage.categories') }}"><i class="bi bi-tags me-2"></i>Danh mục</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="{{ route('boss.manage.fields') }}"><i class="bi bi-trophy me-2"></i>Sân bóng</a></li>
+                                <li><a class="dropdown-item" href="{{ route('boss.manage.bookings') }}"><i class="bi bi-calendar-check me-2"></i>Đặt sân</a></li>
+                            </ul>
+                        </li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('boss.user.service.history') }}"><i class="bi bi-bag-check"></i> Chi tiết mua hàng</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('boss.manage.feedback') }}"><i class="bi bi-chat-dots"></i> Quản lý Feedback</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('boss.invoices') }}"><i class="bi bi-file-earmark-pdf"></i> Quản lý hóa đơn</a></li>
@@ -354,9 +372,14 @@
                <li class="nav-item"><a class="nav-link" href="{{ route('visitor.dashboard') }}"><i class="bi bi-house"></i> Trang chủ</a></li>
                                        <li class="nav-item"><a class="nav-link" href="{{ route('myServices') }}"><i class="bi bi-bag"></i> Sản phẩm</a></li>
 
-                        <li class="nav-item"><a class="nav-link" href="{{ route('visitor.fields') }}"><i class="bi bi-grid"></i> Sân</a></li>
-                         <li class="nav-item"><a class="nav-link" href="{{ route('visitor.feedback') }}"><i class="bi bi-chat-dots"></i> Feedback</a></li>
-                                                  <li class="nav-item"><a class="nav-link" href="{{ route('about') }}"><i class="bi bi-chat-dots"></i>About</a></li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-grid-3x3-gap"></i> Dịch vụ khác</a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                <li><a class="dropdown-item" href="{{ route('visitor.fields') }}"><i class="bi bi-trophy me-2"></i>Đặt sân</a></li>
+                                <li><a class="dropdown-item" href="{{ route('visitor.feedback') }}"><i class="bi bi-chat-dots me-2"></i>Đánh giá</a></li>
+                                <li><a class="dropdown-item" href="{{ route('about') }}"><i class="bi bi-info-circle me-2"></i>Giới thiệu</a></li>
+                            </ul>
+                        </li>
 
                     <li class="nav-item"><a class="nav-link" href="{{ route('login') }}"><i class="bi bi-box-arrow-in-right"></i> Đăng nhập</a></li>
                     <li class="nav-item"><a class="nav-link" href="{{ route('register') }}"><i class="bi bi-person-plus"></i> Đăng ký</a></li>

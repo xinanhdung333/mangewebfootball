@@ -344,17 +344,10 @@
         console.warn('⚠️ WebSocket connection closed');
     });
 
-    // Khi page load lại, tự vào phần chat và cuộn xuống tin nhắn cuối cùng
+    // Messenger-style: chỉ cuộn bên trong khung tin nhắn, không thay đổi vị trí trang.
     setTimeout(() => {
         if (userChatBody) {
             userChatBody.scrollTop = userChatBody.scrollHeight;
-        }
-        if (messageInput) {
-            messageInput.focus();
-        }
-        const chatCard = document.querySelector('#user-chat-body');
-        if (chatCard) {
-            window.scrollTo({ top: chatCard.getBoundingClientRect().top + window.scrollY - 20, behavior: 'smooth' });
         }
     }, 100);
 

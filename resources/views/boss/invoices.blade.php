@@ -23,8 +23,9 @@
             </div>
             <div class="card-body">
                 @if ($orders && $orders->count() > 0)
+                @include('partials.admin-table-search', ['tableId' => 'boss-invoices-table', 'placeholder' => 'Tìm mã hóa đơn, khách hàng...'])
                     <div class="table-responsive">
-                        <table class="table table-striped table-hover">
+                        <table id="boss-invoices-table" class="table table-striped table-hover">
                             <thead>
                                 <tr>
                                     <th>ID Hóa Đơn</th>

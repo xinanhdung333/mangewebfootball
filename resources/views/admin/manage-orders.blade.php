@@ -83,8 +83,9 @@ $statusMap = [
 
     <div class="card-body">
         @if($orders->count())
+        @include('partials.admin-table-search', ['tableId' => 'admin-orders-table', 'placeholder' => 'Tìm khách hàng, sản phẩm, đơn hàng...'])
         <div class="table-responsive">
-            <table class="table table-striped align-middle">
+            <table id="admin-orders-table" class="table table-striped align-middle">
 
                 <thead>
                     <tr>

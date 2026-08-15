@@ -36,9 +36,11 @@ Xuất báo cáo
 
 @if ($invoices->count() > 0)
 
+@include('partials.admin-table-search', ['tableId' => 'admin-invoices-table', 'placeholder' => 'Tìm mã hóa đơn, khách hàng, dịch vụ...'])
+
 <div class="table-responsive">
 
-<table class="table table-striped table-hover">
+<table id="admin-invoices-table" class="table table-striped table-hover">
 
 <thead>
 <tr>
