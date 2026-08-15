@@ -5,6 +5,7 @@ use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Service;
+use App\Models\Category;
 use App\Models\Field;
 use App\Models\Feedback;
 use App\Models\Cart;
@@ -963,11 +964,15 @@ public function sendFeedback(Request $request)
 
 public function services(Request $request)
 {
-    $query = Service::query();
+    $query = Service::with('category');
 
     // Search
     if ($request->q) {
         $query->where('name', 'like', '%' . $request->q . '%');
+    }
+
+    if ($request->filled('category_id')) {
+        $query->where('category_id', $request->integer('category_id'));
     }
 
     // Sort
@@ -1042,6 +1047,7 @@ if ($flashSale) {
     $flashnote = $flashSale->note;
 }
 $rule = PriceRule::first();
+$categories = Category::orderBy('name')->get();
 return view('user.services', compact(
     'services',
     'totalItems',
@@ -1049,7 +1055,8 @@ return view('user.services', compact(
     'flashEnd',
     'flashPercent',
     'flashnote',
-    'rule'
+    'rule',
+    'categories'
 ));
 }
 public function cart()
@@ -1288,7 +1295,7 @@ public function fieldSchedule(Request $request)
 
 public function serviceDetail($id)
 {
-    $service = Service::findOrFail($id);
+    $service = Service::with('category')->findOrFail($id);
 
     // ===== TÍNH GIẢM GIÁ =====
     $now = Carbon::now();

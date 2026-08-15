@@ -50,6 +50,7 @@
             <!-- RIGHT: INFO -->
             <div class="col-lg-5">
                 <h2 class="fw-bold mb-2">{{ $service->name }}</h2>
+                <div class="mb-3"><span class="badge bg-info text-dark"><i class="bi bi-tag"></i> {{ $service->category?->name ?? 'Tổng hợp' }}</span></div>
                 @if($discountPercent > 0)
     <div class="mb-2">
         <span class="badge bg-danger">

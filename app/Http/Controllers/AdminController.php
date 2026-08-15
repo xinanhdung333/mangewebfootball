@@ -20,6 +20,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use Illuminate\Support\Facades\Log; 
 use App\Models\ActivityLog;
+use App\Models\Category;
 class AdminController extends Controller
 {
     /**
@@ -535,8 +536,9 @@ public function updateProfile(Request $request)
      */
     public function manageServices()
     {
-        $services = Service::orderBy('name')->paginate(15);
-        return view('admin.manage-services', ['services' => $services]);
+        $services = Service::with('category')->orderBy('name')->paginate(15);
+        $categories = Category::all();
+        return view('admin.manage-services', compact('services', 'categories'));
     }
 
     /**
@@ -546,6 +548,7 @@ public function updateProfile(Request $request)
 public function storeService(Request $request)
 {
     $validated = $request->validate([
+        'category_id' => 'required|integer|exists:categories,id',
         'name' => 'required|string',
         'price' => 'required|numeric|min:0|max:9999999999999',
         'quantity' => 'required|integer|min:0',
@@ -585,6 +588,7 @@ public function updateService(Request $request)
     }
 
     $validated = $request->validate([
+        'category_id' => 'required|integer|exists:categories,id',
         'name' => 'required|string',
         'price' => 'required|numeric|min:0',
         'quantity' => 'required|integer|min:0',
@@ -641,6 +645,54 @@ public function updateService(Request $request)
         return back()->with('error', 'Không thể xóa dịch vụ!');
     }
 }
+
+    /**
+     * Category management methods
+     */
+    public function manageCategories()
+    {
+        $categories = Category::withCount('services')->orderBy('id')->paginate(15);
+        return view('admin.manage-categories', compact('categories'));
+    }
+
+    public function storeCategory(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:categories,name',
+        ]);
+
+        Category::create($validated);
+        return back()->with('success', 'Thêm danh mục thành công!');
+    }
+
+    public function updateCategory(Request $request)
+    {
+        $category = Category::findOrFail($request->input('id'));
+        
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
+        ]);
+
+        $category->update($validated);
+        return back()->with('success', 'Cập nhật danh mục thành công!');
+    }
+
+    public function deleteCategory(Request $request)
+    {
+        $id = $request->input('id');
+        if ($id == 1) {
+            return back()->with('error', 'Không thể xóa danh mục mặc định!');
+        }
+
+        $category = Category::findOrFail($id);
+        
+        // Move all services in this category to default category (ID = 1)
+        Service::where('category_id', $category->id)->update(['category_id' => 1]);
+
+        $category->delete();
+        return back()->with('success', 'Xóa danh mục thành công!');
+    }
+
 public function manageOrders(Request $request)
 {
     $query = Order::with(['user', 'items.service']);

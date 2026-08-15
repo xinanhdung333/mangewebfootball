@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Service;
+use App\Models\Category;
 use App\Models\Field;
 use App\Models\OrderItem;
 use App\Http\Controllers\Concerns\UsesServiceQuery;
@@ -115,11 +116,15 @@ return view('pages.visitor.feedback', compact('serviceFeedbacks', 'bookingFeedba
    
 public function services(Request $request)
 {
-    $query = Service::query();
+    $query = Service::with('category');
 
     // Search
     if ($request->q) {
         $query->where('name', 'like', '%' . $request->q . '%');
+    }
+
+    if ($request->filled('category_id')) {
+        $query->where('category_id', $request->integer('category_id'));
     }
 
     // Sort
@@ -194,6 +199,7 @@ if ($flashSale) {
     $flashnote = $flashSale->note;
 }
 $rule = PriceRule::first();
+$categories = Category::orderBy('name')->get();
 return view('pages.visitor.services', compact(
     'services',
     'totalItems',
@@ -201,7 +207,8 @@ return view('pages.visitor.services', compact(
     'flashEnd',
     'flashPercent',
     'flashnote',
-    'rule'
+    'rule',
+    'categories'
 ));
 }
 }

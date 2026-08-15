@@ -304,6 +304,7 @@
                         <li class="nav-item"><a class="nav-link" href="{{ route('admin.manage.fields') }}"><i class="bi bi-gear"></i> Quản lý sân</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('admin.manage.bookings') }}"><i class="bi bi-clipboard-check"></i> Quản lý đặt sân</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('admin.manage.services') }}"><i class="bi bi-grid"></i> Quản lý Sản phẩm</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('admin.manage.categories') }}"><i class="bi bi-tags"></i> Quản lý danh mục</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('admin.manage.orders') }}"><i class="bi bi-bag-check"></i> Chi tiết mua hàng</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('admin.manage.feedback') }}"><i class="bi bi-chat-dots"></i> Quản lý Feedback</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('admin.chat.index') }}"><i class="bi bi-chat-left-text"></i> Chat Admin</a></li>
@@ -330,6 +331,7 @@
                         <li class="nav-item"><a class="nav-link" href="{{ route('boss.manage.fields') }}"><i class="bi bi-gear"></i> Quản lý sân</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('boss.manage.bookings') }}"><i class="bi bi-clipboard-check"></i> Quản lý đặt sân</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('boss.manage.services') }}"><i class="bi bi-grid"></i> Quản lý Sản phẩm</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.manage.categories') }}"><i class="bi bi-tags"></i> Quản lý danh mục</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('boss.user.service.history') }}"><i class="bi bi-bag-check"></i> Chi tiết mua hàng</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('boss.manage.feedback') }}"><i class="bi bi-chat-dots"></i> Quản lý Feedback</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('boss.invoices') }}"><i class="bi bi-file-earmark-pdf"></i> Quản lý hóa đơn</a></li>

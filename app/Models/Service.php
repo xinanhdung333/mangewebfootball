@@ -13,6 +13,7 @@ class Service extends Model
     protected $table = 'services';
 
     protected $fillable = [
+        'category_id',
         'name',
         'description',
         'price',
@@ -22,6 +23,12 @@ class Service extends Model
         'total_reviews',
         'status'
     ];
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'category_id');
+    }
+
 
     protected $casts = [
         'avg_rating' => 'float',

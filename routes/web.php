@@ -117,6 +117,10 @@ Route::get('/edit-status-order/{id}', [AdminController::class, 'editStatusOrder'
     Route::post('/store-service', [AdminController::class, 'storeService'])->name('store.service');
     Route::post('/update-service', [AdminController::class, 'updateService'])->name('update.service');
     Route::post('/delete-service', [AdminController::class, 'deleteService'])->name('delete.service');
+    Route::get('/manage-categories', [AdminController::class, 'manageCategories'])->name('manage.categories');
+    Route::post('/store-category', [AdminController::class, 'storeCategory'])->name('store.category');
+    Route::post('/update-category', [AdminController::class, 'updateCategory'])->name('update.category');
+    Route::post('/delete-category', [AdminController::class, 'deleteCategory'])->name('delete.category');
     Route::get('/user_service_history', [AdminController::class, 'userServiceHistory'])->name('user.service.history');
     Route::get('/statistics', [AdminController::class, 'statistics'])->name('statistics');
     Route::get('/manage-feedback', [AdminController::class, 'manageFeedback'])->name('manage.feedback');
@@ -196,6 +200,10 @@ Route::prefix('boss')->name('boss.')->middleware(['auth','boss'])->group(functio
     Route::post('/store-service', [BossController::class, 'storeService'])->name('store.service');
     Route::post('/update-service', [BossController::class, 'updateService'])->name('update.service');
     Route::post('/delete-service', [BossController::class, 'deleteService'])->name('delete.service');
+    Route::get('/manage-categories', [BossController::class, 'manageCategories'])->name('manage.categories');
+    Route::post('/store-category', [BossController::class, 'storeCategory'])->name('store.category');
+    Route::post('/update-category', [BossController::class, 'updateCategory'])->name('update.category');
+    Route::post('/delete-category', [BossController::class, 'deleteCategory'])->name('delete.category');
     Route::get('/user_service_history', [BossController::class, 'userServiceHistory'])->name('user.service.history');
     Route::get('/statistics', [BossController::class, 'statistics'])->name('statistics');
     Route::get('/manage-feedback', [BossController::class, 'manageFeedback'])->name('manage.feedback');

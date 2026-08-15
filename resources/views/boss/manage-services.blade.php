@@ -48,6 +48,7 @@
                         <th>ID</th>
                         <th>Ảnh</th>
                         <th>Tên dịch vụ</th>
+                        <th>Danh mục</th>
                         <th>Giá</th>
                         <th>Số lượng</th>
                         <th>Trạng thái</th>
@@ -68,6 +69,7 @@
                                     @endif
                                 </td>
                                 <td>{{ htmlspecialchars($service->name) }}</td>
+                                <td><span class="badge bg-info text-dark">{{ $service->category?->name ?? 'Tổng hợp' }}</span></td>
                                 <td>{{ number_format($service->price, 0, ',', '.') }}đ</td>
                                 <td>{{ $service->quantity }}</td>
                                 <td>
@@ -97,7 +99,7 @@
                         @endforeach
                     @else
                         <tr>
-                            <td colspan="7" class="text-center">Không có dịch vụ nào</td>
+                            <td colspan="8" class="text-center">Không có dịch vụ nào</td>
                         </tr>
                     @endif
                 </tbody>
@@ -117,6 +119,14 @@
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
+                    <div class="mb-3">
+                        <label>Danh mục</label>
+                        <select name="category_id" class="form-control" required>
+                            @foreach($categories as $category)
+                                <option value="{{ $category->id }}" @selected(old('category_id', 1) == $category->id)>{{ $category->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
                     <div class="mb-3">
                         <label>Tên dịch vụ</label>
                         <input type="text" class="form-control" name="name" required>
@@ -170,6 +180,15 @@
                     <input type="hidden" name="id" id="edit_id">
 
                     <div class="mb-3">
+                        <label>Danh mục</label>
+                        <select id="edit_category_id" name="category_id" class="form-control" required>
+                            @foreach($categories as $category)
+                                <option value="{{ $category->id }}">{{ $category->name }}</option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
                         <label>Tên dịch vụ</label>
                         <input id="edit_name" name="name" type="text" class="form-control" required>
                     </div>
@@ -215,6 +234,7 @@
 <script>
 function editService(service) {
     document.getElementById('edit_id').value = service.id;
+    document.getElementById('edit_category_id').value = service.category_id || 1;
     document.getElementById('edit_name').value = service.name;
     document.getElementById('edit_price').value = service.price;
     document.getElementById('edit_quantity').value = service.quantity || 0;

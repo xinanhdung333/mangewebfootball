@@ -67,6 +67,13 @@
             <option value="rating">Đánh giá</option>
         </select>
 
+        <select name="category_id" style="padding:10px; border:1px solid #ddd; border-radius:6px;">
+            <option value="">Tất cả danh mục</option>
+            @foreach($categories as $category)
+                <option value="{{ $category->id }}" @selected((string) request('category_id') === (string) $category->id)>{{ $category->name }}</option>
+            @endforeach
+        </select>
+
         <button type="submit"
                 style="padding:10px 15px; background:#007bff; color:#fff; border:none; border-radius:6px;">
             Tìm
@@ -89,6 +96,7 @@
             <div style="padding:8px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                 {{ $service->name }}
             </div>
+            <div style="padding:0 8px; font-size:12px; color:#666;"><i class="bi bi-tag"></i> {{ $service->category?->name ?? 'Tổng hợp' }}</div>
 
             @if(($service->discount_percent ?? 0) > 0)
                 <div style="position:absolute; top:10px; left:10px; background:#ff0000; color:#fff; font-size:12px; padding:3px 6px; border-radius:5px;">

@@ -17,6 +17,7 @@ use DateTime;
 use DateTimeZone;
 use Barryvdh\DomPDF\Facade\Pdf; 
 use Illuminate\Support\Facades\Auth;
+use App\Models\Category;
 
 class BossController extends Controller
 {
@@ -505,13 +506,15 @@ class BossController extends Controller
     
     public function manageServices()
     {
-        $services = Service::orderBy('name')->get();
-        return view('boss.manage-services', compact('services'));
+        $services = Service::with('category')->orderBy('name')->get();
+        $categories = Category::all();
+        return view('boss.manage-services', compact('services', 'categories'));
     }
     
     public function storeService(Request $request)
     {
         $validated = $request->validate([
+            'category_id' => 'required|integer|exists:categories,id',
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'quantity' => 'required|integer|min:0',
@@ -527,6 +530,7 @@ class BossController extends Controller
         }
 
         Service::create([
+            'category_id' => $validated['category_id'],
             'name' => $validated['name'],
             'price' => $validated['price'],
             'quantity' => $validated['quantity'],
@@ -541,6 +545,7 @@ class BossController extends Controller
     {
         $validated = $request->validate([
             'id' => 'required|integer|exists:services,id',
+            'category_id' => 'required|integer|exists:categories,id',
             'name' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'quantity' => 'required|integer|min:0',
@@ -563,6 +568,7 @@ class BossController extends Controller
         }
 
         $service->update([
+            'category_id' => $validated['category_id'],
             'name' => $validated['name'],
             'price' => $validated['price'],
             'quantity' => $validated['quantity'],
@@ -584,6 +590,53 @@ class BossController extends Controller
         $service->delete();
         
         return back()->with('success', 'Xóa dịch vụ thành công!');
+    }
+
+    /**
+     * Category management methods
+     */
+    public function manageCategories()
+    {
+        $categories = Category::withCount('services')->orderBy('id')->paginate(15);
+        return view('boss.manage-categories', compact('categories'));
+    }
+
+    public function storeCategory(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:categories,name',
+        ]);
+
+        Category::create($validated);
+        return back()->with('success', 'Thêm danh mục thành công!');
+    }
+
+    public function updateCategory(Request $request)
+    {
+        $category = Category::findOrFail($request->input('id'));
+        
+        $validated = $request->validate([
+            'name' => 'required|string|max:255|unique:categories,name,' . $category->id,
+        ]);
+
+        $category->update($validated);
+        return back()->with('success', 'Cập nhật danh mục thành công!');
+    }
+
+    public function deleteCategory(Request $request)
+    {
+        $id = $request->input('id');
+        if ($id == 1) {
+            return back()->with('error', 'Không thể xóa danh mục mặc định!');
+        }
+
+        $category = Category::findOrFail($id);
+        
+        // Move all services in this category to default category (ID = 1)
+        Service::where('category_id', $category->id)->update(['category_id' => 1]);
+
+        $category->delete();
+        return back()->with('success', 'Xóa danh mục thành công!');
     }
     
     public function userServiceHistory() 
