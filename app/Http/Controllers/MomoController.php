@@ -22,12 +22,35 @@ class MomoController extends Controller
             'Content-Type: application/json',
             'Content-Length: ' . strlen($data),
         ]);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 5);
-        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 5);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, 10);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYHOST, false);
 
         $result = curl_exec($ch);
-        curl_close($ch);
 
+        if (curl_errno($ch)) {
+            $error = curl_error($ch);
+            $errno = curl_errno($ch);
+            Log::error('MoMo cURL error', [
+                'url' => $url,
+                'curl_errno' => $errno,
+                'curl_error' => $error,
+            ]);
+            curl_close($ch);
+            return json_encode([
+                'resultCode' => -1,
+                'message' => 'Lỗi kết nối MoMo: ' . $error . ' (cURL #' . $errno . ')',
+            ]);
+        }
+
+        $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+        Log::info('MoMo cURL response', [
+            'http_code' => $httpCode,
+            'response_length' => strlen($result),
+        ]);
+
+        curl_close($ch);
         return $result;
     }
 
@@ -161,11 +184,32 @@ class MomoController extends Controller
             'signature' => $signature,
         ];
 
+        Log::info('MoMo create payment request', [
+            'endpoint' => $endpoint,
+            'payload' => $payload,
+        ]);
+
         $result = $this->execPostRequest($endpoint, json_encode($payload));
         $jsonResult = json_decode($result, true);
 
+        Log::info('MoMo create payment response', [
+            'raw_response' => $result,
+            'parsed_response' => $jsonResult,
+        ]);
+
         if (! isset($jsonResult['payUrl'])) {
-            return back()->with('error', 'Khong tao duoc link thanh toan MoMo');
+            $momoMessage = $jsonResult['message'] ?? 'Không rõ lỗi';
+            $momoCode = $jsonResult['resultCode'] ?? 'N/A';
+
+            Log::error('MoMo payment link creation failed', [
+                'order_id' => $order->id,
+                'amount' => $amount,
+                'momo_result_code' => $momoCode,
+                'momo_message' => $momoMessage,
+                'full_response' => $jsonResult,
+            ]);
+
+            return back()->with('error', 'Không tạo được link thanh toán MoMo. Lỗi: ' . $momoMessage . ' (Code: ' . $momoCode . ')');
         }
 
         return redirect()->to($jsonResult['payUrl']);
