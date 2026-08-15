@@ -7,8 +7,8 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-4 mb-4">
-                    <h5 class="footer-brand">Football_booking</h5>
-                    <p class="small">Đặt sân bóng nhanh chóng, dễ dàng và an toàn. Hỗ trợ đặt sân, thanh toán và quản lý lịch đặt cho người dùng.</p>
+                    <h5 class="footer-brand">SportsHub</h5>
+                    <p class="small">Đặt hàng nhanh chóng, dễ dàng và an toàn. Hỗ trợ đặt sân, thanh toán và quản lý lịch đặt cho người dùng.</p>
                     <div class="social-links mt-3">
                         <a href="#" class="text-light me-3"><i class="bi bi-facebook"></i></a>
                         <a href="#" class="text-light me-3"><i class="bi bi-instagram"></i></a>
@@ -22,7 +22,7 @@
                     <ul class="list-unstyled footer-links">
                         <div class="t">
                             <li><a href="{{ route('visitor.fields') }}">Sân bóng</a></li>
-                            <li><a href="{{ route('user.services') }}">Dịch vụ</a></li>
+                            <li><a href="{{ route('user.services') }}">Sản phẩm</a></li>
                             <li><a href="{{ route('user.cart') }}">Giỏ hàng</a></li>
                             <li><a href="{{ route('user.myBookings') }}">Lịch đặt của tôi</a></li>
                             <li><a href="{{ route('user.profile') }}">Hồ sơ</a></li>

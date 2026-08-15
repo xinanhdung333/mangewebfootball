@@ -77,7 +77,7 @@ document.addEventListener('mousemove', (e) => {
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
       <a class="navbar-brand" href="{{ url('/') }}">
-    <i class="bi bi-dribbble"></i>    Football Booking
+    <i class="bi bi-dribbble"></i>    SprotsHub
 </a>
 
 

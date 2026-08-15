@@ -67,7 +67,7 @@
         <div class="row">
             <div class="col-md-12">
                 <div class="jumbotron bg-light p-5 rounded text-white" style="background-color: rgba(0,0,0,0.35);">
-                    <h1 class="display-4">Chào mừng tới Football Booking</h1>
+                    <h1 class="display-4">Chào mừng tới SportsHub</h1>
                     <p class="lead">Đặt sân bóng nhanh chóng, dễ dàng và an toàn</p>
                     <hr>
 

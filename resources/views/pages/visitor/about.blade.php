@@ -102,7 +102,7 @@ body {
     <div class="container text-center fade-in">
         <h1 class="fw-bold display-5">Về chúng tôi</h1>
         <p class="lead opacity-75">
-            Sứ mệnh – Tầm nhìn – Giá trị của Football Booking
+            Sứ mệnh – Tầm nhìn – Giá trị của SportsHub
         </p>
     </div>
 </div>
@@ -115,16 +115,16 @@ body {
         <div class="row align-items-center g-5">
             <div class="col-md-6 fade-in">
                 <h2 class="fw-bold mb-3">
-                    Về <span class="text-primary">Football Booking</span>
+                    Về <span class="text-primary">SportsHub</span>
                 </h2>
                 <p class="lead">
-                    Football Booking là nền tảng đặt sân bóng và dịch vụ đi kèm,
-                    kết nối cộng đồng yêu bóng đá với các sân chất lượng.
+                    SportsHub là nền tảng đặt sân bóng và dịch vụ đi kèm,
+                    kết nối cộng đồng yêu bóng đá vớiq các sân chất lượng.
                 </p>
                 <p>
-                 Football Booking là nền tảng đặt sân bóng và các dịch vụ đi kèm được xây dựng nhằm kết nối cộng đồng yêu bóng đá với những sân bóng chất lượng, uy tín và phù hợp với nhu cầu đa dạng của người chơi. Hệ thống cho phép người dùng dễ dàng tìm kiếm, so sánh và lựa chọn sân bóng theo vị trí, khung giờ, mức giá cũng như các dịch vụ hỗ trợ đi kèm, mang lại trải nghiệm đặt sân thuận tiện và nhanh chóng hơn so với phương thức truyền thống.
+                 SportsHub là nền tảng đặt sân bóng và các dịch vụ đi kèm được xây dựng nhằm kết nối cộng đồng yêu bóng đá với những sân bóng chất lượng, uy tín và phù hợp với nhu cầu đa dạng của người chơi. Hệ thống cho phép người dùng dễ dàng tìm kiếm, so sánh và lựa chọn sân bóng theo vị trí, khung giờ, mức giá cũng như các dịch vụ hỗ trợ đi kèm, mang lại trải nghiệm đặt sân thuận tiện và nhanh chóng hơn so với phương thức truyền thống.
 
-Xuất phát từ những khó khăn thực tế của người chơi bóng phong trào như việc tìm sân trống, thiếu thông tin minh bạch về giá cả, chất lượng sân và các dịch vụ liên quan, Football Booking ra đời với mục tiêu giải quyết triệt để những bất cập đó. Thông qua việc ứng dụng công nghệ vào quản lý và vận hành, chúng tôi xây dựng một hệ thống hiện đại, chính xác và minh bạch, giúp người chơi chủ động hơn trong việc sắp xếp thời gian, đồng thời hỗ trợ chủ sân tối ưu hóa quy trình quản lý, nâng cao hiệu quả hoạt động và chất lượng dịch vụ. Football Booking không chỉ là một nền tảng đặt sân, mà còn hướng tới việc xây dựng một cộng đồng bóng đá phong trào năng động, gắn kết và phát triển bền vững.
+Xuất phát từ những khó khăn thực tế của người chơi bóng phong trào như việc tìm sân trống, thiếu thông tin minh bạch về giá cả, chất lượng sân và các dịch vụ liên quan, SportsHub ra đời với mục tiêu giải quyết triệt để những bất cập đó. Thông qua việc ứng dụng công nghệ vào quản lý và vận hành, chúng tôi xây dựng một hệ thống hiện đại, chính xác và minh bạch, giúp người chơi chủ động hơn trong việc sắp xếp thời gian, đồng thời hỗ trợ chủ sân tối ưu hóa quy trình quản lý, nâng cao hiệu quả hoạt động và chất lượng dịch vụ. SportsHub không chỉ là một nền tảng đặt sân, mà còn hướng tới việc xây dựng một cộng đồng bóng đá phong trào năng động, gắn kết và phát triển bền vững.
                 </p>
             </div>
 
@@ -150,10 +150,10 @@ Xuất phát từ những khó khăn thực tế của người chơi bóng phon
     <div class="container fade-in">
         <h2 class="fw-bold mb-3">Lịch sử ra đời</h2>
         <p>
- Football Booking được hình thành từ một dự án nhỏ vào năm 2025, trong bối cảnh nhu cầu đặt sân bóng của người chơi phong trào ngày càng tăng cao nhưng các hình thức đặt sân vẫn chủ yếu mang tính thủ công, thiếu tính đồng bộ và minh bạch. Người chơi thường phải liên hệ trực tiếp với chủ sân, khó nắm bắt lịch trống, giá cả và chất lượng dịch vụ, dẫn đến nhiều bất tiện trong quá trình tổ chức và tham gia thi đấu.
+            SportsHub được hình thành từ một dự án nhỏ vào năm 2025, trong bối cảnh nhu cầu đặt sân bóng của người chơi phong trào ngày càng tăng cao nhưng các hình thức đặt sân vẫn chủ yếu mang tính thủ công, thiếu tính đồng bộ và minh bạch. Người chơi thường phải liên hệ trực tiếp với chủ sân, khó nắm bắt lịch trống, giá cả và chất lượng dịch vụ, dẫn đến nhiều bất tiện trong quá trình tổ chức và tham gia thi đấu.
         </p>
         <p>
-            Nhận thấy những hạn chế đó, nhóm phát triển đã từng bước xây dựng Football Booking như một giải pháp ứng dụng công nghệ vào quản lý và đặt sân bóng. Ban đầu, hệ thống chỉ tập trung vào chức năng đặt sân cơ bản. Qua thời gian, dựa trên nhu cầu thực tế và phản hồi từ người dùng, Football Booking được mở rộng với nhiều tính năng nâng cao như quản lý lịch đặt sân thông minh, cung cấp các dịch vụ bổ sung, hỗ trợ thanh toán trực tuyến và cho phép người chơi đánh giá chất lượng sân. Quá trình phát triển này đánh dấu bước chuyển mình từ một công cụ đơn giản sang một nền tảng toàn diện, góp phần nâng cao trải nghiệm cho cả người chơi và chủ sân.
+            Nhận thấy những hạn chế đó, nhóm phát triển đã từng bước xây dựng SportsHub như một giải pháp ứng dụng công nghệ vào quản lý và đặt sân bóng. Ban đầu, hệ thống chỉ tập trung vào chức năng đặt sân cơ bản. Qua thời gian, dựa trên nhu cầu thực tế và phản hồi từ người dùng, SportsHub được mở rộng với nhiều tính năng nâng cao như quản lý lịch đặt sân thông minh, cung cấp các dịch vụ bổ sung, hỗ trợ thanh toán trực tuyến và cho phép người chơi đánh giá chất lượng sân. Quá trình phát triển này đánh dấu bước chuyển mình từ một công cụ đơn giản sang một nền tảng toàn diện, góp phần nâng cao trải nghiệm cho cả người chơi và chủ sân.
         </p>
     </div>
 </div>
@@ -213,7 +213,7 @@ Xuất phát từ những khó khăn thực tế của người chơi bóng phon
                     <div class="card-body">
                         <h5 class="fw-bold">Sứ mệnh</h5>
                         <p>
-                      Mang đến một nền tảng đặt sân bóng hiện đại, thân thiện và dễ sử dụng, giúp mọi người tiếp cận thể thao một cách thuận tiện, nhanh chóng và bền vững. Football Booking hướng tới việc đơn giản hóa quá trình tìm kiếm, đặt sân và sử dụng các dịch vụ đi kèm, đồng thời đảm bảo sự minh bạch về giá cả và chất lượng. Thông qua việc ứng dụng công nghệ, chúng tôi mong muốn thúc đẩy phong trào thể thao cộng đồng, nâng cao sức khỏe, tinh thần gắn kết và xây dựng một môi trường chơi thể thao lành mạnh cho mọi người
+                      Mang đến một nền tảng đặt sân bóng hiện đại, thân thiện và dễ sử dụng, giúp mọi người tiếp cận thể thao một cách thuận tiện, nhanh chóng và bền vững. SportsHub hướng tới việc đơn giản hóa quá trình tìm kiếm, đặt sân và sử dụng các dịch vụ đi kèm, đồng thời đảm bảo sự minh bạch về giá cả và chất lượng. Thông qua việc ứng dụng công nghệ, chúng tôi mong muốn thúc đẩy phong trào thể thao cộng đồng, nâng cao sức khỏe, tinh thần gắn kết và xây dựng một môi trường chơi thể thao lành mạnh cho mọi người
                         </p>
                     </div>
                 </div>
@@ -224,7 +224,7 @@ Xuất phát từ những khó khăn thực tế của người chơi bóng phon
                     <div class="card-body">
                         <h5 class="fw-bold">Tầm nhìn</h5>
                         <p>
-Football Booking hướng tới trở thành hệ sinh thái thể thao phong trào hàng đầu Việt Nam, nơi kết nối toàn diện giữa người chơi, chủ sân và các dịch vụ liên quan đến thể thao. Chúng tôi không chỉ dừng lại ở việc cung cấp nền tảng đặt sân, mà còn phát triển một hệ sinh thái số thông minh, hỗ trợ quản lý, vận hành và nâng cao trải nghiệm cho toàn bộ cộng đồng thể thao. Trong tương lai, Football Booking mong muốn góp phần thúc đẩy phong trào thể thao phát triển bền vững, ứng dụng công nghệ vào đời sống hàng ngày, tạo ra một môi trường thể thao hiện đại, tiện lợi và gắn kết trên phạm vi toàn quốc.           
+SportsHub hướng tới trở thành hệ sinh thái thể thao phong trào hàng đầu Việt Nam, nơi kết nối toàn diện giữa người chơi, chủ sân và các dịch vụ liên quan đến thể thao. Chúng tôi không chỉ dừng lại ở việc cung cấp nền tảng đặt sân, mà còn phát triển một hệ sinh thái số thông minh, hỗ trợ quản lý, vận hành và nâng cao trải nghiệm chỉ mong muốn góp phần thúc đẩy phong trào thể thao phát triển bền vững, ứng dụng công nghệ vào đời sống hàng ngày, tạo ra một môi trường thể thao hiện đại, tiện lợi và gắn kết trên phạm vi toàn quốc.           
                     </div>
                 </div>
             </div>
