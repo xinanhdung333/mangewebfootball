@@ -262,7 +262,7 @@
 
                         <a href="{{ route('user.exportInvoice', $order->id) }}"
                            target="_blank"
-                           class="btn btn-danger w-100">
+                           class="btn btn-danger w-100 mb-2">
 
                             <i class="bi bi-file-pdf"></i>
                             Xuất hóa đơn
@@ -270,6 +270,12 @@
                         </a>
 
                     @endif
+
+                    <a href="{{ route('user.order.tracking', $order->id) }}"
+                       class="btn btn-success w-100">
+                        <i class="bi bi-truck"></i>
+                        Theo dõi vận chuyển
+                    </a>
 
                 </div>
 

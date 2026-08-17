@@ -42,4 +42,26 @@ return [
         'qr_template' => env('MBBANK_QR_TEMPLATE', 'compact2'),
     ],
 
+    'ghn' => [
+        'mode' => env('GHN_MODE', 'demo'), // ghn or demo
+        'token' => env('GHN_TOKEN'),
+        'shop_id' => env('GHN_SHOP_ID'),
+        'endpoint' => env('GHN_ENDPOINT', 'https://dev-online-gateway.ghn.vn/shiip/public-api'),
+        'from_name' => env('GHN_FROM_NAME', 'Shop Football'),
+        'from_phone' => env('GHN_FROM_PHONE', '0901234567'),
+        'from_address' => env('GHN_FROM_ADDRESS', '123 Test Street'),
+        'from_ward_name' => env('GHN_FROM_WARD_NAME', 'Phường 14'),
+        'from_district_name' => env('GHN_FROM_DISTRICT_NAME', 'Quận 10'),
+        'from_province_name' => env('GHN_FROM_PROVINCE_NAME', 'Hồ Chí Minh'),
+    ],
+
+    'ghn_demo' => [
+        'pickup_lat' => env('GHN_DEMO_PICKUP_LAT', 10.776889),
+        'pickup_lng' => env('GHN_DEMO_PICKUP_LNG', 106.700806),
+        'delivery_address' => env('GHN_DEMO_DELIVERY_ADDRESS', '72 Thành Thái, Phường 14, Quận 10, Hồ Chí Minh'),
+        'delivery_ward' => env('GHN_DEMO_DELIVERY_WARD', 'Phường 14'),
+        'delivery_district' => env('GHN_DEMO_DELIVERY_DISTRICT', 'Quận 10'),
+        'delivery_province' => env('GHN_DEMO_DELIVERY_PROVINCE', 'Hồ Chí Minh'),
+    ],
+
 ];

@@ -53,10 +53,15 @@ class Order extends Model
             ->withTimestamps();
     }
     public function userAddress()
-{
-    return $this->belongsTo(
-        UserAddress::class,
-        'user_address_id'
-    );
-}
+    {
+        return $this->belongsTo(
+            UserAddress::class,
+            'user_address_id'
+        );
+    }
+
+    public function shipment()
+    {
+        return $this->hasOne(OrderShipment::class);
+    }
 }

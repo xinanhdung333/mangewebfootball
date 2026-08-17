@@ -281,6 +281,11 @@ Route::post('/user/cart/update-item', [CartController::class, 'updateItem'])
     Route::get('/order/{id}', [PagesController::class, 'orderDetail'])->name('orderDetail');
     Route::get('/order/{id}/export', [PagesController::class, 'exportInvoice'])->name('exportInvoice');
     
+    // Order Tracking
+    Route::get('/order/{order}/tracking', [\App\Http\Controllers\ShipmentController::class, 'show'])->name('order.tracking');
+    Route::get('/order/{order}/tracking-data', [\App\Http\Controllers\ShipmentController::class, 'data'])->name('order.tracking.data');
+    Route::post('/order/{order}/tracking-status', [\App\Http\Controllers\ShipmentController::class, 'updateStatus'])->name('order.tracking.status');
+    
     // Services Purchased
       Route::get(
     '/bookings/search',
