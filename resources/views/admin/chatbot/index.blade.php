@@ -212,6 +212,15 @@ Generate chatbot_rules.json
 
 </form>
 
+<div class="mt-3">
+<h5>Generated content</h5>
+@if($generatedRules)
+<pre class="bg-light border rounded p-3" style="max-height:400px; overflow:auto;"><code>{{ $generatedRules }}</code></pre>
+@else
+<p class="text-muted">Chưa có chatbot_rules.json. Hãy bấm Generate trước.</p>
+@endif
+</div>
+
 
 </div>
 </br>

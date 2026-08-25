@@ -24,7 +24,12 @@ class ChatbotIntentController extends Controller
         ->paginate(5)
         ->withQueryString();
 
-    return view('admin.chatbot.index',compact('intents'));
+    $rulesPath = storage_path('app/chatbot_rules.json');
+    $generatedRules = File::exists($rulesPath)
+        ? File::get($rulesPath)
+        : null;
+
+    return view('admin.chatbot.index', compact('intents', 'generatedRules'));
 }
 
 public function generateRules()

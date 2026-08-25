@@ -7,20 +7,32 @@ class ChatbotController extends Controller
 {
     public function reply(Request $request)
     {
-        $message = strtolower($request->message);
+        $message = mb_strtolower(trim((string) $request->input('message')), 'UTF-8');
 
-        $rules = json_decode(
-            file_get_contents(storage_path('app/chatbot_rules.json')),
-            true
-        );
+        $rulesPath = storage_path('app/chatbot_rules.json');
+        $rules = is_file($rulesPath)
+            ? json_decode(file_get_contents($rulesPath), true)
+            : [];
+
+        if (!is_array($rules)) {
+            $rules = [];
+        }
 
         foreach ($rules as $rule) {
 
-            foreach ($rule['keywords'] as $keyword) {
+            foreach ($rule['keywords'] ?? [] as $keyword) {
+                $keyword = mb_strtolower(trim((string) $keyword), 'UTF-8');
 
-                if (str_contains($message, $keyword)) {
+                if ($keyword !== '' && str_contains($message, $keyword)) {
 
-                    $responses = $rule['responses'];
+                    $responses = array_values(array_filter(
+                        $rule['responses'] ?? [],
+                        static fn ($response) => is_string($response) && trim($response) !== ''
+                    ));
+
+                    if ($responses === []) {
+                        continue;
+                    }
 
                     return response()->json([
                         'reply' => $responses[array_rand($responses)]

@@ -1,50 +1,51 @@
 @extends('layouts.app')
 @section('content')
 
-<!-- =========== Styles (include dark-mode + card effects) =========== -->
 <style>
-/* Reset small */
-.card { border: none; }
-
-/* Dashboard background */
 .dashboard-wrapper {
     padding: 22px;
+    background: #f5f5f5;
 }
 
-/* Card styles */
+.dashboard-wrapper .card {
+    border: 1px solid #e7e7e7;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.06);
+}
+
 .stat-card {
-    background-size: 200% 200%;
-    animation: gradientMove 6s ease infinite;
-    color: white;
-    border-radius: 14px;
-    transition: transform 0.28s ease, box-shadow 0.35s ease;
+    background: #fff !important;
+    color: #202124;
+    border: 1px solid #e2e2e2;
+    border-left: 3px solid #ff6a00;
+    border-radius: 4px;
+    box-shadow: none;
+    transition: border-color .15s ease, background-color .15s ease;
     padding: 18px;
 }
 .stat-card:hover {
-    transform: translateY(-6px);
-    box-shadow: 0 12px 30px rgba(0,0,0,0.18);
+    transform: none;
+    background: #fffaf7 !important;
+    border-color: #d7d7d7;
+    border-left-color: #e65300;
 }
-@keyframes gradientMove {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-}
-.stat-icon { font-size: 42px; opacity: .95; }
+.stat-card .text-white,
+.stat-card .text-dark { color: #202124 !important; }
+.stat-card .stat-icon { color: #ff6a00 !important; }
+.stat-icon { font-size: 38px; opacity: .9; }
 
 /* Fade-in */
-.fade-in { opacity: 0; transform: translateY(12px); animation: fadeInUp 0.6s ease forwards; }
+.fade-in { opacity: 0; transform: translateY(6px); animation: fadeInUp 0.35s ease forwards; }
 @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
 
 /* Layout touches */
 .card .card-title { margin-bottom: 6px; font-weight: 600; }
 .counter { font-weight: 700; letter-spacing: 0.3px; }
 
-/* Chart container responsive */
-.chart-wrap { padding: 14px 6px; background: var(--card-bg, #fff); border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,0.04); }
+.chart-wrap { padding: 14px 6px; background: #fff; }
 
-/* Dark mode */
 :root {
-    --bg: #f6f9fc;
+    --bg: #f5f5f5;
     --text: #222;
     --card-bg: #ffffff;
 }
@@ -52,14 +53,13 @@ body.dark-mode {
     --bg: #0f1724;
     --text: #e6eef8;
     --card-bg: #0b1220;
-    background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0)) fixed;
+    background: #0f1724;
 }
 body { background: var(--bg); color: var(--text); }
-.card { background: var(--card-bg); color: var(--text); }
+.dashboard-wrapper .card { background: var(--card-bg); color: var(--text); }
 
 #darkToggle, #darkModeToggle { cursor: pointer; }
 
-/* Dark-mode toggle bubùon */
 #darkToggle {
     position: fixed;
     right: 18px;
@@ -67,13 +67,12 @@ body { background: var(--bg); color: var(--text); }
     z-index: 9999;
     border-radius: 999px;
     padding: 10px 12px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
 }
 .small-muted { font-size: .85rem; color: rgba(0,0,0,0.55); }
 body.dark-mode .small-muted { color: rgba(255,255,255,0.55); }
 
-/* Table tweaks */
-.table thead th { background: transparent; border-bottom: 1px solid rgba(0,0,0,0.06); }
+.table thead th { background: #fff; border-bottom: 1px solid #e7e7e7; }
 body.dark-mode .table thead th { border-bottom-color: rgba(255,255,255,0.06); }
 
 /* Responsive small adjustments */
@@ -102,7 +101,7 @@ body.dark-mode .table thead th { border-bottom-color: rgba(255,255,255,0.06); }
     <div class="row g-3 mb-4">
         <div class="col-sm-6 col-md-3 fade-in" style="animation-delay:.08s">
             <a href="{{ route('boss.manage.users') }}" class="text-decoration-none">
-                <div class="stat-card" style="background: linear-gradient(135deg,#007bff,#4dabff);">
+                <div class="stat-card">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="card-title text-white">Người dùng</h6>
@@ -117,7 +116,7 @@ body.dark-mode .table thead th { border-bottom-color: rgba(255,255,255,0.06); }
  
         <div class="col-sm-6 col-md-3 fade-in" style="animation-delay:.12s">
             <a href="{{ route('admin.manage.fields') }}" class="text-decoration-none">
-                <div class="stat-card" style="background: linear-gradient(135deg,#28a745,#66d97a);">
+                <div class="stat-card">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="card-title text-white">Sân</h6>
@@ -132,7 +131,7 @@ body.dark-mode .table thead th { border-bottom-color: rgba(255,255,255,0.06); }
 
         <div class="col-sm-6 col-md-3 fade-in" style="animation-delay:.16s">
             <a href="{{ route('admin.manage.bookings') }}" class="text-decoration-none">
-                <div class="stat-card" style="background: linear-gradient(135deg,#ffc107,#ffd75e);">
+                <div class="stat-card">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="card-title text-dark">Tổng đặt sân</h6>
@@ -147,7 +146,7 @@ body.dark-mode .table thead th { border-bottom-color: rgba(255,255,255,0.06); }
 
         <div class="col-sm-6 col-md-3 fade-in" style="animation-delay:.20s">
             <a href="{{ route('admin.manage.orders') }}" class="text-decoration-none">
-                <div class="stat-card" style="background: linear-gradient(135deg,#17a2b8,#63d2e6);">
+                <div class="stat-card">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="card-title text-white">Doanh thu</h6>
@@ -163,7 +162,7 @@ body.dark-mode .table thead th { border-bottom-color: rgba(255,255,255,0.06); }
         <!-- Service card -->
         <div class="col-sm-6 col-md-3 fade-in" style="animation-delay:.24s">
             <a href="{{ route('admin.manage.services') }}" class="text-decoration-none">
-                <div class="stat-card" style="background: linear-gradient(135deg,#ff5722,#ff8a50);">
+                <div class="stat-card">
                     <div class="d-flex justify-content-between align-items-center">
                         <div>
                             <h6 class="card-title text-white">Dịch vụ</h6>

@@ -102,6 +102,8 @@ class PagesController extends Controller
         $bookings = $user ? $user->bookings()->latest()->take(5)->get() : [];
          $rule = PriceRule::first();
         $ruleService = ServiceDiscount::first();
+        $categories = Category::withCount('services')->get();
+        $featuredServices = Service::where('status', 'active')->latest()->take(8)->get();
         return view('user.dashboard', [
             'user' => $user,
             'stats_total' => $stats_total,
@@ -109,7 +111,9 @@ class PagesController extends Controller
             'stats_revenue' => $stats_revenue,
             'bookings' => $bookings,
             'rule' => $rule,
-            'ruleService' => $ruleService
+            'ruleService' => $ruleService,
+            'categories' => $categories,
+            'featuredServices' => $featuredServices,
         ]);  
     }
   public function myBookings()
