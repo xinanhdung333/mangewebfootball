@@ -1,0 +1,679 @@
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
+--
+-- Máy chủ: localhost
+-- Thời gian đã tạo: Th8 27, 2026 lúc 07:44 AM
+-- Phiên bản máy phục vụ: 10.4.32-MariaDB
+-- Phiên bản PHP: 8.0.30
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
+
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Cơ sở dữ liệu: `football_booking`
+--
+
+--
+-- Đang đổ dữ liệu cho bảng `bookings`
+--
+
+INSERT INTO `bookings` (`id`, `user_id`, `field_id`, `booking_date`, `start_time`, `end_time`, `total_price`, `status`, `note`, `created_at`, `updated_at`) VALUES
+(1, 1, 1, '2026-04-16', '16:09:00', '18:09:00', 18000000.00, 'completed', NULL, '2026-04-16 07:10:06', '2026-04-16 12:16:47'),
+(2, 1, 2, '2026-04-30', '13:59:00', '16:59:00', 24000000.00, 'cancelled', NULL, '2026-04-17 16:59:44', '2026-04-17 19:15:24'),
+(3, 1, 2, '2026-04-24', '17:53:00', '22:53:00', 40000000.00, 'pending', NULL, '2026-04-18 09:53:15', '2026-04-18 09:53:15'),
+(4, 1, 2, '2026-04-25', '17:53:00', '22:53:00', 40000000.00, 'pending', NULL, '2026-04-18 09:53:27', '2026-04-18 09:53:27'),
+(5, 1, 2, '2026-04-27', '17:53:00', '22:53:00', 40000000.00, 'pending', NULL, '2026-04-18 09:53:39', '2026-04-18 09:53:39'),
+(6, 1, 2, '2026-04-29', '17:53:00', '22:53:00', 40000000.00, 'pending', NULL, '2026-04-18 09:53:50', '2026-04-18 09:53:50'),
+(7, 1, 2, '2026-04-22', '19:00:00', '21:00:00', 16000000.00, 'confirmed', NULL, '2026-04-18 11:00:26', '2026-04-18 11:00:50'),
+(8, 1, 2, '2026-04-24', '13:59:00', '16:59:00', 24000000.00, 'pending', NULL, '2026-04-18 16:59:46', '2026-04-18 16:59:46'),
+(9, 1, 2, '2026-04-28', '13:59:00', '16:59:00', 24000000.00, 'cancelled', NULL, '2026-04-18 17:01:55', '2026-04-21 20:49:14'),
+(10, 1, 3, '2026-04-23', '05:00:00', '07:00:00', 20000000.00, 'cancelled', NULL, '2026-04-18 18:01:08', '2026-04-21 20:49:07'),
+(11, 1, 2, '2026-04-20', '05:20:00', '08:20:00', 24000000.00, 'cancelled', NULL, '2026-04-18 19:20:33', '2026-04-21 18:33:02'),
+(12, 1, 2, '2026-04-25', '14:46:00', '17:46:00', 24000000.00, 'pending', NULL, '2026-04-24 06:46:41', '2026-04-24 06:46:41'),
+(13, 1, 6, '2026-04-25', '15:51:00', '19:51:00', 24000000.00, 'pending', NULL, '2026-04-24 06:51:49', '2026-04-24 06:51:49'),
+(14, 1, 6, '2026-04-29', '15:51:00', '19:51:00', 24000000.00, 'pending', NULL, '2026-04-24 06:52:54', '2026-04-24 06:52:54'),
+(15, 1, 6, '2026-05-07', '15:51:00', '19:51:00', 24000000.00, 'pending', NULL, '2026-04-24 06:53:14', '2026-04-24 06:53:14'),
+(16, 1, 5, '2026-04-29', '14:53:00', '17:53:00', 27000000.00, 'pending', NULL, '2026-04-24 06:53:41', '2026-04-24 06:53:41'),
+(17, 1, 1, '2026-04-25', '16:59:00', '20:59:00', 36000000.00, 'pending', NULL, '2026-04-24 07:59:33', '2026-04-24 07:59:33'),
+(18, 1, 1, '2026-04-29', '17:59:00', '20:00:00', 18150000.00, 'pending', NULL, '2026-04-24 08:00:09', '2026-04-24 08:00:09'),
+(19, 1, 1, '2026-05-06', '17:59:00', '20:00:00', 18150000.00, 'pending', NULL, '2026-04-24 08:01:37', '2026-04-24 08:01:37'),
+(20, 1, 7, '2026-04-27', '17:08:00', '21:08:00', 36000000.00, 'pending', NULL, '2026-04-24 08:08:25', '2026-04-24 08:08:25'),
+(21, 1, 14, '2026-04-25', '16:10:00', '22:10:00', 57000000.00, 'pending', NULL, '2026-04-24 08:10:48', '2026-04-24 08:10:48'),
+(22, 1, 14, '2026-05-01', '18:13:00', '21:13:00', 28500000.00, 'pending', NULL, '2026-04-24 08:13:47', '2026-04-24 08:13:47'),
+(23, 1, 14, '2026-05-06', '18:42:00', '21:42:00', 28500000.00, 'pending', NULL, '2026-04-24 08:43:04', '2026-04-24 08:43:04'),
+(24, 1, 16, '2026-04-25', '13:28:00', '17:28:00', 32000000.00, 'pending', NULL, '2026-04-25 14:29:20', '2026-04-25 14:29:20'),
+(25, 1, 16, '2026-05-02', '13:30:00', '18:30:00', 40000000.00, 'pending', NULL, '2026-04-25 14:30:28', '2026-04-25 14:30:28'),
+(26, 1, 16, '2026-05-06', '13:34:00', '15:34:00', 16000000.00, 'pending', NULL, '2026-04-25 14:34:53', '2026-04-25 14:34:53'),
+(27, 1, 16, '2026-05-09', '13:36:00', '15:36:00', 16000000.00, 'pending', NULL, '2026-04-25 14:36:34', '2026-04-25 14:36:34'),
+(28, 1, 16, '2026-05-09', '17:52:00', '21:52:00', 32000000.00, 'pending', NULL, '2026-04-25 14:53:08', '2026-04-25 14:53:08'),
+(29, 1, 2, '2026-05-09', '14:29:00', '17:29:00', 24000000.00, 'confirmed', NULL, '2026-04-25 15:30:07', '2026-04-25 15:30:30'),
+(30, 1, 6, '2026-04-27', '13:36:00', '17:34:00', 23800000.00, 'confirmed', NULL, '2026-04-25 16:35:34', '2026-04-25 16:35:39'),
+(31, 1, 4, '2026-04-27', '13:43:00', '15:43:00', 14000000.00, 'confirmed', NULL, '2026-04-25 16:43:26', '2026-04-25 16:43:46'),
+(32, 1, 6, '2026-05-28', '13:57:00', '15:57:00', 12000000.00, 'confirmed', NULL, '2026-04-25 16:58:45', '2026-04-25 17:00:00'),
+(33, 1, 9, '2026-04-30', '03:15:00', '06:15:00', 24000000.00, 'confirmed', NULL, '2026-04-25 17:16:23', '2026-04-25 18:23:21'),
+(34, 1, 6, '2026-05-05', '05:24:00', '08:24:00', 18000000.00, 'confirmed', NULL, '2026-04-25 18:24:48', '2026-04-25 18:24:52'),
+(35, 1, 2, '2026-05-03', '17:17:00', '19:17:00', 16000000.00, 'pending', NULL, '2026-04-26 17:18:32', '2026-04-26 17:18:32'),
+(36, 1, 2, '2026-05-06', '17:03:00', '20:03:00', 240000000.00, 'confirmed', NULL, '2026-04-26 18:27:17', '2026-04-26 18:27:29'),
+(37, 1, 12, '2026-05-09', '17:20:00', '21:22:00', 72600000.00, 'confirmed', NULL, '2026-04-26 20:28:06', '2026-04-26 20:28:23'),
+(38, 1, 2, '2026-05-07', '17:07:00', '23:07:00', 72000000.00, 'confirmed', NULL, '2026-04-27 15:08:18', '2026-04-27 15:08:30');
+
+--
+-- Đang đổ dữ liệu cho bảng `booking_payments`
+--
+
+INSERT INTO `booking_payments` (`id`, `booking_id`, `user_address_id`, `momo_order_id`, `momo_trans_id`, `amount`, `status`, `paid_at`, `created_at`, `updated_at`, `payment_method`) VALUES
+(1, 1, NULL, 'booking_1_69e08b4f21e94', '4724141823', 18000000.00, 'success', '2026-04-16 07:11:22', '2026-04-16 07:10:06', '2026-04-16 07:11:22', 'cash'),
+(2, 2, NULL, 'booking_2_69e267007fff7', '4724371444', 24000000.00, 'success', '2026-04-17 17:01:12', '2026-04-17 16:59:44', '2026-04-17 17:01:12', 'cash'),
+(3, 3, NULL, 'booking_3_69e3548b68b26', NULL, 40000000.00, 'pending', NULL, '2026-04-18 09:53:15', '2026-04-18 09:53:15', 'cash'),
+(4, 4, NULL, 'booking_4_69e35497d343f', NULL, 40000000.00, 'pending', NULL, '2026-04-18 09:53:27', '2026-04-18 09:53:27', 'cash'),
+(5, 5, NULL, 'booking_5_69e354a3f3f59', NULL, 40000000.00, 'pending', NULL, '2026-04-18 09:53:39', '2026-04-18 09:53:40', 'cash'),
+(6, 6, NULL, 'booking_6_69e354ae6af53', NULL, 40000000.00, 'pending', NULL, '2026-04-18 09:53:50', '2026-04-18 09:53:50', 'cash'),
+(7, 7, NULL, NULL, NULL, 16000000.00, 'success', '2026-04-18 11:00:50', '2026-04-18 11:00:26', '2026-04-18 11:00:50', 'cash'),
+(8, 8, NULL, NULL, NULL, 24000000.00, 'pending', NULL, '2026-04-18 16:59:46', '2026-04-18 16:59:46', 'cash'),
+(9, 9, NULL, NULL, NULL, 24000000.00, 'pending', NULL, '2026-04-18 17:01:55', '2026-04-18 17:01:55', 'cash'),
+(10, 10, NULL, NULL, NULL, 20000000.00, 'pending', NULL, '2026-04-18 18:01:08', '2026-04-18 18:01:08', 'cash'),
+(11, 11, NULL, NULL, NULL, 24000000.00, 'success', '2026-04-18 19:20:48', '2026-04-18 19:20:33', '2026-04-18 19:20:48', 'cash'),
+(12, 12, NULL, 'booking_12_69eb11d5d4eb6', NULL, 24000000.00, 'pending', NULL, '2026-04-24 06:46:41', '2026-04-24 06:46:45', 'cash'),
+(13, 13, NULL, 'booking_13_69eb132321e59', NULL, 24000000.00, 'pending', NULL, '2026-04-24 06:51:49', '2026-04-24 06:52:19', 'cash'),
+(14, 14, NULL, NULL, NULL, 24000000.00, 'pending', NULL, '2026-04-24 06:52:54', '2026-04-24 06:52:54', 'cash'),
+(15, 15, NULL, NULL, NULL, 24000000.00, 'pending', NULL, '2026-04-24 06:53:14', '2026-04-24 06:53:14', 'cash'),
+(16, 16, NULL, 'booking_16_69eb137e369da', NULL, 27000000.00, 'pending', NULL, '2026-04-24 06:53:41', '2026-04-24 06:53:50', 'cash'),
+(17, 17, NULL, NULL, NULL, 36123000.00, 'pending', NULL, '2026-04-24 07:59:33', '2026-04-24 07:59:33', 'cash'),
+(18, 18, NULL, 'booking_18_69eb230ce997e', NULL, 18150000.00, 'pending', NULL, '2026-04-24 08:00:09', '2026-04-24 08:00:12', 'cash'),
+(19, 19, NULL, 'booking_19_69eb24a602778', NULL, 18150000.00, 'pending', NULL, '2026-04-24 08:01:37', '2026-04-24 08:07:02', 'cash'),
+(20, 20, NULL, NULL, NULL, 36000000.00, 'pending', NULL, '2026-04-24 08:08:26', '2026-04-24 08:08:28', 'cash'),
+(21, 21, NULL, NULL, NULL, 57000000.00, 'pending', NULL, '2026-04-24 08:10:48', '2026-04-24 08:10:57', 'cash'),
+(22, 22, NULL, NULL, NULL, 1063500000.00, 'pending', NULL, '2026-04-24 08:13:47', '2026-04-24 08:13:47', 'cash'),
+(23, 23, NULL, NULL, NULL, 311500000.00, 'pending', NULL, '2026-04-24 08:43:04', '2026-04-24 08:43:04', 'cash'),
+(24, 24, NULL, NULL, NULL, 32080000.00, 'pending', NULL, '2026-04-25 14:29:20', '2026-04-25 14:29:20', 'cash'),
+(25, 25, NULL, NULL, NULL, 40041000.00, 'pending', NULL, '2026-04-25 14:30:28', '2026-04-25 14:30:28', 'cash'),
+(26, 26, NULL, NULL, NULL, 1051000000.00, 'pending', NULL, '2026-04-25 14:34:53', '2026-04-25 14:34:53', 'cash'),
+(27, 27, NULL, NULL, NULL, 16070000.00, 'pending', NULL, '2026-04-25 14:36:34', '2026-04-25 14:36:34', 'cash'),
+(28, 28, NULL, 'booking_28_69ecdd815ef76', NULL, 120980000.00, 'pending', NULL, '2026-04-25 14:53:08', '2026-04-25 15:28:01', 'cash'),
+(29, 29, NULL, 'booking_29_69ecde0aec842', NULL, 24000000.00, 'success', '2026-04-25 15:30:30', '2026-04-25 15:30:07', '2026-04-25 15:30:30', 'cash'),
+(30, 30, NULL, NULL, NULL, 23800000.00, 'success', '2026-04-25 16:35:39', '2026-04-25 16:35:34', '2026-04-25 16:35:39', 'cash'),
+(31, 31, NULL, NULL, NULL, 58490000.00, 'success', '2026-04-25 16:43:46', '2026-04-25 16:43:26', '2026-04-25 16:43:46', 'cash'),
+(32, 32, NULL, 'booking_32_69ecf2c8b72e8', '4731958755', 12070000.00, 'success', '2026-04-25 17:00:00', '2026-04-25 16:58:45', '2026-04-25 17:00:00', 'momo'),
+(33, 33, NULL, 'booking_33_69ed020cd65d3', NULL, 1059000000.00, 'success', '2026-04-25 18:23:21', '2026-04-25 17:16:23', '2026-04-25 18:23:21', 'cash'),
+(34, 34, NULL, NULL, NULL, 2088000000.00, 'success', '2026-04-25 18:24:52', '2026-04-25 18:24:48', '2026-04-25 18:24:52', 'cash'),
+(35, 35, NULL, 'booking_35_69ee48ed1cc8e', NULL, 16000000.00, 'pending', NULL, '2026-04-26 17:18:32', '2026-04-26 17:18:37', 'cash'),
+(36, 36, NULL, NULL, NULL, 240060000.00, 'success', '2026-04-26 18:27:29', '2026-04-26 18:27:17', '2026-04-26 18:27:29', 'cash'),
+(37, 37, NULL, NULL, NULL, 72600000.00, 'success', '2026-04-26 20:28:23', '2026-04-26 20:28:06', '2026-04-26 20:28:23', 'cash'),
+(38, 38, NULL, NULL, NULL, 212000000.00, 'success', '2026-04-27 15:08:30', '2026-04-27 15:08:18', '2026-04-27 15:08:30', 'cash');
+
+--
+-- Đang đổ dữ liệu cho bảng `booking_services`
+--
+
+INSERT INTO `booking_services` (`id`, `booking_id`, `service_id`, `quantity`) VALUES
+(1, 1, 3, 1),
+(2, 1, 4, 1),
+(3, 2, 3, 1),
+(4, 2, 4, 1),
+(5, 3, 3, 1),
+(6, 3, 4, 1),
+(7, 4, 3, 1),
+(8, 4, 4, 1),
+(9, 5, 3, 1),
+(10, 5, 4, 1),
+(11, 6, 3, 1),
+(12, 6, 4, 1),
+(13, 7, 4, 1),
+(14, 8, 3, 1),
+(15, 8, 4, 1),
+(16, 9, 1, 2),
+(17, 9, 3, 2),
+(18, 9, 4, 2),
+(19, 10, 2, 1),
+(20, 10, 3, 1),
+(21, 11, 5, 1),
+(22, 11, 6, 1),
+(23, 12, 12, 1),
+(24, 12, 14, 1),
+(25, 13, 16, 1),
+(26, 14, 20, 1),
+(27, 15, 13, 1),
+(28, 15, 20, 1),
+(29, 16, 3, 1),
+(30, 16, 4, 1),
+(31, 17, 2, 1),
+(32, 17, 3, 1),
+(33, 17, 13, 1),
+(34, 18, 16, 1),
+(35, 19, 16, 1),
+(36, 19, 17, 1),
+(37, 20, 12, 3),
+(38, 20, 13, 2),
+(39, 21, 16, 1),
+(40, 22, 16, 1),
+(41, 23, 17, 1),
+(42, 24, 2, 2),
+(43, 24, 3, 4),
+(44, 25, 12, 1),
+(45, 26, 16, 1),
+(46, 27, 15, 1),
+(47, 28, 19, 2),
+(48, 29, 17, 1),
+(49, 30, 21, 3),
+(50, 31, 19, 1),
+(51, 32, 4, 1),
+(52, 33, 16, 1),
+(53, 34, 16, 2),
+(54, 36, 23, 2),
+(55, 38, 14, 1);
+
+--
+-- Đang đổ dữ liệu cho bảng `cart`
+--
+
+INSERT INTO `cart` (`id`, `user_id`, `created_at`, `updated_at`) VALUES
+(1, 1, '2026-04-18 00:02:49', '2026-04-18 00:02:49'),
+(2, 5, '2026-08-06 13:41:52', '2026-08-06 13:41:52');
+
+--
+-- Đang đổ dữ liệu cho bảng `cart_items`
+--
+
+INSERT INTO `cart_items` (`id`, `cart_id`, `service_id`, `quantity`, `price`, `created_at`, `updated_at`) VALUES
+(26, 2, 19, 1, 44490000.00, '2026-08-06 13:41:58', '2026-08-07 14:25:44'),
+(27, 2, 2, 1, 10000.00, '2026-08-07 14:26:16', '2026-08-07 14:26:16'),
+(28, 1, 43, 1, 350000.00, '2026-08-25 15:27:27', '2026-08-25 15:27:27'),
+(29, 1, 27, 1, 45000.00, '2026-08-25 15:27:34', '2026-08-25 15:27:34');
+
+--
+-- Đang đổ dữ liệu cho bảng `categories`
+--
+
+INSERT INTO `categories` (`id`, `name`, `created_at`, `updated_at`) VALUES
+(1, 'Tổng hợp', '2026-08-15 02:35:24', '2026-08-15 02:35:24'),
+(2, 'Quần áo', '2026-08-15 02:35:24', '2026-08-15 02:35:24'),
+(6, 'giày dép', '2026-08-15 06:44:50', '2026-08-15 06:44:50'),
+(7, 'mũ', '2026-08-15 06:45:07', '2026-08-15 06:45:07'),
+(8, 'găng tay', '2026-08-15 06:45:20', '2026-08-15 06:45:20'),
+(9, 'bóng', '2026-08-15 06:45:37', '2026-08-15 06:45:37'),
+(10, 'vợt', '2026-08-15 06:46:14', '2026-08-15 06:46:14'),
+(11, 'nước', '2026-08-15 06:47:14', '2026-08-15 06:47:14');
+
+--
+-- Đang đổ dữ liệu cho bảng `chatbot_intents`
+--
+
+INSERT INTO `chatbot_intents` (`id`, `name`, `priority`, `is_active`, `created_at`, `updated_at`) VALUES
+(1, 'hello', 0, 1, '2026-04-16 08:17:28', '2026-04-16 08:17:28'),
+(2, 'ship', 0, 1, '2026-04-17 19:06:56', '2026-04-17 19:06:56'),
+(3, 'jj', 0, 1, '2026-08-07 07:35:28', '2026-08-07 07:35:28'),
+(4, 'hàng chất lượng', 0, 1, '2026-08-25 09:09:47', '2026-08-25 09:09:47');
+
+--
+-- Đang đổ dữ liệu cho bảng `chatbot_keywords`
+--
+
+INSERT INTO `chatbot_keywords` (`id`, `intent_id`, `keyword`, `created_at`, `updated_at`) VALUES
+(1, 1, 'hello', '2026-04-16 08:17:51', '2026-04-16 08:17:51'),
+(2, 1, 'chào', '2026-04-16 08:20:20', '2026-04-16 08:20:20'),
+(3, 2, 'sớm thôi thằng ngu', '2026-08-19 09:12:08', '2026-08-19 09:12:08'),
+(4, 4, 'hàng tốt', '2026-08-25 09:10:01', '2026-08-25 09:10:01');
+
+--
+-- Đang đổ dữ liệu cho bảng `chatbot_logs`
+--
+
+INSERT INTO `chatbot_logs` (`id`, `message`, `matched_intent`, `created_at`) VALUES
+(1, 'ship', 'ai', '2026-08-27 04:16:34'),
+(2, 'cc', 'ai', '2026-08-27 04:16:43'),
+(3, 'hn', 'ai', '2026-08-27 04:22:13'),
+(4, 'shipp', 'ai', '2026-08-27 04:23:37'),
+(5, 'ship', 'ai', '2026-08-27 04:23:44'),
+(6, 'ship', 'ai', '2026-08-27 04:23:53'),
+(7, 'ship', 'ai', '2026-08-27 04:24:56'),
+(8, 'hello', 'hello', '2026-08-27 04:25:46'),
+(9, 'hello', 'ai', '2026-08-27 04:26:05'),
+(10, 'hello', 'greeting', '2026-08-27 04:26:20'),
+(11, 'liên hệ', 'support', '2026-08-27 04:26:58'),
+(12, 'ưad', 'ai', '2026-08-27 04:27:06'),
+(13, 'liên hệ', 'support', '2026-08-27 04:27:14'),
+(14, 'ưad', 'ai', '2026-08-27 04:27:30'),
+(15, 'liên hệ', 'support', '2026-08-27 04:28:53'),
+(16, 'ưad', 'ai', '2026-08-27 04:28:54'),
+(17, 'dsfdf', 'ai', '2026-08-27 04:29:47'),
+(18, 'sân', 'ai', '2026-08-27 04:29:52'),
+(19, 'hàng tốt', 'ai', '2026-08-27 04:30:07'),
+(20, 'giá', 'service', '2026-08-27 04:30:55'),
+(21, 'liên hệ', 'support', '2026-08-27 04:31:16'),
+(22, 'sdfd', 'ai', '2026-08-27 04:31:24'),
+(23, 'sản', 'service', '2026-08-27 04:32:00'),
+(24, 'hàng tốt', 'service', '2026-08-27 04:32:00'),
+(25, 'sản', 'service', '2026-08-27 04:32:10'),
+(26, 'hàng tốt', 'product_quality', '2026-08-27 04:32:10'),
+(27, 'fsggsf', 'ai', '2026-08-27 04:32:40'),
+(28, 'Bạn có thể tư vấn giúp tôi không?', 'ai', '2026-08-27 04:33:45'),
+(29, 'sfsdf', 'ai', '2026-08-27 04:34:17'),
+(30, 'cơm', 'ai', '2026-08-27 04:34:28'),
+(31, 'hi', 'greeting', '2026-08-27 05:38:23'),
+(32, 'hi', 'greeting', '2026-08-27 05:38:30'),
+(33, 'có cơm gà k', 'ai', '2026-08-27 05:38:47');
+
+--
+-- Đang đổ dữ liệu cho bảng `chatbot_responses`
+--
+
+INSERT INTO `chatbot_responses` (`id`, `intent_id`, `response_text`, `created_at`, `updated_at`) VALUES
+(1, 1, 'chịu chết', '2026-04-16 08:20:05', '2026-04-16 08:20:05'),
+(2, 1, '??', '2026-04-16 08:20:26', '2026-04-16 08:20:26'),
+(3, 4, 'áo co giãn', '2026-08-25 09:10:51', '2026-08-25 09:10:51'),
+(4, 4, 'bóng wc', '2026-08-25 09:11:06', '2026-08-25 09:11:06');
+
+--
+-- Đang đổ dữ liệu cho bảng `conversations`
+--
+
+INSERT INTO `conversations` (`id`, `user_id`, `admin_id`, `target_type`, `target_id`, `created_at`, `updated_at`) VALUES
+(1, 1, 3, NULL, NULL, '2026-04-19 13:02:06', '2026-08-25 08:35:41'),
+(2, 5, 3, NULL, NULL, '2026-08-06 06:42:25', '2026-08-19 08:57:56');
+
+--
+-- Đang đổ dữ liệu cho bảng `feedbacks`
+--
+
+INSERT INTO `feedbacks` (`id`, `user_id`, `booking_id`, `service_id`, `message`, `rating`, `created_at`) VALUES
+(1, 1, NULL, 3, 'ĐẸP', 5, '2025-12-08 08:26:09'),
+(2, 1, NULL, 3, 'ĐẸP', 5, '2025-12-08 08:27:29'),
+(3, 1, 5, NULL, 'sân đẹp', 5, '2025-12-08 08:47:57'),
+(4, 1, NULL, 5, 'ĐẸP', 5, '2025-12-11 21:05:52'),
+(5, 1, 4, NULL, 'sân đẹp', 4, '2025-12-12 00:34:33'),
+(6, 0, NULL, 4, 'ok', 2, '2025-12-17 11:39:46'),
+(7, 0, NULL, 5, 'ok', 4, '2025-12-17 11:54:26'),
+(8, 0, 13, NULL, 'ok', 5, '2025-12-17 12:10:28'),
+(9, 0, NULL, 2, 'rất ok', 4, '2025-12-27 11:15:26'),
+(10, 0, NULL, 6, 'có bán kèm xixa cho anh độ mixi là vui rồi', 5, '2025-12-27 17:55:30'),
+(11, 0, NULL, 3, 'uống dở như nước mưa', 1, '2025-12-27 17:56:12'),
+(12, 1, NULL, 20, 'OK', 4, '2026-03-17 19:30:30'),
+(13, 1, NULL, 21, 'HẾT HẠN À', 1, '2026-04-19 02:48:38'),
+(14, 1, 9, NULL, 'SÂN ĐẸP QUÁ', 5, '2026-04-19 02:49:49'),
+(15, 1, NULL, 2, 'tạm tạm', 3, '2026-04-19 03:14:07'),
+(16, 1, 11, NULL, 'sân xấu quá', 1, '2026-04-19 03:23:49'),
+(17, 1, 10, NULL, 'ok', 3, '2026-04-19 03:32:39'),
+(18, 1, NULL, 24, 'xe tôts', 4, '2026-04-22 20:59:50'),
+(19, 1, NULL, 42, 'xe ok', 5, '2026-04-26 01:54:44'),
+(20, 1, NULL, 87, 'như cứt', 5, '2026-08-25 15:50:06');
+
+--
+-- Đang đổ dữ liệu cho bảng `fields`
+--
+
+INSERT INTO `fields` (`id`, `name`, `location`, `description`, `price_per_hour`, `avg_rating`, `total_reviews`, `image`, `status`, `created_at`, `updated_at`) VALUES
+(1, 'Old Trafford', 'England', 'là một dự án xây dựng sân vận động mới với sức chứa 100.000 chỗ ngồi thay thế cho sân Old Trafford hiện tại, dự kiến hoàn thành vào khoảng năm 2030. Sân mới này sẽ có kiến trúc hiện đại, được thiết kế bởi công ty kiến trúc Foster + Partners, và sẽ có sức chứa lớn hơn cả sân vận động Wembley', 9000000.00, 0.00, 0, '1764788597_8153.webp', 'active', '2025-12-03 05:03:17', '2025-12-03 05:03:17'),
+(2, 'Santiago Bernabéu', 'Spain', 'Sân vận động Santiago Bernabéu (tiếng Tây Ban Nha: Estadio Santiago Bernabéu; [esˈtaðjo sanˈtjaɣo βeɾnaˈβew] ⓘ) là một sân vận động bóng đá ở Madrid, Tây Ban Nha. Với sức chứa chỗ ngồi là 78.297 chỗ,[2] sân vận động có sức chứa chỗ ngồi lớn thứ hai cho một sân vận động bóng đá ở Tây Ban Nha. Đây là sân nhà của Real Madrid kể từ khi hoàn thành vào năm 1947.[5]', 8000000.00, 0.00, 0, '1764788705_9976.jpg', 'active', '2025-12-03 05:05:05', '2025-12-03 05:19:58'),
+(3, 'Etihad Stadium', 'England', 'Sân vận động Thành phố Manchester (tiếng Anh: City of Manchester Stadium; thường được viết tắt là CoMS), còn được gọi là Sân vận động Etihad vì lý do tài trợ,[2] là một sân vận động ở Manchester, Anh. Đây là sân nhà của Manchester City F.C., với sức chứa bóng đá cho các trận đấu trong nước là 55.017 chỗ ngồi,[1] khiến sân trở thành sân vận động lớn thứ sáu ở Premier League và lớn thứ mười ở Vương quốc Anh.[3]', 10000000.00, 3.00, 1, '1764788882_2814.jpg', 'active', '2025-12-03 05:08:02', '2026-04-18 20:32:39'),
+(4, 'Emirates vô địch EPL 2025', 'England', 'Sân vận động Emirates (tiếng Anh: Emirates Stadium, được biết đến với tên gọi Ashburton Grove trước khi bán quyền đặt tên và có tên gọi là Sân vận động Arsenal trong các giải đấu của UEFA) là một sân vận động bóng đá ở Highbury, Luân Đôn, Anh. Đây là sân nhà của câu lạc bộ Arsenal.[1][2][3][4][5] Với sức chứa 60.704 chỗ ngồi, Emirates là sân vận động bóng đá lớn thứ tư ở nước Anh sau Sân vận động Wembley, Old Trafford và Sân vận động Tottenham Hotspur.', 7000000.00, 0.00, 0, '1764788999_4021.webp', 'active', '2025-12-03 05:09:59', '2025-12-26 20:13:19'),
+(5, 'Camp Nou', 'Spain', 'Camp Nou (phát âm tiếng Catalunya: [ˌkamˈnɔw], có nghĩa là sân mới, thường được gọi bằng tiếng Anh là Nou Camp), được đặt tên là Spotify Camp Nou vì lý do tài trợ, là sân nhà của câu lạc bộ La Liga FC Barcelona kể từ khi hoàn thành vào năm 1957. Với sức chứa hiện tại 99,354,[8] đó là sân vận động có sức chứa lớn nhất ở Tây Ban Nha và châu Âu, và sân vận động bóng đá lớn thứ hai trên thế giới.', 9000000.00, 0.00, 0, '1764789153_4240.jpg', 'active', '2025-12-03 05:12:33', '2025-12-03 05:12:33'),
+(6, 'Wembley', 'England', 'Sân vận động Wembley (tiếng Anh: Wembley Stadium), được đặt tên là Sân vận động Wembley được kết nối bởi EE vì lý do tài trợ, là một sân vận động bóng đá ở Wembley, Luân Đôn, được khai trương vào năm 2007, trên nền đất của sân vận động Wembley cũ, đã bị phá hủy từ năm 2002 đến 2003.[8][9] Sân vận động thuộc sở hữu của Hiệp hội bóng đá Anh (FA), thông qua công ty con Wembley National Stadium Ltd (WNSL). Đây cũng là nơi FA đặt trụ sở làm việc chính của mình. Với 90.000 chỗ ngồi, đây là sân vận động bóng đá lớn nhất nước Anh, sân vận động lớn thứ sáu thế giới và sân vận động lớn thứ hai ở châu Âu.[10]', 6000000.00, 0.00, 0, '1764789293_5752.jpg', 'active', '2025-12-03 05:14:53', '2025-12-03 05:14:53'),
+(7, 'Allianz Arena', 'Germany', 'Allianz Arena là một sân vận động bóng đá ở Munich, Bavaria, Đức, với sức chứa 70.000 chỗ ngồi cho các trận đấu quốc tế và 75.000 chỗ ngồi cho các trận đấu trong nước. Được biết đến rộng rãi với mặt ngoài bằng các tấm nhựa ETFE bơm hơi, đây là sân vận động đầu tiên trên thế giới có mặt ngoài đổi màu hoàn toàn. Tọa lạc tại số 25 Werner-Heisenberg-Allee ở rìa phía bắc của quận Schwabing-Freimann của Munich trên Fröttmaning Heath, đây là sân vận động lớn thứ hai ở Đức sau Westfalenstadion ở Dortmund.', 9000000.00, 0.00, 0, '1764789935_3867.jpg', 'active', '2025-12-03 05:25:35', '2025-12-03 05:25:35'),
+(8, 'Anfield Stadium', 'England', 'Anfield là một sân vận động đạt chuẩn UEFA, và đã tổ chức nhiều trận đấu quốc tế, bao gồm cả những trận của đội tuyển Anh. Sân cũng được sử dụng ở VCK Euro 1996. Ban đầu sân cũng còn được sử dụng trong nhiều hoạt động, chẳng hạn như những trận boxing và tennis.', 7000000.00, 0.00, 0, '1764790143_8460.jpg', 'active', '2025-12-03 05:29:03', '2025-12-03 05:29:03'),
+(9, 'Allianz Stadium', 'Italia', 'Allianz Arena ([ʔali̯ˈants ʔaˌʁeːnaː]) là một sân vận động bóng đá ở München, Bayern, Đức. Sân có sức chứa 70.000 chỗ ngồi cho các trận đấu quốc tế và 75.000 ...', 8000000.00, 0.00, 0, '1764790561_1985.jpg', 'active', '2025-12-03 05:36:01', '2026-04-21 18:02:13'),
+(11, 'Maracanã Stadium', 'Brazil', 'Đây là một trong những sân vận động đẹp nhất thế giới', 8500000.00, 0.00, 0, '1776795458_2527.jpg', 'active', '2026-04-21 18:14:02', '2026-04-21 18:17:38'),
+(12, 'Lusail Stadium', 'Qatar', 'World Cup 2022 Final Stadium', 12000000.00, 0.00, 0, '1776795375_3709.jpg', 'active', '2026-04-21 18:14:02', '2026-04-21 18:16:15'),
+(13, 'Stade de France', 'France', 'Stade de France tọa lạc chính xác tại ZAC du Cornillon Nord, 93200 Saint-Denis, Pháp, cách trung tâm thủ đô Paris khoảng 2km về phía Bắc. Đây là sân vận động lớn nhất nước Pháp với sức chứa lên đến 80.000 chỗ ngồi và là nơi tổ chức các trận đấu quan trọng nhất của đội tuyển bóng đá và rugby quốc gia. Với tọa độ chiến lược ngay ngã tư giao cắt giữa hai xa lộ chính A1 và A86, Stade de France không chỉ là một biểu tượng thể thao mà còn là tâm điểm của khu vực đô thị mới Plaine Commune, nơi đang phát triển mạnh mẽ về văn hóa và du lịch trong những năm gần đây.', 9000000.00, 0.00, 0, '1776795730_9726.jpg', 'active', '2026-04-21 18:14:02', '2026-04-21 18:22:10'),
+(14, 'Tottenham Hotspur Stadium', 'England', 'Tottenham Hotspur Stadium tọa lạc tại địa chỉ 782 High Road, Tottenham, London N17 0BX, Vương quốc Anh. Sân vận động này nằm ở khu vực Bắc London, được xây dựng ngay trên nền của sân vận động cũ White Hart Lane huyền thoại. Vị trí này nằm cách trung tâm London khoảng 12km về phía Bắc, thuộc quận Haringey. Đây là một vị trí có bề dày lịch sử lâu đời, nơi bóng đá không chỉ là môn thể thao mà còn là nhịp đập của cả cộng đồng cư dân địa phương. Xung quanh sân là các khu phố nhộn nhịp với sự pha trộn văn hóa đa dạng, tạo nên một bầu không khí vô cùng đặc trưng mà bạn khó có thể tìm thấy ở bất kỳ nơi nào khác tại thủ đô London.', 9500000.00, 0.00, 0, '1776795833_2742.jpg', 'active', '2026-04-21 18:14:02', '2026-04-21 18:23:53'),
+(16, 'Estadio Azteca', 'Mexico', 'Historic World Cup stadium', 8000000.00, 0.00, 0, '1776795307_8013.jpg', 'active', '2026-04-21 18:14:02', '2026-04-21 18:15:07'),
+(17, 'San Siro', 'Italy', 'AC Milan & Inter Milan home', 8700000.00, 0.00, 0, '1776795621_8919.jpg', 'active', '2026-04-21 18:14:02', '2026-04-21 18:20:21'),
+(18, 'Parken Stadium', 'Denmark', 'Sân vận động đẹp nhất đan mạch', 6000000.00, 0.00, 0, '1776795557_9921.jpg', 'active', '2026-04-21 18:14:02', '2026-04-21 18:19:17');
+
+--
+-- Đang đổ dữ liệu cho bảng `invoices`
+--
+
+INSERT INTO `invoices` (`id`, `booking_id`, `invoice_code`, `total_amount`, `issued_at`, `created_at`, `updated_at`, `order_id`) VALUES
+(1, 2, 'INV-1776446314', 24000000.00, '2026-04-17 17:18:34', '2026-04-17 17:18:34', '2026-04-17 17:18:34', NULL),
+(4, 2, 'INV-1776451362', 24000000.00, '2026-04-17 18:42:42', '2026-04-17 18:42:42', '2026-04-17 18:42:42', NULL),
+(8, 1, 'INV-1776505035', 18000000.00, '2026-04-18 09:37:15', '2026-04-18 09:37:15', '2026-04-18 09:37:15', NULL),
+(9, 1, 'INV-1776507070', 18000000.00, '2026-04-18 10:11:10', '2026-04-18 10:11:10', '2026-04-18 10:11:10', NULL),
+(10, 1, 'INV-1776796071', 18000000.00, '2026-04-21 18:27:51', '2026-04-21 18:27:51', '2026-04-21 18:27:51', NULL),
+(12, 34, 'INV-1777142983', 18000000.00, '2026-04-25 18:49:43', '2026-04-25 18:49:43', '2026-04-25 18:49:43', NULL),
+(16, 37, 'INV-1787647595', 72600000.00, '2026-08-25 08:46:35', '2026-08-25 08:46:35', '2026-08-25 08:46:35', NULL);
+
+--
+-- Đang đổ dữ liệu cho bảng `messages`
+--
+
+INSERT INTO `messages` (`id`, `conversation_id`, `sender_id`, `message`, `attachment_path`, `attachment_original_name`, `attachment_mime`, `attachment_size`, `is_read`, `created_at`, `updated_at`) VALUES
+(1, 1, 1, 'chào ạ', NULL, NULL, NULL, NULL, 0, '2026-04-19 13:02:17', '2026-04-19 13:02:17'),
+(2, 1, 1, 'chào ạ', NULL, NULL, NULL, NULL, 0, '2026-04-19 13:02:30', '2026-04-19 13:02:30'),
+(3, 1, 1, 'chào ạ', NULL, NULL, NULL, NULL, 0, '2026-04-19 13:05:53', '2026-04-19 13:05:53'),
+(4, 1, 1, 'lo\\', NULL, NULL, NULL, NULL, 0, '2026-04-19 13:05:58', '2026-04-19 13:05:58'),
+(5, 1, 3, 'banj muon hi tro gi ạ', NULL, NULL, NULL, NULL, 0, '2026-04-19 13:10:14', '2026-04-19 13:10:14'),
+(6, 1, 1, 'cho em hỏi', NULL, NULL, NULL, NULL, 0, '2026-04-19 13:37:14', '2026-04-19 13:37:14'),
+(7, 1, 3, 'sao em', NULL, NULL, NULL, NULL, 0, '2026-04-19 13:37:41', '2026-04-19 13:37:41'),
+(8, 1, 3, 'sao', NULL, NULL, NULL, NULL, 0, '2026-04-19 13:42:16', '2026-04-19 13:42:16'),
+(9, 1, 1, 'hả', NULL, NULL, NULL, NULL, 0, '2026-04-19 13:43:17', '2026-04-19 13:43:17'),
+(10, 1, 1, 'alo', NULL, NULL, NULL, NULL, 0, '2026-04-19 13:47:51', '2026-04-19 13:47:51'),
+(11, 1, 3, 'sao', NULL, NULL, NULL, NULL, 0, '2026-04-19 13:48:17', '2026-04-19 13:48:17'),
+(12, 1, 1, 'hay', NULL, NULL, NULL, NULL, 0, '2026-04-19 14:03:11', '2026-04-19 14:03:11'),
+(13, 1, 1, 'hả', NULL, NULL, NULL, NULL, 0, '2026-04-19 14:03:37', '2026-04-19 14:03:37'),
+(14, 1, 3, 'khoong sao', NULL, NULL, NULL, NULL, 0, '2026-04-19 14:41:56', '2026-04-19 14:41:56'),
+(15, 1, 1, 'saohar', NULL, NULL, NULL, NULL, 0, '2026-04-19 14:42:13', '2026-04-19 14:42:13'),
+(16, 1, 1, 'hello', NULL, NULL, NULL, NULL, 0, '2026-04-19 14:42:42', '2026-04-19 14:42:42'),
+(17, 1, 1, 'cc', NULL, NULL, NULL, NULL, 0, '2026-04-19 14:53:45', '2026-04-19 14:53:45'),
+(18, 1, 1, 'cc', NULL, NULL, NULL, NULL, 0, '2026-04-19 14:53:57', '2026-04-19 14:53:57'),
+(19, 1, 3, 'cc', NULL, NULL, NULL, NULL, 0, '2026-04-19 14:55:27', '2026-04-19 14:55:27'),
+(20, 1, 3, 'vv', NULL, NULL, NULL, NULL, 0, '2026-04-19 14:55:34', '2026-04-19 14:55:34'),
+(21, 1, 3, 'k', NULL, NULL, NULL, NULL, 0, '2026-04-19 14:59:19', '2026-04-19 14:59:19'),
+(22, 1, 1, 'jh', NULL, NULL, NULL, NULL, 0, '2026-04-19 15:01:41', '2026-04-19 15:01:41'),
+(23, 1, 1, 'hmb', NULL, NULL, NULL, NULL, 0, '2026-04-19 15:01:47', '2026-04-19 15:01:47'),
+(24, 1, 1, 'b', NULL, NULL, NULL, NULL, 0, '2026-04-19 15:01:51', '2026-04-19 15:01:51'),
+(25, 1, 3, 'hgv', NULL, NULL, NULL, NULL, 0, '2026-04-19 15:02:14', '2026-04-19 15:02:14'),
+(26, 1, 1, 'qq', NULL, NULL, NULL, NULL, 0, '2026-04-19 15:04:53', '2026-04-19 15:04:53'),
+(27, 1, 1, 'as', NULL, NULL, NULL, NULL, 0, '2026-04-19 15:05:01', '2026-04-19 15:05:01'),
+(28, 1, 3, 'sd', NULL, NULL, NULL, NULL, 0, '2026-04-19 15:05:18', '2026-04-19 15:05:18'),
+(29, 1, 1, 'sđ', NULL, NULL, NULL, NULL, 0, '2026-04-19 15:05:30', '2026-04-19 15:05:30'),
+(30, 1, 1, 'sdfd', NULL, NULL, NULL, NULL, 0, '2026-04-19 15:05:59', '2026-04-19 15:05:59'),
+(31, 1, 1, 'omg', NULL, NULL, NULL, NULL, 0, '2026-04-19 15:08:55', '2026-04-19 15:08:55'),
+(32, 1, 1, 'dá', NULL, NULL, NULL, NULL, 0, '2026-04-19 15:09:07', '2026-04-19 15:09:07'),
+(33, 1, 1, 'ds', NULL, NULL, NULL, NULL, 0, '2026-04-19 15:09:11', '2026-04-19 15:09:11'),
+(34, 1, 1, 'hả', NULL, NULL, NULL, NULL, 0, '2026-04-19 15:13:11', '2026-04-19 15:13:11'),
+(35, 1, 1, 'fgsfxg', NULL, NULL, NULL, NULL, 0, '2026-04-19 15:16:22', '2026-04-19 15:16:22'),
+(36, 1, 1, 'dsf', NULL, NULL, NULL, NULL, 0, '2026-04-19 15:25:14', '2026-04-19 15:25:14'),
+(37, 1, 1, 'hello', NULL, NULL, NULL, NULL, 0, '2026-04-19 15:25:21', '2026-04-19 15:25:21'),
+(38, 1, 3, 'sao em', NULL, NULL, NULL, NULL, 0, '2026-04-19 15:26:06', '2026-04-19 15:26:06'),
+(39, 1, 1, 'k sao ạ', NULL, NULL, NULL, NULL, 0, '2026-04-19 15:26:12', '2026-04-19 15:26:12'),
+(40, 1, 3, 'ok', NULL, NULL, NULL, NULL, 0, '2026-04-20 07:32:43', '2026-04-20 07:32:43'),
+(41, 1, 1, 'hả', NULL, NULL, NULL, NULL, 0, '2026-04-20 07:51:38', '2026-04-20 07:51:38'),
+(42, 1, 3, 'ok', NULL, NULL, NULL, NULL, 0, '2026-04-20 07:51:42', '2026-04-20 07:51:42'),
+(43, 1, 3, 'ff', NULL, NULL, NULL, NULL, 0, '2026-04-20 07:52:49', '2026-04-20 07:52:49'),
+(44, 1, 1, 'ff', NULL, NULL, NULL, NULL, 0, '2026-04-20 07:52:52', '2026-04-20 07:52:52'),
+(45, 1, 1, 'hải ngu', NULL, NULL, NULL, NULL, 0, '2026-04-20 07:53:00', '2026-04-20 07:53:00'),
+(46, 1, 3, 'tôi k ngu', NULL, NULL, NULL, NULL, 0, '2026-04-20 07:53:06', '2026-04-20 07:53:06'),
+(47, 1, 1, 'chào ạ', NULL, NULL, NULL, NULL, 0, '2026-04-20 11:22:43', '2026-04-20 11:22:43'),
+(48, 1, 3, 'sao em', NULL, NULL, NULL, NULL, 0, '2026-04-20 11:23:17', '2026-04-20 11:23:17'),
+(49, 1, 1, 'chào', NULL, NULL, NULL, NULL, 0, '2026-04-20 11:32:52', '2026-04-20 11:32:52'),
+(50, 1, 1, 'chào', NULL, NULL, NULL, NULL, 0, '2026-04-20 11:36:51', '2026-04-20 11:36:51'),
+(51, 1, 3, 'hả', NULL, NULL, NULL, NULL, 0, '2026-04-20 11:37:09', '2026-04-20 11:37:09'),
+(52, 1, 1, 'hả', NULL, NULL, NULL, NULL, 0, '2026-04-20 11:43:03', '2026-04-20 11:43:03'),
+(53, 1, 3, 'qqq', NULL, NULL, NULL, NULL, 0, '2026-04-20 11:43:19', '2026-04-20 11:43:19'),
+(54, 1, 1, 'ggg', NULL, NULL, NULL, NULL, 0, '2026-04-20 11:45:25', '2026-04-20 11:45:25'),
+(55, 1, 3, 'efrefs', NULL, NULL, NULL, NULL, 0, '2026-04-20 11:45:33', '2026-04-20 11:45:33'),
+(56, 1, 1, 'okjgoigf', NULL, NULL, NULL, NULL, 0, '2026-04-20 11:48:36', '2026-04-20 11:48:36'),
+(57, 1, 3, 'fsdf', NULL, NULL, NULL, NULL, 0, '2026-04-20 11:48:42', '2026-04-20 11:48:42'),
+(58, 1, 1, 'sdfsdf', NULL, NULL, NULL, NULL, 0, '2026-04-20 11:54:31', '2026-04-20 11:54:31'),
+(59, 1, 3, 'ưdaed', NULL, NULL, NULL, NULL, 0, '2026-04-20 11:54:36', '2026-04-20 11:54:36'),
+(60, 1, 1, 'dfsdf', NULL, NULL, NULL, NULL, 0, '2026-04-20 11:55:22', '2026-04-20 11:55:22'),
+(61, 1, 3, 'đasa', NULL, NULL, NULL, NULL, 0, '2026-04-20 11:55:31', '2026-04-20 11:55:31'),
+(62, 1, 1, 'sad', NULL, NULL, NULL, NULL, 0, '2026-04-20 11:56:44', '2026-04-20 11:56:44'),
+(63, 1, 3, 'á', NULL, NULL, NULL, NULL, 0, '2026-04-20 11:56:50', '2026-04-20 11:56:50'),
+(64, 1, 1, 'hello', NULL, NULL, NULL, NULL, 0, '2026-04-20 13:44:36', '2026-04-20 13:44:36'),
+(65, 1, 3, 'sao cu', NULL, NULL, NULL, NULL, 0, '2026-04-20 13:45:08', '2026-04-20 13:45:08'),
+(66, 1, 1, 'fsd', NULL, NULL, NULL, NULL, 0, '2026-04-20 13:45:40', '2026-04-20 13:45:40'),
+(67, 1, 1, 'fsad', NULL, NULL, NULL, NULL, 0, '2026-04-20 13:45:57', '2026-04-20 13:45:57'),
+(68, 1, 1, 'ad', NULL, NULL, NULL, NULL, 0, '2026-04-20 13:46:28', '2026-04-20 13:46:28'),
+(69, 1, 1, 'e cu', NULL, NULL, NULL, NULL, 0, '2026-04-20 13:47:00', '2026-04-20 13:47:00'),
+(70, 1, 3, 'sao en', NULL, NULL, NULL, NULL, 0, '2026-04-20 13:47:09', '2026-04-20 13:47:09'),
+(71, 1, 1, 'jykughj\\', NULL, NULL, NULL, NULL, 0, '2026-04-20 14:08:47', '2026-04-20 14:08:47'),
+(72, 1, 3, 'SAO EM', NULL, NULL, NULL, NULL, 0, '2026-04-20 14:09:07', '2026-04-20 14:09:07'),
+(73, 1, 1, 'DẠ K Ạ', NULL, NULL, NULL, NULL, 0, '2026-04-20 14:09:14', '2026-04-20 14:09:14'),
+(74, 1, 3, '??', NULL, NULL, NULL, NULL, 0, '2026-04-20 14:09:20', '2026-04-20 14:09:20'),
+(75, 1, 3, 'ngáo à?', NULL, NULL, NULL, NULL, 0, '2026-04-20 14:22:25', '2026-04-20 14:22:25'),
+(76, 1, 1, 'sao chửipoti', NULL, NULL, NULL, NULL, 0, '2026-04-20 14:22:34', '2026-04-20 14:22:34'),
+(77, 1, 1, 'chào anh', NULL, NULL, NULL, NULL, 0, '2026-04-22 13:59:59', '2026-04-22 13:59:59'),
+(78, 1, 3, 'sâpfsdf', NULL, NULL, NULL, NULL, 0, '2026-04-22 14:01:39', '2026-04-22 14:01:39'),
+(79, 1, 3, 'cmm', NULL, NULL, NULL, NULL, 0, '2026-04-23 08:02:35', '2026-04-23 08:02:35'),
+(80, 1, 1, 'cmm', NULL, NULL, NULL, NULL, 0, '2026-04-23 08:02:44', '2026-04-23 08:02:44'),
+(81, 1, 3, 'cmm', NULL, NULL, NULL, NULL, 0, '2026-04-23 08:02:50', '2026-04-23 08:02:50'),
+(82, 1, 1, 'đánh nhau ko', NULL, NULL, NULL, NULL, 0, '2026-04-23 08:02:59', '2026-04-23 08:02:59'),
+(83, 1, 3, 'đánh cmm', NULL, NULL, NULL, NULL, 0, '2026-04-23 08:03:03', '2026-04-23 08:03:03'),
+(84, 1, 3, 'cmm hải ngu', NULL, NULL, NULL, NULL, 0, '2026-04-23 08:03:30', '2026-04-23 08:03:30'),
+(85, 1, 1, 'iku', NULL, NULL, NULL, NULL, 0, '2026-04-23 08:03:33', '2026-04-23 08:03:33'),
+(86, 1, 1, 'iku', NULL, NULL, NULL, NULL, 0, '2026-04-23 08:03:36', '2026-04-23 08:03:36'),
+(87, 1, 1, 'iku', NULL, NULL, NULL, NULL, 0, '2026-04-23 08:03:37', '2026-04-23 08:03:37'),
+(88, 1, 1, 'iku', NULL, NULL, NULL, NULL, 0, '2026-04-23 08:03:39', '2026-04-23 08:03:39'),
+(89, 1, 1, 'iku', NULL, NULL, NULL, NULL, 0, '2026-04-23 08:03:40', '2026-04-23 08:03:40'),
+(90, 1, 1, 'iku', NULL, NULL, NULL, NULL, 0, '2026-04-23 08:03:42', '2026-04-23 08:03:42'),
+(91, 1, 3, 'cmm', NULL, NULL, NULL, NULL, 0, '2026-04-23 08:03:43', '2026-04-23 08:03:43'),
+(92, 1, 1, 'iku', NULL, NULL, NULL, NULL, 0, '2026-04-23 08:03:45', '2026-04-23 08:03:45'),
+(93, 1, 1, 'iku', NULL, NULL, NULL, NULL, 0, '2026-04-23 08:03:46', '2026-04-23 08:03:46'),
+(94, 1, 3, 'sv phong ngu', NULL, NULL, NULL, NULL, 0, '2026-04-23 08:03:53', '2026-04-23 08:03:53'),
+(95, 1, 1, 'trừ lương', NULL, NULL, NULL, NULL, 0, '2026-04-23 08:03:55', '2026-04-23 08:03:55'),
+(96, 1, 3, 'đấm nhau k cmm', NULL, NULL, NULL, NULL, 0, '2026-04-23 08:04:16', '2026-04-23 08:04:16'),
+(97, 1, 1, 'một đêm 500k', NULL, NULL, NULL, NULL, 0, '2026-04-23 08:04:22', '2026-04-23 08:04:22'),
+(98, 1, 1, 'ừ lương của m', NULL, NULL, NULL, NULL, 0, '2026-04-23 08:04:28', '2026-04-23 08:04:28'),
+(99, 1, 1, 'phí 200k', NULL, NULL, NULL, NULL, 0, '2026-04-23 08:04:38', '2026-04-23 08:04:38'),
+(100, 1, 1, 'k bcs', NULL, NULL, NULL, NULL, 0, '2026-04-23 08:04:42', '2026-04-23 08:04:42'),
+(101, 1, 1, 'có bcs 50k', NULL, NULL, NULL, NULL, 0, '2026-04-23 08:04:49', '2026-04-23 08:04:49'),
+(102, 1, 3, 'https://www.doubledowncasino.com/?utm_campaign=134783_Bing_SEM_Desk%252BTab_Generic&utm_term=casinos%2520online&utm_content=Phrase%2520-%2520Casino&msclkid=90b3b1a304a41fad0f1ad84ad611e385&cid=134783&utm_source=bing&utm_medium=cpc', NULL, NULL, NULL, NULL, 0, '2026-04-23 08:05:03', '2026-04-23 08:05:03'),
+(103, 1, 1, 'gửi gửi cái lmm', NULL, NULL, NULL, NULL, 0, '2026-04-23 08:05:17', '2026-04-23 08:05:17'),
+(104, 1, 3, 'cmm', NULL, NULL, NULL, NULL, 0, '2026-04-23 08:05:19', '2026-04-23 08:05:19'),
+(105, 1, 3, 'https://www.doubledowncasino.com/?utm_campaign=134783_Bing_SEM_Desk%252BTab_Generic&utm_term=casinos%2520online&utm_content=Phrase%2520-%2520Casino&msclkid=90b3b1a304a41fad0f1ad84ad611e385&cid=134783&utm_source=bing&utm_medium=cpc', NULL, NULL, NULL, NULL, 0, '2026-04-23 08:05:27', '2026-04-23 08:05:27'),
+(106, 2, 5, 'dcm tien', NULL, NULL, NULL, NULL, 0, '2026-08-06 06:42:30', '2026-08-06 06:42:30'),
+(107, 2, 5, 'hi', NULL, NULL, NULL, NULL, 0, '2026-08-06 06:42:57', '2026-08-06 06:42:57'),
+(108, 2, 3, '', 'chat-attachments/7sYQ7lbgtLdpWVZYUy8OrFG9nqixy6hPieq5kdzS.jpg', 'shinobu-kocho-3840x2160-16954.jpg', 'image/jpeg', 1533808, 0, '2026-08-07 07:39:52', '2026-08-07 07:39:52'),
+(109, 2, 5, 'duy cac', 'chat-attachments/PszcNHpmYgZTYi8RfPXjouJsoolYX5opdnprihET.jpg', 'shinobu-kocho-3840x2160-16954.jpg', 'image/jpeg', 1533808, 0, '2026-08-07 07:41:04', '2026-08-07 07:41:04'),
+(110, 1, 3, 'lô', NULL, NULL, NULL, NULL, 0, '2026-08-15 03:09:27', '2026-08-15 03:09:27'),
+(111, 1, 1, 'lo cc', NULL, NULL, NULL, NULL, 0, '2026-08-15 03:48:47', '2026-08-15 03:48:47'),
+(112, 1, 3, 'nguu', NULL, NULL, NULL, NULL, 0, '2026-08-18 08:33:17', '2026-08-18 08:33:17'),
+(113, 2, 5, 'chào ạ', NULL, NULL, NULL, NULL, 0, '2026-08-19 08:57:08', '2026-08-19 08:57:08'),
+(114, 2, 3, 'sao em', NULL, NULL, NULL, NULL, 0, '2026-08-19 08:57:20', '2026-08-19 08:57:20'),
+(115, 2, 5, 'nguu', NULL, NULL, NULL, NULL, 0, '2026-08-19 08:57:25', '2026-08-19 08:57:25'),
+(116, 2, 3, '', 'chat-attachments/3OHepMCcOVriGdL3k73pyjLnvN1cK0LGT8JsBU86.webp', '2-48992df8-338f-4174-8844-1f6dedfa60a5.webp', 'image/webp', 87934, 0, '2026-08-19 08:57:30', '2026-08-19 08:57:30'),
+(117, 2, 3, '', 'chat-attachments/wKrZiwu5ARtEollN4f83qvQs7kqI1eOcXntRhqL9.txt', 'implementation_plan.md', 'text/plain', 3134, 0, '2026-08-19 08:57:56', '2026-08-19 08:57:56'),
+(118, 1, 1, 'HV', NULL, NULL, NULL, NULL, 0, '2026-08-25 08:35:35', '2026-08-25 08:35:35'),
+(119, 1, 1, 'MMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMMM', NULL, NULL, NULL, NULL, 0, '2026-08-25 08:35:41', '2026-08-25 08:35:41');
+
+--
+-- Đang đổ dữ liệu cho bảng `migrations`
+--
+
+INSERT INTO `migrations` (`id`, `migration`, `batch`) VALUES
+(1, '2026_04_06_012746_create_booking_services_table', 1),
+(2, '2026_04_06_012746_create_bookings_table', 1),
+(3, '2026_04_06_012746_create_cart_items_table', 1),
+(4, '2026_04_06_012746_create_cart_table', 1),
+(5, '2026_04_06_012746_create_chatbot_intents_table', 1),
+(6, '2026_04_06_012746_create_chatbot_keywords_table', 1),
+(7, '2026_04_06_012746_create_chatbot_logs_table', 1),
+(8, '2026_04_06_012746_create_chatbot_responses_table', 1),
+(9, '2026_04_06_012746_create_feedbacks_table', 1),
+(10, '2026_04_06_012746_create_fields_table', 1),
+(11, '2026_04_06_012746_create_order_items_table', 1),
+(12, '2026_04_06_012746_create_orders_table', 1),
+(13, '2026_04_06_012746_create_payments_table', 1),
+(14, '2026_04_06_012746_create_services_table', 1),
+(15, '2026_04_06_012746_create_user_spending_table', 1),
+(16, '2026_04_06_012746_create_users_table', 1),
+(17, '2026_04_13_155407_create_booking_payments_table', 1),
+(18, '2026_04_14_142851_create_password_reset_tokens_table', 1),
+(19, '2026_04_17_230312_create_invoices_table', 2),
+(20, '2026_04_17_234945_add_rating_columns_to_fields_table', 3),
+(21, '2026_04_18_004701_add_order_id_to_invoices_table', 4),
+(26, '2026_04_18_194206_add_payment_method_to_booking_payments_table', 5),
+(27, '2026_04_18_194319_add_payment_method_to_payments_table', 5),
+(28, '2026_04_19_025225_add_rating_columns_to_services_table', 6),
+(29, '2026_04_19_000001_create_conversations_table', 7),
+(30, '2026_04_19_000002_create_messages_table', 7),
+(31, '2026_04_20_155513_add_admin_id_to_conversations_table', 8),
+(32, '2026_04_21_234157_change_price_column_in_services_table', 9),
+(33, '2026_04_22_042516_create_activity_logs_table', 10),
+(34, '2026_04_26_220445_change_total_amount_in_invoices_table', 11),
+(35, '2026_04_26_224316_create_price_rules_table', 12),
+(36, '2026_04_26_232123_update_price_rules_time_columns', 13),
+(37, '2026_04_27_232051_create_service_discounts_table', 14),
+(38, '2026_04_28_013240_add_note_to_service_discounts_table', 15),
+(39, '2026_04_28_101535_add_discount_columns_to_order_items_table', 16),
+(40, '2026_04_28_214248_alter_original_price_column_in_order_items_table', 17),
+(41, '2026_05_30_000000_create_user_addresses_table', 18),
+(42, '2026_05_30_000001_add_user_address_id_to_payments_table', 18),
+(43, '2026_05_30_000002_add_user_address_id_to_booking_payments_table', 18),
+(44, '2026_05_30_000003_add_user_address_id_to_orders_table', 18),
+(45, '2026_05_31_000001_add_bank_transfer_to_payment_method_enums', 18),
+(46, '2026_05_31_000002_add_attachments_to_messages_table', 18),
+(47, '2026_06_01_000001_prevent_negative_service_quantity', 18),
+(48, '2026_08_15_093502_create_categories_table', 19),
+(49, '2026_08_15_093512_add_category_id_to_services_table', 19),
+(50, '2026_08_17_000001_create_order_shipments_table', 20);
+
+--
+-- Đang đổ dữ liệu cho bảng `orders`
+--
+
+INSERT INTO `orders` (`id`, `user_id`, `cart_id`, `user_address_id`, `total_amount`, `payment_method`, `status`, `created_at`, `updated_at`) VALUES
+(65, 1, 1, 2, 70000.00, NULL, 'pending', '2026-08-25 14:34:55', '2026-08-25 14:35:04'),
+(66, 1, 1, 2, 70000.00, NULL, 'confirmed', '2026-08-27 11:18:20', '2026-08-27 11:18:26');
+
+--
+-- Đang đổ dữ liệu cho bảng `order_items`
+--
+
+INSERT INTO `order_items` (`id`, `order_id`, `service_id`, `quantity`, `price`, `original_price`, `discount_percent`, `created_at`, `status`, `updated_at`) VALUES
+(87, 65, 43, 1, 70000.00, 350000.00, 80, '2026-08-25 14:34:55', 'pending', '2026-08-25 14:34:55'),
+(88, 66, 43, 1, 70000.00, 350000.00, 80, '2026-08-27 11:18:20', 'pending', '2026-08-27 11:18:20');
+
+--
+-- Đang đổ dữ liệu cho bảng `order_shipments`
+--
+
+INSERT INTO `order_shipments` (`id`, `order_id`, `provider`, `tracking_code`, `client_order_code`, `status`, `pickup_lat`, `pickup_lng`, `delivery_lat`, `delivery_lng`, `shipper_lat`, `shipper_lng`, `route_points`, `provider_response`, `provider_error`, `last_status_at`, `created_at`, `updated_at`) VALUES
+(3, 65, 'demo', 'DEMO26082500065', 'ORDER-65-20260825152923', 'created', 10.7768890, 106.7008060, 10.8128890, 106.7148060, 10.7768890, 106.7008060, '[{\"lat\":10.776889,\"lng\":106.700806},{\"lat\":10.7796942619222,\"lng\":106.70073670237224},{\"lat\":10.782477190451026,\"lng\":106.70067857144114},{\"lat\":10.785215834323651,\"lng\":106.70064258283817},{\"lat\":10.787889000000002,\"lng\":106.70063933333333},{\"lat\":10.790476614290089,\"lng\":106.70067885952162},{\"lat\":10.792960067811867,\"lng\":106.70077046609407},{\"lat\":10.795322533402913,\"lng\":106.70092256663187},{\"lat\":10.797549254037845,\"lng\":106.70114253964775},{\"lat\":10.799627795325113,\"lng\":106.70143660233745},{\"lat\":10.801548258262892,\"lng\":106.70180970420188},{\"lat\":10.80330344861374,\"lng\":106.7022654423598},{\"lat\":10.804889000000001,\"lng\":106.70280600000001},{\"lat\":10.806303448613738,\"lng\":106.70343210902647},{\"lat\":10.80754825826289,\"lng\":106.70414303753522},{\"lat\":10.808627795325112,\"lng\":106.70493660233744},{\"lat\":10.809549254037844,\"lng\":106.70580920631441},{\"lat\":10.810322533402912,\"lng\":106.70675589996522},{\"lat\":10.810960067811866,\"lng\":106.70777046609406},{\"lat\":10.811476614290088,\"lng\":106.70884552618828},{\"lat\":10.811889,\"lng\":106.70997266666666},{\"lat\":10.81221583432365,\"lng\":106.71114258283816},{\"lat\":10.812477190451025,\"lng\":106.71234523810782},{\"lat\":10.8126942619222,\"lng\":106.71357003570556},{\"lat\":10.812889,\"lng\":106.714806}]', NULL, 'GHN mode is disabled.', '2026-08-25 08:32:21', '2026-08-25 08:29:23', '2026-08-25 08:32:21');
+
+--
+-- Đang đổ dữ liệu cho bảng `password_reset_tokens`
+--
+
+INSERT INTO `password_reset_tokens` (`email`, `token`, `created_at`) VALUES
+('2311062825@hunre.edu.vn', '$2y$12$NJByL7ZZOWyJnYh7vVToguPjBKTqL1rpe4cjA3CzsmvpESTv5NWWa', '2026-04-16 08:04:26'),
+('phampham2411@gmail.com', '$2y$12$wiNfH1ZegO9wfz9VLOmpNeIQjiNMXCQDRjBNyzS7wW2cc/Pz5/19W', '2026-04-18 22:49:25');
+
+--
+-- Đang đổ dữ liệu cho bảng `payments`
+--
+
+INSERT INTO `payments` (`id`, `order_id`, `user_address_id`, `momo_order_id`, `momo_trans_id`, `amount`, `status`, `paid_at`, `created_at`, `updated_at`, `payment_method`) VALUES
+(1, 1, NULL, '1_69e26cb4ccfb8', '4724371673', 90000.00, 'success', '2026-04-18 00:24:57', '2026-04-18 00:24:04', '2026-04-18 00:24:57', 'cash'),
+(2, 2, NULL, '2_69e347d9ea76d', '4724404908', 55000.00, 'success', '2026-04-18 16:00:04', '2026-04-18 15:59:05', '2026-04-18 16:00:04', 'cash'),
+(3, 3, NULL, '3_69e353a134765', NULL, 175000.00, 'pending', NULL, '2026-04-18 16:49:20', '2026-04-18 16:49:21', 'cash'),
+(4, 4, NULL, NULL, NULL, 175000.00, 'success', '2026-04-18 18:01:54', '2026-04-18 18:01:50', '2026-04-18 18:01:54', 'cash'),
+(5, 5, NULL, NULL, NULL, 40000.00, 'pending', NULL, '2026-04-18 22:52:51', '2026-04-18 22:52:51', 'cash'),
+(6, 6, NULL, NULL, NULL, 15000.00, 'pending', NULL, '2026-04-18 23:57:27', '2026-04-18 23:57:27', 'cash'),
+(7, 7, NULL, NULL, NULL, 40000.00, 'pending', NULL, '2026-04-19 00:47:08', '2026-04-19 00:47:08', 'cash'),
+(8, 8, NULL, NULL, NULL, 40000.00, 'pending', NULL, '2026-04-19 01:45:25', '2026-04-19 01:45:25', 'cash'),
+(9, 9, NULL, NULL, NULL, 20000.00, 'success', '2026-04-19 03:16:33', '2026-04-19 03:16:29', '2026-04-19 03:16:33', 'cash'),
+(10, 10, NULL, '10_69e8d41c29ec9', NULL, 283000000.00, 'success', '2026-04-22 20:58:58', '2026-04-22 20:58:24', '2026-04-22 20:58:58', 'cash'),
+(11, 11, NULL, '11_69e8d439aa521', NULL, 30000.00, 'pending', NULL, '2026-04-22 20:59:16', '2026-04-22 20:59:21', 'cash'),
+(12, 12, NULL, '12_69e8d511ec5c0', NULL, 1035000000.00, 'pending', NULL, '2026-04-22 21:02:34', '2026-04-22 21:02:57', 'cash'),
+(13, 13, NULL, '13_69e8ddca771c7', NULL, 70000.00, 'pending', NULL, '2026-04-22 21:29:38', '2026-04-22 21:40:10', 'cash'),
+(14, 14, NULL, '14_69e8dde4442c7', NULL, 44490000.00, 'pending', NULL, '2026-04-22 21:40:31', '2026-04-22 21:40:36', 'cash'),
+(15, 15, NULL, '15_69eb112334dea', NULL, 1035000000.00, 'pending', NULL, '2026-04-24 13:43:24', '2026-04-24 13:43:47', 'cash'),
+(16, 16, NULL, '16_69eb11347406f', NULL, 1035030000.00, 'pending', NULL, '2026-04-24 13:43:59', '2026-04-24 13:44:04', 'cash'),
+(17, 17, NULL, '17_69eb117d0c069', NULL, 1035000000.00, 'pending', NULL, '2026-04-24 13:44:18', '2026-04-24 13:45:17', 'cash'),
+(18, 18, NULL, '18_69eb12101213b', NULL, 10000.00, 'pending', NULL, '2026-04-24 13:47:40', '2026-04-24 13:47:44', 'cash'),
+(19, 19, NULL, '19_69eb122529751', NULL, 1035000000.00, 'pending', NULL, '2026-04-24 13:48:02', '2026-04-24 13:48:05', 'cash'),
+(20, 20, NULL, NULL, NULL, 70000.00, 'pending', NULL, '2026-04-24 13:48:21', '2026-04-24 13:48:21', 'cash'),
+(21, 21, NULL, '21_69eb12701c332', NULL, 283000000.00, 'pending', NULL, '2026-04-24 13:49:17', '2026-04-24 13:49:20', 'cash'),
+(22, 22, NULL, '22_69eb127d15dc2', NULL, 70000.00, 'pending', NULL, '2026-04-24 13:49:29', '2026-04-24 13:49:33', 'cash'),
+(23, 23, NULL, '23_69eb12945af87', NULL, 283000000.00, 'pending', NULL, '2026-04-24 13:49:46', '2026-04-24 13:49:56', 'cash'),
+(24, 24, NULL, '24_69eb12a3ed8ad', NULL, 44490000.00, 'pending', NULL, '2026-04-24 13:50:09', '2026-04-24 13:50:11', 'cash'),
+(25, 25, NULL, NULL, NULL, 1035000000.00, 'success', '2026-04-26 01:43:20', '2026-04-26 01:36:08', '2026-04-26 01:43:20', 'cash'),
+(26, 26, NULL, NULL, NULL, 283000000.00, 'pending', NULL, '2026-04-26 22:00:42', '2026-04-26 22:00:42', 'cash'),
+(27, 27, NULL, NULL, NULL, 3396000000.00, 'success', '2026-04-26 22:01:01', '2026-04-26 22:00:52', '2026-04-26 22:01:01', 'cash'),
+(28, 28, NULL, NULL, NULL, 1318250000.00, 'success', '2026-04-26 22:02:57', '2026-04-26 22:01:58', '2026-04-26 22:02:57', 'cash'),
+(29, 29, NULL, NULL, NULL, 109000000.00, 'success', '2026-04-27 03:32:00', '2026-04-27 03:31:52', '2026-04-27 03:32:00', 'cash'),
+(30, 30, NULL, NULL, NULL, 5000.00, 'pending', NULL, '2026-04-28 02:05:07', '2026-04-28 02:05:07', 'cash'),
+(31, 32, NULL, NULL, NULL, 5000.00, 'success', '2026-04-28 11:44:49', '2026-04-28 11:42:57', '2026-04-28 11:44:49', 'cash'),
+(32, 33, NULL, '33_69f03ba845670', '4732277400', 49000.00, 'success', '2026-04-28 11:47:18', '2026-04-28 11:45:51', '2026-04-28 11:47:18', 'momo'),
+(33, 34, NULL, '34_69f0483fac535', NULL, 20500.00, 'success', '2026-04-28 12:40:25', '2026-04-28 12:40:09', '2026-04-28 12:40:25', 'cash'),
+(34, 35, NULL, NULL, NULL, 15000.00, 'pending', NULL, '2026-04-28 19:45:23', '2026-04-28 19:45:23', 'cash'),
+(35, 36, NULL, NULL, NULL, 39000000.00, 'pending', NULL, '2026-04-28 19:47:33', '2026-04-28 19:47:33', 'cash'),
+(36, 37, NULL, '37_69f0ae98ddf48', NULL, 98000.00, 'pending', NULL, '2026-04-28 19:56:52', '2026-04-28 19:56:56', 'cash'),
+(37, 38, NULL, NULL, NULL, 98000.00, 'pending', NULL, '2026-04-28 20:17:12', '2026-04-28 20:17:12', 'cash'),
+(38, 39, NULL, NULL, NULL, 98000.00, 'pending', NULL, '2026-04-28 20:19:05', '2026-04-28 20:19:05', 'cash'),
+(39, 40, NULL, NULL, NULL, 98000.00, 'pending', NULL, '2026-04-28 20:22:30', '2026-04-28 20:22:30', 'cash'),
+(40, 41, NULL, NULL, NULL, 19500000.00, 'pending', NULL, '2026-04-28 21:05:08', '2026-04-28 21:05:08', 'cash'),
+(41, 44, NULL, NULL, NULL, 39000000.00, 'success', '2026-04-28 21:15:30', '2026-04-28 21:15:17', '2026-04-28 21:15:30', 'cash'),
+(42, 49, NULL, NULL, NULL, 659110500.00, 'success', '2026-04-28 21:45:01', '2026-04-28 21:44:50', '2026-04-28 21:45:01', 'cash'),
+(43, 50, NULL, NULL, NULL, 70000.00, 'pending', NULL, '2026-06-01 12:25:51', '2026-06-01 12:25:51', 'cash'),
+(44, 51, NULL, NULL, NULL, 70000.00, 'pending', NULL, '2026-06-01 12:26:05', '2026-06-01 12:26:05', 'cash'),
+(45, 52, NULL, NULL, NULL, 70000.00, 'pending', NULL, '2026-06-01 12:26:05', '2026-06-01 12:26:05', 'cash'),
+(46, 53, NULL, NULL, NULL, 15000.00, 'pending', NULL, '2026-06-01 14:15:54', '2026-06-01 14:15:54', 'cash'),
+(47, 54, NULL, NULL, NULL, 70000.00, 'success', NULL, '2026-08-07 14:07:32', '2026-08-07 14:07:43', 'bank_transfer'),
+(48, 55, NULL, NULL, NULL, 10000.00, 'success', '2026-08-07 14:08:01', '2026-08-07 14:07:58', '2026-08-07 14:08:01', 'cash'),
+(49, 56, NULL, NULL, NULL, 15000.00, 'success', '2026-08-07 14:08:28', '2026-08-07 14:08:25', '2026-08-07 14:08:28', 'cash'),
+(50, 57, NULL, NULL, NULL, 44490000.00, 'pending', NULL, '2026-08-07 14:17:30', '2026-08-07 14:17:30', 'cash'),
+(51, 58, NULL, '58_6a75869bb4df3', NULL, 70000.00, 'pending', NULL, '2026-08-07 14:17:39', '2026-08-07 14:17:47', 'cash'),
+(52, 59, 1, '59_6a75873714ee8', NULL, 10000.00, 'pending', NULL, '2026-08-07 14:19:31', '2026-08-07 14:20:23', 'cash'),
+(53, 60, NULL, NULL, NULL, 70000.00, 'pending', NULL, '2026-08-12 11:01:34', '2026-08-12 11:01:34', 'cash'),
+(54, 61, NULL, '61_6a802a6bb3e3b', NULL, 200000.00, 'pending', NULL, '2026-08-15 15:59:05', '2026-08-15 15:59:23', 'cash'),
+(55, 62, NULL, '62_6a80319c231b4', '4797899883', 15000.00, 'success', '2026-08-15 16:30:48', '2026-08-15 16:28:59', '2026-08-15 16:30:48', 'momo'),
+(56, 63, NULL, '63_6a8418ea0ae81', NULL, 390000.00, 'success', '2026-08-18 15:33:57', '2026-08-18 15:33:40', '2026-08-18 15:33:57', 'cash'),
+(57, 64, NULL, NULL, NULL, 70000.00, 'pending', NULL, '2026-08-19 14:40:53', '2026-08-19 14:40:53', 'cash'),
+(58, 65, 2, '65_6a8d45a88d498', NULL, 70000.00, 'pending', NULL, '2026-08-25 14:34:55', '2026-08-25 14:35:04', 'cash'),
+(59, 66, 2, NULL, NULL, 70000.00, 'success', NULL, '2026-08-27 11:18:20', '2026-08-27 11:18:26', 'bank_transfer');
+
+--
+-- Đang đổ dữ liệu cho bảng `price_rules`
+--
+
+INSERT INTO `price_rules` (`id`, `field_id`, `multiplier`, `created_at`, `updated_at`, `start_time`, `end_time`) VALUES
+(3, NULL, 1.50, '2026-04-26 18:44:45', '2026-04-26 18:44:45', '17:00:00', '23:00:00');
+
+--
+-- Đang đổ dữ liệu cho bảng `services`
+--
+
+INSERT INTO `services` (`id`, `category_id`, `name`, `description`, `price`, `avg_rating`, `total_reviews`, `status`, `created_at`, `updated_at`, `image`, `quantity`) VALUES
+(25, 2, 'Áo Manchester United', NULL, 250000, 0.00, 0, 'active', '2026-08-15 06:52:54', '2026-08-15 06:52:54', '1786776774_5386.webp', 250000),
+(26, 11, 'Nước tăng lực sau vận động', NULL, 15000, 0.00, 0, 'active', '2026-08-15 06:54:00', '2026-08-15 09:28:59', '1786776840_3624.jpg', 89999),
+(27, 2, 'khăn sau tập', NULL, 45000, 0.00, 0, 'active', '2026-08-15 06:54:43', '2026-08-15 06:54:43', '1786776883_7260.avif', 9000),
+(28, 6, 'giày Adidas cao cấp 2025', NULL, 540000, 0.00, 0, 'active', '2026-08-15 06:55:52', '2026-08-15 06:55:52', '1786776952_8923.jpg', 400),
+(29, 11, 'Nước Aquafina bù khoáng sau tập', NULL, 10000, 0.00, 0, 'active', '2026-08-15 06:57:52', '2026-08-15 06:57:52', '1786777072_3979.jpg', 1000000),
+(30, 9, 'Bóng Golf cao cấp', NULL, 50000, 0.00, 0, 'active', '2026-08-15 07:40:52', '2026-08-15 07:40:52', '1786779652_1895.jpg', 20000),
+(31, 2, 'Áo bóng đá đội tuyển Spain', NULL, 350000, 0.00, 0, 'active', '2026-08-15 07:41:53', '2026-08-15 07:41:53', '1786779713_9800.webp', 600),
+(32, 9, 'Bóng tennis siêu bền', NULL, 60000, 0.00, 0, 'active', '2026-08-15 07:42:37', '2026-08-15 07:42:37', '1786779757_4640.webp', 1000),
+(33, 2, 'Áo sân nhà đội tuyển Anh', NULL, 340000, 0.00, 0, 'active', '2026-08-15 07:43:50', '2026-08-15 07:43:50', '1786779830_4921.jpg', 800),
+(34, 2, 'Áo bóng chuyền nữ', NULL, 390000, 0.00, 0, 'active', '2026-08-15 07:45:17', '2026-08-18 08:33:40', '1786779917_3714.jpg', 699),
+(35, 2, 'Áo đá bóng đội bóng Manchester City', NULL, 300000, 0.00, 0, 'active', '2026-08-15 07:46:29', '2026-08-15 07:46:29', '1786779989_3123.jpg', 900),
+(36, 9, 'Bóng đá World Cup 2026', NULL, 1200000, 0.00, 0, 'active', '2026-08-15 07:47:11', '2026-08-15 07:47:11', '1786780031_1822.jpg', 600),
+(37, 2, 'Áo  bóng đá đội tuyển Bồ Đào Nha', NULL, 470000, 0.00, 0, 'active', '2026-08-15 07:48:02', '2026-08-15 07:48:02', '1786780082_5667.jpg', 900),
+(38, 2, 'Áo pickleball nam nữ', NULL, 200000, 0.00, 0, 'active', '2026-08-15 07:49:33', '2026-08-15 08:59:05', '1786780173_3587.jpg', 3999),
+(39, 2, 'Áo bóng đá đội tuyển Pháp', NULL, 600000, 0.00, 0, 'active', '2026-08-15 07:50:02', '2026-08-15 07:50:02', '1786780202_4667.jpg', 500),
+(40, 9, 'Bóng chày da cao cấp', NULL, 70000, 0.00, 0, 'active', '2026-08-15 07:50:54', '2026-08-15 07:50:54', '1786780254_5466.jpg', 900),
+(41, 2, 'Áo giữ nhiệt nam polo', NULL, 300000, 0.00, 0, 'active', '2026-08-15 07:51:36', '2026-08-15 07:51:36', '1786780296_2039.jpg', 900),
+(42, 9, 'Bóng rổ', NULL, 350000, 0.00, 0, 'active', '2026-08-15 07:52:46', '2026-08-15 07:52:46', '1786780366_8841.jpg', 900),
+(43, 2, 'Áo bóng đá đội tuyển Argentina 2026', NULL, 350000, 0.00, 0, 'active', '2026-08-15 07:53:33', '2026-08-27 04:18:20', '1786780413_5529.jpg', 899997),
+(44, 1, 'chao dinh duong', NULL, 500000, 0.00, 0, 'active', '2026-08-21 07:07:06', '2026-08-21 07:07:06', NULL, 36);
+
+--
+-- Đang đổ dữ liệu cho bảng `service_discounts`
+--
+
+INSERT INTO `service_discounts` (`id`, `service_id`, `start_time`, `end_time`, `multiplier`, `note`, `is_active`, `created_at`, `updated_at`) VALUES
+(3, NULL, '01:35:00', '23:35:00', 0.20, NULL, 1, '2026-08-18 09:36:06', '2026-08-18 09:36:06');
+
+--
+-- Đang đổ dữ liệu cho bảng `users`
+--
+
+INSERT INTO `users` (`id`, `name`, `avt`, `email`, `phone`, `password`, `role`, `created_at`, `updated_at`) VALUES
+(1, 'Phạm Ngọc Tiến', 'avatar_1_1776693120.png', 'phampham2411@gmail.com', '0327688190', '$2y$12$66/k9JS..XrVT/KJR.iYcOVtyLH8NvvCvFSvw5K2y4TP40OMk6Lhm', 'user', '2026-04-16 07:08:30', '2026-04-20 13:52:00'),
+(2, 'HẢI NGU', NULL, '2311062825@hunre.edu.vn', '07658972634', '$2y$12$dOm09951kOLT1OrXIE3jIekriK8ok8oHjd6JQntKXl5Tg.IVXhxNC', 'user', '2026-04-16 07:13:12', '2026-04-16 07:13:12'),
+(3, 'TIEN', '1776693892_z7633034510635_4f618171e94017e5f72f8a990927ac0d.jpg', '2311062573@hunre.edu.vn', '0327688180', '$2y$12$6McaFLFL1vg46JraRsiLBOLNlYCbbJTzeBCfjfOfbjhChVACgglwO', 'admin', '2026-04-16 08:14:50', '2026-04-20 14:04:52'),
+(4, 'CHỦ TỊCH TIẾN', NULL, 'phamngoctien2005ks@gmail.com', '0765897253', '$2y$12$rL/7CzkKqV4VogDERaynn.pQBWS/MczubjqW.131SWG0m3GpyCM2.', 'boss', '2026-04-21 11:31:11', '2026-04-21 11:31:11'),
+(5, 'duy', 'avatar_5_1786087155.jpg', 'duy@gmail.com', '0971638447', '$2y$12$BIFUkkCcAmC7WuHykqIlNOR0TD0RlnmAc.OUjtT9sG/ncAPeK5CIK', 'user', '2026-08-06 06:40:38', '2026-08-07 07:19:15'),
+(6, 'Dusk Test User', NULL, 'dusk_1787801566288@gmail.com', '0901566302', '$2y$12$xgo81hTVclxJXApgVdJOL.BsxZT/EJJrTokoxa4yabWlNTAy0ez9K', 'user', '2026-08-27 03:34:00', '2026-08-27 03:34:00');
+
+--
+-- Đang đổ dữ liệu cho bảng `user_addresses`
+--
+
+INSERT INTO `user_addresses` (`id`, `user_id`, `name`, `phone`, `street_address`, `ward`, `district`, `city`, `postal_code`, `is_default`, `created_at`, `updated_at`) VALUES
+(1, 5, 'duy', '0971638447', 'cv', 'nvbn', 'nj', 'n, m', '87', 1, '2026-08-07 07:18:21', '2026-08-07 07:18:21'),
+(2, 1, 'Phạm Ngọc Tiến', '0327688190', '23', 'rừ kiêndf', 'ưewfssdv', 'sdfsdf', '23', 1, '2026-08-19 07:42:35', '2026-08-19 07:42:35');
+COMMIT;
+
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;

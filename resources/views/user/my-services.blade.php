@@ -4,7 +4,7 @@
 <div class="container-fluid py-4">
     <div class="row mb-4">
         <div class="col-md-12">
-            <h1><i class="bi bi-bag-check"></i> ịch vụ đã đặt</h1>
+            <h1><i class="bi bi-bag-check"></i> Dịch vụ đã đặt</h1>
         </div>
     </div>
     <div class="row mb-3">

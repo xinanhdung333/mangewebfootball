@@ -2,25 +2,29 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ChatbotKeyword;
 use Illuminate\Http\Request;
 
 class ChatbotKeywordController extends Controller
 {
-public function update(Request $request,$id)
+public function update(Request $request, $id)
 {
-ChatbotKeyword::findOrFail($id)
-->update([
-'keyword'=>$request->keyword
-]);
+	$data = $request->validate([
+		'keyword' => ['required', 'string', 'max:255'],
+	]);
 
-return back();
+	ChatbotKeyword::findOrFail($id)->update([
+		'keyword' => trim($data['keyword']),
+	]);
+
+	return back()->with('success', 'Đã cập nhật từ khóa.');
 }
 
 
 public function destroy($id)
 {
-ChatbotKeyword::destroy($id);
+	ChatbotKeyword::findOrFail($id)->delete();
 
-return back();
+	return back()->with('success', 'Đã xóa từ khóa.');
 }
 }

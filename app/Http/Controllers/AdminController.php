@@ -757,6 +757,8 @@ public function manageOrders(Request $request)
             's.name as service_name',
             's.image as service_image',
             'f.message as feedback_message',
+            'f.admin_reply',
+            'f.replied_at',
             'f.rating as feedback_rating',
             'f.created_at'
         ])
@@ -785,6 +787,21 @@ public function manageOrders(Request $request)
         ->get();
     
     return view('admin.manage-feedback', compact('serviceFeedbacks', 'bookingFeedbacks')); 
+}
+
+public function replyFeedback(Request $request, Feedback $feedback)
+{
+    $data = $request->validate([
+        'admin_reply' => ['required', 'string', 'max:2000'],
+    ]);
+
+    $feedback->update([
+        'admin_reply' => trim($data['admin_reply']),
+        'replied_by' => Auth::id(),
+        'replied_at' => now(),
+    ]);
+
+    return back()->with('success', 'Đã trả lời feedback.');
 }
     /**
      * Invoices

@@ -19,11 +19,15 @@ class Feedback extends Model
         'service_id',
         'message',
         'rating',
+        'admin_reply',
+        'replied_by',
+        'replied_at',
     ];
 
     protected $casts = [
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
+        'replied_at' => 'datetime',
     ];
 
     /**
@@ -48,5 +52,10 @@ class Feedback extends Model
     public function service()
     {
         return $this->belongsTo(Service::class);
+    }
+
+    public function replier()
+    {
+        return $this->belongsTo(User::class, 'replied_by');
     }
 }

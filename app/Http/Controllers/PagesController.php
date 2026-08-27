@@ -592,32 +592,22 @@ public function myServices()
     $filterStatus = $request->query('status');
     $keyword = $request->query('keyword');
 
-    $query = OrderItem::with(['service', 'order'])
-        ->whereHas('order', function ($q) {
-            $q->where('user_id', auth()->id());
-        });
+    $query = Order::with(['items.service', 'payment'])
+        ->where('user_id', auth()->id());
 
     if ($keyword) {
-        $query->whereHas('service', function ($q) use ($keyword) {
+        $query->whereHas('items.service', function ($q) use ($keyword) {
             $q->where('name', 'like', '%' . $keyword . '%');
         });
     }
 
     if ($filterStatus) {
-        $query->whereHas('order', function ($q) use ($filterStatus) {
-            $q->where('status', $filterStatus);
-        });
+        $query->where('status', $filterStatus);
     }
 
-    $myServices = $query->latest()
+    $myServices = $query->latest('created_at')
         ->paginate(5)
         ->withQueryString();
-
-    $myServices->getCollection()->transform(function ($item) {
-        $item->image = $item->service->image ?? null;
-        $item->total_amount = ($item->price ?? 0) * ($item->quantity ?? 1);
-        return $item;
-    });
 
     return view(
         'user.my-services',
@@ -835,6 +825,7 @@ public function feedback()
         ->orderByDesc('oi.created_at')
         ->select([
             'oi.id as order_item_id',
+            's.id as service_id',
             's.name as service_name',
             's.image as service_image',
             DB::raw('(oi.price * oi.quantity) as total'),
@@ -886,7 +877,13 @@ public function sendFeedback(Request $request)
     ];
 
     if ($validated['feedback_type'] === 'service') {
-        $feedbackData['service_id'] = $validated['item_id'];
+        $orderItem = OrderItem::whereKey($validated['item_id'])
+            ->whereHas('order', function ($query) use ($userId) {
+                $query->where('user_id', $userId);
+            })
+            ->firstOrFail();
+
+        $feedbackData['service_id'] = $orderItem->service_id;
     } else {
         $feedbackData['booking_id'] = $validated['item_id'];
     }
@@ -894,7 +891,7 @@ public function sendFeedback(Request $request)
     $query = Feedback::where('user_id', $userId);
 
     if ($validated['feedback_type'] === 'service') {
-        $query->where('service_id', $validated['item_id']);
+        $query->where('service_id', $feedbackData['service_id']);
     } else {
         $query->where('booking_id', $validated['item_id']);
     }
@@ -916,7 +913,7 @@ public function sendFeedback(Request $request)
 
     if ($validated['feedback_type'] === 'service') {
 
-        $serviceId = $validated['item_id'];
+        $serviceId = $feedbackData['service_id'];
 
         $avgRating = Feedback::where('service_id', $serviceId)->avg('rating') ?? 0;
 
@@ -960,6 +957,12 @@ public function sendFeedback(Request $request)
     }
 }
 
+    if ($validated['feedback_type'] === 'service') {
+        return redirect()
+            ->route('user.serviceDetail', ['id' => $feedbackData['service_id']])
+            ->with('success', 'Feedback đã gửi thành công.');
+    }
+
     return redirect()
         ->route('user.feedback')
         ->with('success', 'Feedback đã gửi thành công.');
@@ -985,7 +988,7 @@ public function services(Request $request)
     if ($request->sort == 'rating') $query->orderByDesc('avg_rating');
     if ($request->sort == 'name') $query->orderBy('name', 'asc');
 
-    $services = $query->get();
+    $services = $query->paginate(12)->withQueryString();
 
     // ===== THÊM LOGIC GIẢM GIÁ =====
     $now = Carbon::now();
@@ -1178,38 +1181,23 @@ public function cart()
 
 public function searchServices(Request $request)
 {
-    $query = OrderItem::with(['service', 'order'])
-        ->whereHas('order', function ($q) {
-            $q->where('user_id', auth()->id());
-        });
+    $query = Order::with(['items.service', 'payment'])
+        ->where('user_id', auth()->id());
 
     if ($request->keyword) {
-        $query->whereHas('service', function ($q) use ($request) {
+        $query->whereHas('items.service', function ($q) use ($request) {
             $q->where('name', 'like', '%' . $request->keyword . '%');
         });
     }
 
     if ($request->status) {
-        $query->whereHas('order', function ($q) use ($request) {
-            $q->where('status', $request->status);
-        });
+        $query->where('status', $request->status);
     }
 
-    $myServices = $query->latest()
+    $myServices = $query->latest('created_at')
         ->paginate(5)
         ->withQueryString()
         ->withPath(route('user.services.search'));
-
-    // thêm ảnh + tổng tiền
-    $myServices->getCollection()->transform(function ($item) {
-
-        $item->image = $item->service->image ?? null;
-
-        $item->total_amount = 
-            ($item->price ?? 0) * ($item->quantity ?? 1);
-
-        return $item;
-    });
 
     if ($request->ajax() || $request->boolean('partial')) {
         return view('user.service-table', compact('myServices'))->render();
@@ -1299,7 +1287,16 @@ public function fieldSchedule(Request $request)
 
 public function serviceDetail($id)
 {
-    $service = Service::with('category')->findOrFail($id);
+    $service = Service::with(['category', 'feedbacks.user'])->findOrFail($id);
+    $reviewOrderItemId = Auth::check()
+        ? OrderItem::where('service_id', $service->id)
+            ->whereHas('order', function ($query) {
+                $query->where('user_id', Auth::id())
+                    ->where('status', '!=', 'cancelled');
+            })
+            ->latest('id')
+            ->value('id')
+        : null;
 
     // ===== TÍNH GIẢM GIÁ =====
     $now = Carbon::now();
@@ -1343,7 +1340,8 @@ public function serviceDetail($id)
         'service',
         'finalPrice',
         'originalPrice',
-        'discountPercent'
+        'discountPercent',
+        'reviewOrderItemId'
     ));
 }
 public function orderDetail($id)

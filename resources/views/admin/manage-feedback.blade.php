@@ -30,6 +30,7 @@
                             <th>Ngày Feedback</th>
                             <th>Feedback</th>
                             <th>Rating</th>
+                            <th>Trả lời</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -43,6 +44,16 @@
                                         <img src="{{ asset('uploads/services/' . $service->service_image) }}" 
                                              style="width:60px;height:60px;object-fit:cover;">
                                     @endif
+                                </td>
+                                <td style="min-width:260px;">
+                                    @if($service->admin_reply)
+                                        <div class="mb-2"><strong>Admin:</strong> {{ $service->admin_reply }}</div>
+                                    @endif
+                                    <form method="POST" action="{{ route('admin.manage.feedback.reply', $service->feedback_id) }}">
+                                        @csrf
+                                        <textarea name="admin_reply" class="form-control form-control-sm mb-2" rows="2" maxlength="2000" placeholder="Nhập câu trả lời...">{{ $service->admin_reply }}</textarea>
+                                        <button type="submit" class="btn btn-sm btn-primary">{{ $service->admin_reply ? 'Cập nhật' : 'Trả lời' }}</button>
+                                    </form>
                                 </td>
                                 <td>{{ date('d/m/Y H:i:s', strtotime($service->created_at)) }}</td>
                                 <td>{{ htmlspecialchars($service->feedback_message) }}</td>

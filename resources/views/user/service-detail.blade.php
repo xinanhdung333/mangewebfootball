@@ -176,6 +176,59 @@
             </div>
         </div>
     </div>
+
+    <section class="service-reviews" aria-labelledby="reviews-title">
+        <div class="reviews-summary">
+            <div>
+                <h3 id="reviews-title" class="mb-1">Đánh giá sản phẩm</h3>
+                <div class="review-score">
+                    {{ number_format((float) ($service->avg_rating ?? 0), 1, ',', '.') }}
+                    <span class="review-stars">★★★★★</span>
+                </div>
+                <div class="text-muted">{{ $service->feedbacks->count() }} lượt đánh giá</div>
+            </div>F
+        </div>
+
+        @auth
+            @if($reviewOrderItemId)
+                <form method="POST" action="{{ route('user.sendFeedback') }}" class="review-form">
+                    @csrf
+                    <input type="hidden" name="feedback_type" value="service">
+                    <input type="hidden" name="item_id" value="{{ $reviewOrderItemId }}">
+                    <label class="form-label fw-bold">Gửi đánh giá của bạn</label>
+                    <div class="rating-input mb-2">
+                        @for($star = 5; $star >= 1; $star--)
+                            <input type="radio" id="rating-{{ $star }}" name="rating" value="{{ $star }}" required>
+                            <label for="rating-{{ $star }}" title="{{ $star }} sao">★</label>
+                        @endfor
+                    </div>
+                    <textarea name="message" class="form-control mb-2" rows="3" maxlength="2000" required placeholder="Chia sẻ trải nghiệm của bạn..."></textarea>
+                    <button class="btn btn-primary" type="submit">Gửi đánh giá</button>
+                </form>
+            @endif
+        @else
+            <p class="text-muted">Đăng nhập và mua sản phẩm để gửi đánh giá.</p>
+        @endauth
+
+        <div class="review-list">
+            @forelse($service->feedbacks->sortByDesc('created_at') as $feedback)
+                <article class="review-item">
+                    <strong>{{ $feedback->user?->name ?? 'Khách hàng' }}</strong>
+                    <div class="review-stars small">{{ str_repeat('★', (int) $feedback->rating) }}{{ str_repeat('☆', 5 - (int) $feedback->rating) }}</div>
+                    <p class="mb-1">{{ $feedback->message }}</p>
+                    <small class="text-muted">{{ optional($feedback->created_at)->format('d/m/Y H:i') }}</small>
+                    @if($feedback->admin_reply)
+                        <div class="admin-reply">
+                            <strong>SportsHub trả lời:</strong>
+                            <p class="mb-0">{{ $feedback->admin_reply }}</p>
+                        </div>
+                    @endif
+                </article>
+            @empty
+                <p class="text-muted">Sản phẩm chưa có bình luận nào.</p>
+            @endforelse
+        </div>
+    </section>
 </div>
 <style>
     .badge.bg-danger {
@@ -186,6 +239,32 @@
 .text-decoration-line-through {
     opacity: 0.7;
 }
+
+.service-reviews {
+    max-width: 1200px;
+    margin: 24px auto 0;
+    padding: 24px 30px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+}
+
+.review-score {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 28px;
+    font-weight: 700;
+}
+
+.review-stars { color: #ffc107; letter-spacing: 0; }
+.review-form { max-width: 600px; margin: 20px 0; padding: 16px; background: #f8f9fa; border-radius: 10px; }
+.rating-input { display: flex; flex-direction: row-reverse; justify-content: flex-end; }
+.rating-input input { position: absolute; opacity: 0; }
+.rating-input label { color: #ccc; cursor: pointer; font-size: 25px; }
+.rating-input label:hover, .rating-input label:hover ~ label, .rating-input input:checked ~ label { color: #ffc107; }
+.review-item { padding: 16px 0; border-top: 1px solid #eee; }
+.admin-reply { margin-top: 10px; padding: 10px 12px; background: #fff4ef; border-left: 3px solid #f4512a; border-radius: 6px; }
 </style>
 <script>
 document.addEventListener('DOMContentLoaded', function() {

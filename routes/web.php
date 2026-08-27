@@ -124,6 +124,7 @@ Route::get('/edit-status-order/{id}', [AdminController::class, 'editStatusOrder'
     Route::get('/user_service_history', [AdminController::class, 'userServiceHistory'])->name('user.service.history');
     Route::get('/statistics', [AdminController::class, 'statistics'])->name('statistics');
     Route::get('/manage-feedback', [AdminController::class, 'manageFeedback'])->name('manage.feedback');
+    Route::post('/manage-feedback/{feedback}/reply', [AdminController::class, 'replyFeedback'])->name('manage.feedback.reply');
     Route::get('/chat-conversations', [ChatController::class, 'adminIndex'])->name('chat.index');
     Route::get('/chat-conversations/{conversation}', [ChatController::class, 'adminShow'])->name('chat.show');
     Route::post('/chat-conversations/{conversation}/reply', [ChatController::class, 'adminReply'])->name('chat.reply');
@@ -225,7 +226,9 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function(){
 )->name('services.search');
     Route::get('/fields', [PagesController::class, 'fields'])->name('fields');
     Route::get('/services', [PagesController::class, 'services'])->name('services');
-    Route::get('/service/{id}', [PagesController::class, 'serviceDetail'])->name('serviceDetail');
+    Route::get('/service/{id}', [PagesController::class, 'serviceDetail'])
+        ->whereNumber('id')
+        ->name('serviceDetail');
     Route::post('/service/{id}', [PagesController::class, 'addToCart'])->name('service.addToCart');
     
     // Profile
@@ -303,9 +306,7 @@ Route::post('/user/cart/update-item', [CartController::class, 'updateItem'])
     // Feedback
     Route::get('/feedback', [PagesController::class, 'feedback'])->name('feedback');
     Route::post('/feedback', [PagesController::class, 'sendFeedback'])->name('sendFeedback');
-    // Chatbot
-    Route::post('/chatbot/message', [ChatbotController::class, 'reply'])->name('chatbot.message');
-    
+
     Route::middleware(['auth'])->group(function () {
         // User chat support
         Route::get('/chat', [ChatController::class, 'index'])->name('chat.index');
@@ -323,6 +324,9 @@ Route::get('/booking/momo/{booking_id}',
 
 });
 
+// Chatbot is available to guests as well as authenticated users.
+Route::post('/chatbot/message', [ChatbotController::class, 'reply'])->name('chatbot.message');
+
 Route::get('/booking/momo/return', [BookingMomoController::class, 'returnUrl'])
 ->name('booking.momo.return');
 Route::match(['GET','POST'], '/booking/momo/ipn', [BookingMomoController::class, 'ipnUrl'])
@@ -333,10 +337,7 @@ Route::match(['GET','POST'], '/momo/ipn',
 //Route::get('/chat/{id}', [ChatController::class,'index']);
 //Route::post('/chat/send', [ChatController::class,'sendMessage']);  
 
-Route::middleware(['auth', 'role:admin'])->get('/generate-chatbot-json', function () {
-
-    app(\App\Http\Controllers\AdminController::class)
-        ->generateRules();
-
-    return "Generated OK";
-});
+Route::middleware(['auth', 'role:admin'])->get(
+    '/generate-chatbot-json',
+    [ChatbotIntentController::class, 'generateRules']
+)->name('chatbot.generate.legacy');

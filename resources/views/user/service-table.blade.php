@@ -11,7 +11,7 @@
         <div class="card shadow-sm h-100">
             <div class="card-body">
                 <h6 class="mb-2">Chờ xử lý</h6>
-                <div class="fs-4 fw-semibold">{{ $myServices->getCollection()->filter(fn ($item) => optional($item->order)->status === 'pending')->count() }}</div>
+                <div class="fs-4 fw-semibold">{{ $myServices->getCollection()->where('status', 'pending')->count() }}</div>
             </div>
         </div>
     </div>
@@ -19,7 +19,7 @@
         <div class="card shadow-sm h-100">
             <div class="card-body">
                 <h6 class="mb-2">Đã xác nhận</h6>
-                <div class="fs-4 fw-semibold">{{ $myServices->getCollection()->filter(fn ($item) => optional($item->order)->status === 'confirmed')->count() }}</div>
+                <div class="fs-4 fw-semibold">{{ $myServices->getCollection()->whereIn('status', ['confirmed', 'completed'])->count() }}</div>
             </div>
         </div>
     </div>
@@ -27,9 +27,9 @@
 
 @if($myServices->count())
     <div class="row g-4">
-        @foreach($myServices as $item)
+        @foreach($myServices as $order)
             @php
-                $orderStatus = optional($item->order)->status;
+            $orderStatus = $order->status;
                 $statusMap = [
                     'pending' => ['warning', 'Chờ xử lý'],
                     'confirmed' => ['success', 'Đã xác nhận'],
@@ -37,28 +37,39 @@
                     'cancelled' => ['danger', 'Đã hủy'],
                 ];
                 [$badgeClass, $label] = $statusMap[$orderStatus] ?? ['secondary', 'Không xác định'];
-                $image = $item->image ? asset('uploads/services/' . $item->image) : 'https://via.placeholder.com/160x120?text=Service';
+                $items = $order->items;
             @endphp
 
             <div class="col-md-6">
                 <div class="card shadow-sm h-100">
-                    <div class="row g-0 h-100">
-                        <div class="col-sm-4">
-                            <img src="{{ $image }}" alt="{{ $item->service->name ?? 'Dich vu' }}" class="img-fluid h-100 w-100 rounded-start" style="object-fit: cover; min-height: 160px;">
+                    <div class="row g-0 h-100 align-items-center">
+                        <div class="col-sm-4 p-3">
+                            <div class="order-image-stack" aria-label="{{ $items->count() }} sản phẩm trong đơn">
+                                @foreach($items->take(4) as $index => $item)
+                                    @php
+                                        $image = $item->service?->image
+                                            ? asset('uploads/services/' . $item->service->image)
+                                            : asset('images/default.png');
+                                    @endphp
+                                    <img src="{{ $image }}" alt="{{ $item->service->name ?? 'Dich vu' }}" class="order-stack-image" style="--stack-index: {{ $index }};">
+                                @endforeach
+                                @if($items->count() > 4)
+                                    <span class="order-image-more">+{{ $items->count() - 4 }}</span>
+                                @endif
+                            </div>
                         </div>
                         <div class="col-sm-8">
                             <div class="card-body d-flex flex-column h-100">
                                 <div class="d-flex justify-content-between align-items-start gap-3 mb-2">
-                                    <h5 class="card-title mb-0">{{ $item->service->name ?? 'Dich vu' }}</h5>
+                                    <h5 class="card-title mb-0">Đơn hàng #{{ $order->id }}</h5>
                                     <span class="badge bg-{{ $badgeClass }}">{{ $label }}</span>
                                 </div>
-                                <p class="text-muted mb-2">Số lượng: {{ $item->quantity }}</p>
-                                <p class="text-muted mb-3">Đơn giá: {{ number_format($item->price, 0, ',', '.') }}d</p>
-                                <p class="text-muted mb-3">Mã dịch vụ: #{{ $item->id }}</p>
-                                 <p class="text-muted mb-3">Phương thức thanh toán: {{ $item->order->payment->payment_method ?? 'Chưa xác định' }}</p>
+                                <p class="text-muted mb-2">{{ $items->count() }} sản phẩm trong đơn</p>
+                                <p class="text-muted mb-2">Tổng số lượng: {{ $items->sum('quantity') }}</p>
+                                <p class="text-muted mb-3">Phương thức thanh toán: {{ $order->payment->payment_method ?? 'Chưa xác định' }}</p>
                                 <div class="mt-auto d-flex justify-content-between align-items-center">
-                                    <strong>{{ number_format($item->total_amount, 0, ',', '.') }}d</strong>
-                                    <a href="{{ route('user.orderDetail', $item->order_id) }}" class="btn btn-sm btn-outline-primary">Xem đơn hàng</a>
+                                    <strong>{{ number_format($order->total_amount, 0, ',', '.') }}d</strong>
+                                    <a href="{{ route('user.orderDetail', $order->id) }}" class="btn btn-sm btn-outline-primary">Xem đơn hàng</a>
                                 </div>
                             </div>
                         </div>
@@ -98,3 +109,45 @@
         </div>
     </div>
 @endif
+
+<style>
+.order-image-stack {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    margin: 0 auto;
+}
+
+.order-stack-image {
+    position: absolute;
+    top: calc(var(--stack-index) * 8px);
+    left: calc(var(--stack-index) * 8px);
+    z-index: calc(10 - var(--stack-index));
+    width: 124px;
+    height: 124px;
+    object-fit: cover;
+    border: 3px solid #fff;
+    border-radius: 10px;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, .16);
+}
+
+.order-image-more {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    z-index: 20;
+    min-width: 32px;
+    padding: 5px 8px;
+    color: #fff;
+    background: #f4512a;
+    border-radius: 16px;
+    font-weight: 700;
+    text-align: center;
+}
+
+@media (max-width: 575.98px) {
+    .order-image-stack {
+        margin-bottom: 8px;
+    }
+}
+</style>

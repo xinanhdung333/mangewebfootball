@@ -99,6 +99,24 @@
             </div>
             <div style="padding:0 8px; font-size:12px; color:#666;"><i class="bi bi-tag"></i> {{ $service->category?->name ?? 'Tổng hợp' }}</div>
 
+            @php
+                $rating = round((float) ($service->avg_rating ?? 0), 1);
+                $reviewCount = (int) ($service->total_reviews ?? 0);
+                $ratingStars = (int) round($rating);
+            @endphp
+            <div class="product-rating" aria-label="{{ $rating }} trên 5 sao, {{ $reviewCount }} lượt đánh giá">
+                <span class="rating-stars" aria-hidden="true">
+                    @for($star = 1; $star <= 5; $star++)
+                        <span class="{{ $star <= $ratingStars ? 'is-filled' : '' }}">★</span>
+                    @endfor
+                </span>
+                @if($reviewCount > 0)
+                    <span>{{ number_format($rating, 1, ',', '.') }} ({{ $reviewCount }})</span>
+                @else
+                    <span>Chưa có đánh giá</span>
+                @endif
+            </div>
+
             @if(($service->discount_percent ?? 0) > 0)
                 <div style="position:absolute; top:10px; left:10px; background:#ff0000; color:#fff; font-size:12px; padding:3px 6px; border-radius:5px;">
                     -{{ round($service->discount_percent) }}%
@@ -139,6 +157,12 @@
 
     </div>
 
+    @if($services->hasPages())
+        <div class="d-flex justify-content-center mt-4">
+            {{ $services->links('pagination::bootstrap-5') }}
+        </div>
+    @endif
+
 </div>
 
 <style>
@@ -160,6 +184,26 @@
 .product-card:hover{
     transform:translateY(-3px);
     box-shadow:0 6px 18px rgba(0,0,0,0.15);
+}
+
+.product-rating{
+    display:flex;
+    align-items:center;
+    gap:6px;
+    padding:6px 8px 2px;
+    color:#777;
+    font-size:12px;
+}
+
+.rating-stars{
+    color:#d7d7d7;
+    font-size:15px;
+    letter-spacing:0;
+    line-height:1;
+}
+
+.rating-stars .is-filled{
+    color:#ffc107;
 }
 
 .btn-add-cart{

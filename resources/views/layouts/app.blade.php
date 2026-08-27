@@ -420,6 +420,7 @@
 
     @yield('content')
 
+    </div>
 
 @include('partials.visitor.footer')
 
@@ -434,22 +435,38 @@ async function sendMessage() {
 
     let chatBody = document.getElementById("chat-body");
 
-    chatBody.innerHTML += `<div class="message-user">${text}</div>`;
-
     input.value = "";
 
-    let response = await fetch("{{ route('user.chatbot.message') }}", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
-        },
-        body: JSON.stringify({ message: text })
-    });
+    const userMessage = document.createElement('div');
+    userMessage.className = 'message-user';
+    userMessage.textContent = text;
+    chatBody.appendChild(userMessage);
 
-    let data = await response.json();
+    const botMessage = document.createElement('div');
+    botMessage.className = 'message-bot';
+    botMessage.textContent = 'Đang xử lý...';
+    chatBody.appendChild(botMessage);
 
-    chatBody.innerHTML += `<div class="message-bot">${data.reply}</div>`;
+    try {
+        let response = await fetch("{{ route('chatbot.message') }}", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Accept": "application/json",
+                "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
+            },
+            body: JSON.stringify({ message: text })
+        });
+
+        let data = await response.json();
+        if (!response.ok) {
+            throw new Error(data.message || 'Không thể kết nối chatbot.');
+        }
+
+        botMessage.textContent = data.reply || 'Mình chưa có câu trả lời phù hợp.';
+    } catch (error) {
+        botMessage.textContent = error.message || 'Không thể kết nối chatbot. Vui lòng thử lại.';
+    }
 
     chatBody.scrollTop = chatBody.scrollHeight;
 }
