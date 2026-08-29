@@ -4,6 +4,45 @@
     <div id="success-alert" class="alert alert-success">
         {{ session('success') }}
     </div>
+@endif
+
+@if(session('error'))
+    <div id="booking-error"
+         class="alert alert-danger alert-dismissible fade show"
+         role="alert">
+        <strong>Lỗi!</strong>
+        <span>{{ session('error') }}</span>
+
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert">
+        </button>
+    </div>
+@endif
+
+@if($errors->any())
+    <div id="validation-errors"
+         class="alert alert-danger alert-dismissible fade show"
+         role="alert">
+
+        <strong>Lỗi!</strong>
+
+        <ul class="mb-0">
+            @foreach($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+
+        <button type="button"
+                class="btn-close"
+                data-bs-dismiss="alert">
+        </button>
+    </div>
+@endif
+@if(session('success'))
+    <div id="success-alert" class="alert alert-success">
+        {{ session('success') }}
+    </div>
 
     <script>
         setTimeout(() => {
@@ -52,7 +91,7 @@
                             <div class="col-md-6">
                                 <div class="mb-3">
                                     <label class="form-label">Ngày đặt sân</label>
-                                    <input type="date" class="form-control @error('booking_date') is-invalid @enderror" 
+                                    <input lang = "vi" type="date" class="form-control @error('booking_date') is-invalid @enderror" 
                                            name="booking_date" 
                                            min="{{ date('Y-m-d') }}" 
                                                   id="booking_date"
@@ -66,11 +105,15 @@
                             <div class="col-md-3">
                                 <div class="mb-3">
                                     <label class="form-label">Bắt đầu</label>
-                                    <input type="time" class="form-control @error('start_time') is-invalid @enderror" 
-                                           name="start_time" 
-                                                  id="start_time"
-                                           value="{{ old('start_time') }}" 
-                                           required>
+                                     <input type="text" class="form-control @error('start_time') is-invalid @enderror"
+                                         name="start_time"
+                                         id="start_time"
+                                         placeholder="14:00"
+                                         maxlength="5"
+                                         inputmode="numeric"
+                                         pattern="(?:[01]\d|2[0-3]):[0-5]\d"
+                                         value="{{ old('start_time') }}"
+                                         required>
                                     @error('start_time')
                                         <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
@@ -79,11 +122,15 @@
                             <div class="col-md-3">
                                 <div class="mb-3">
                                     <label class="form-label">Kết thúc</label>
-                                    <input type="time" class="form-control @error('end_time') is-invalid @enderror" 
-                                           name="end_time" 
-                                                  id="end_time"
-                                           value="{{ old('end_time') }}" 
-                                           required>
+                                     <input type="text" class="form-control @error('end_time') is-invalid @enderror"
+                                         name="end_time"
+                                         id="end_time"
+                                         placeholder="16:00"
+                                         maxlength="5"
+                                         inputmode="numeric"
+                                         pattern="(?:[01]\d|2[0-3]):[0-5]\d"
+                                         value="{{ old('end_time') }}"
+                                         required>
                                     @error('end_time')
                                         <span class="invalid-feedback">{{ $message }}</span>
                                     @enderror
@@ -243,6 +290,19 @@ document.addEventListener('DOMContentLoaded', function () {
         let m = (minutes % 60).toString().padStart(2, '0');
         return `${h}:${m}`;
     }
+
+    function formatTimeInput(input) {
+        const digits = input.value.replace(/\D/g, '').slice(0, 4);
+        input.value = digits.length > 2
+            ? `${digits.slice(0, 2)}:${digits.slice(2)}`
+            : digits;
+    }
+
+    document.querySelectorAll('#start_time, #end_time').forEach(input => {
+        input.addEventListener('input', function () {
+            formatTimeInput(this);
+        });
+    });
 
     // ===== TÍNH TỔNG =====
     function updateTotal() {
