@@ -15,6 +15,7 @@ return Application::configure(basePath: dirname(__DIR__))
     $middleware->validateCsrfTokens(except: [
         'momo/ipn',
         'booking/momo/ipn',
+        'api/mbbank/*',
     ]);
 
     // thêm dòng này

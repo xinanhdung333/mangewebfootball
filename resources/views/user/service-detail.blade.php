@@ -159,6 +159,17 @@
     </button>
 </form>
                     </div>
+
+                    <div class="col-12">
+                        <button id="btnWishlist"
+                                type="button"
+                                class="btn btn-outline-danger btn-lg w-100"
+                                aria-pressed="false"
+                                data-id="{{ $service->id }}">
+                            <i class="bi bi-heart"></i> <span>Y&ecirc;u th&iacute;ch</span>
+                        </button>
+                        <div id="wishlistMessage" class="wishlist-message" role="status" aria-live="polite"></div>
+                    </div>
                 </div>
 
                 @if($service->shipping_fee)
@@ -265,6 +276,17 @@
 .rating-input label:hover, .rating-input label:hover ~ label, .rating-input input:checked ~ label { color: #ffc107; }
 .review-item { padding: 16px 0; border-top: 1px solid #eee; }
 .admin-reply { margin-top: 10px; padding: 10px 12px; background: #fff4ef; border-left: 3px solid #f4512a; border-radius: 6px; }
+.wishlist-message {
+    min-height: 20px;
+    margin-top: 8px;
+    color: #6c757d;
+    font-size: 14px;
+}
+#btnWishlist.active {
+    background: #dc3545;
+    border-color: #dc3545;
+    color: #fff;
+}
 </style>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -274,6 +296,80 @@ document.addEventListener('DOMContentLoaded', function() {
     const addToCartBtn = document.getElementById('btnAddToCart');
     const increaseBtn = document.getElementById('increaseQty');
     const decreaseBtn = document.getElementById('decreaseQty');
+    const wishlistBtn = document.getElementById('btnWishlist');
+    const wishlistMessage = document.getElementById('wishlistMessage');
+    const wishlistCacheKey = 'sportsHubWishlist';
+    const wishlistItem = {
+        id: {{ $service->id }},
+        name: @json($service->name),
+        price: {{ (float) $finalPrice }},
+        original_price: {{ (float) $originalPrice }},
+        image: @json(!empty($service->image) ? asset('uploads/services/' . $service->image) : asset('images/default.png')),
+        url: @json(route('user.serviceDetail', $service->id)),
+        added_at: null
+    };
+
+    function readWishlistCache() {
+        try {
+            const cached = JSON.parse(localStorage.getItem(wishlistCacheKey) || '[]');
+            return Array.isArray(cached) ? cached : [];
+        } catch (error) {
+            return [];
+        }
+    }
+
+    function writeWishlistCache(items) {
+        localStorage.setItem(wishlistCacheKey, JSON.stringify(items));
+    }
+
+    function serviceInWishlist(items) {
+        return items.some(item => String(item.id) === String(wishlistItem.id));
+    }
+
+    function updateWishlistButton() {
+        if (!wishlistBtn) return;
+
+        const active = serviceInWishlist(readWishlistCache());
+        wishlistBtn.classList.toggle('active', active);
+        wishlistBtn.setAttribute('aria-pressed', active ? 'true' : 'false');
+        wishlistBtn.querySelector('i').className = active ? 'bi bi-heart-fill' : 'bi bi-heart';
+        wishlistBtn.querySelector('span').innerHTML = active ? '&Dstrok;&atilde; y&ecirc;u th&iacute;ch' : 'Y&ecirc;u th&iacute;ch';
+    }
+
+    function showWishlistMessage(message) {
+        if (!wishlistMessage) return;
+
+        wishlistMessage.textContent = message;
+        clearTimeout(showWishlistMessage.timer);
+        showWishlistMessage.timer = setTimeout(() => {
+            wishlistMessage.textContent = '';
+        }, 2200);
+    }
+
+    updateWishlistButton();
+
+    if (wishlistBtn) {
+        wishlistBtn.addEventListener('click', function() {
+            const items = readWishlistCache();
+            const exists = serviceInWishlist(items);
+
+            if (exists) {
+                writeWishlistCache(items.filter(item => String(item.id) !== String(wishlistItem.id)));
+                showWishlistMessage('Da xoa khoi wishlist.');
+            } else {
+                writeWishlistCache([
+                    ...items,
+                    {
+                        ...wishlistItem,
+                        added_at: new Date().toISOString()
+                    }
+                ]);
+                showWishlistMessage('Da luu vao wishlist.');
+            }
+
+            updateWishlistButton();
+        });
+    }
 
     if (maxQty <= 0) {
         if (addToCartBtn) addToCartBtn.disabled = true;

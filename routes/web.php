@@ -296,6 +296,9 @@ Route::post('/user/cart/update-item', [CartController::class, 'updateItem'])
 )->name('bookings.search');
 
     Route::get('/my-services', [PagesController::class, 'myServices'])->name('myServices');
+    Route::get('/wishlist', function () {
+        return view('user.wishlist');
+    })->name('wishlist');
     Route::get('/payment/order/{order}', [PagesController::class, 'showOrderPaymentMethod'])->name('payment.order');
     Route::post('/payment/order/{order}', [PagesController::class, 'handleOrderPaymentMethod'])->name('payment.order.submit');
     Route::get('/payment/booking/{booking}', [PagesController::class, 'showBookingPaymentMethod'])->name('payment.booking');
@@ -341,3 +344,7 @@ Route::middleware(['auth', 'role:admin'])->get(
     '/generate-chatbot-json',
     [ChatbotIntentController::class, 'generateRules']
 )->name('chatbot.generate.legacy');
+
+// MB Bank Webhook (no auth, no CSRF)
+Route::post('/api/mbbank/webhook', [\App\Http\Controllers\MbBankWebhookController::class, 'handle'])
+    ->name('mbbank.webhook');

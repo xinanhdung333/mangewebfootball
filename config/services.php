@@ -34,12 +34,17 @@ return [
             'channel' => env('SLACK_BOT_USER_DEFAULT_CHANNEL'),
         ],
     ],
-
+'sepay' => [
+    'webhook_secret' => env(
+        'SEPAY_WEBHOOK_SECRET'
+    ),
+],
     'mbbank' => [
         'bank_bin' => env('MBBANK_BIN', '970422'),
         'account_no' => env('MBBANK_ACCOUNT_NO'),
         'account_name' => env('MBBANK_ACCOUNT_NAME'),
         'qr_template' => env('MBBANK_QR_TEMPLATE', 'compact2'),
+        // 'webhook_secret' => env('SEPAY_WEBHOOK_SECRET'),
     ],
 
     'ghn' => [
@@ -50,9 +55,9 @@ return [
         'from_name' => env('GHN_FROM_NAME', 'Shop Football'),
         'from_phone' => env('GHN_FROM_PHONE', '0901234567'),
         'from_address' => env('GHN_FROM_ADDRESS', '123 Test Street'),
-        'from_ward_name' => env('GHN_FROM_WARD_NAME', 'Phường 14'),
-        'from_district_name' => env('GHN_FROM_DISTRICT_NAME', 'Quận 10'),
-        'from_province_name' => env('GHN_FROM_PROVINCE_NAME', 'Hồ Chí Minh'),
+        'from_ward_name' => env('GHN_FROM_WARD_NAME', 'Phường Từ Liêm'),
+        'from_district_name' => env('GHN_FROM_DISTRICT_NAME', 'Quận Bắc Từ Liêm'),
+        'from_province_name' => env('GHN_FROM_PROVINCE_NAME', 'Hà Nội'),
     ],
 
     'ghn_demo' => [

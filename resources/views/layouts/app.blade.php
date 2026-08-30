@@ -55,6 +55,25 @@
             overflow-x: hidden;
         }
 
+        .desktop-layout {
+            width: 100%;
+            position: sticky;
+            top: 0;
+            z-index: 1050;
+            transform-origin: top center;
+        }
+
+        .site-content {
+            width: 100%;
+            max-width: none;
+        }
+
+        .site-content-inner {
+            width: 100%;
+            padding-left: clamp(12px, 2vw, 32px);
+            padding-right: clamp(12px, 2vw, 32px);
+        }
+
      
 
         @media (max-width: 991px) {
@@ -89,8 +108,10 @@
         .desktop-layout {
             width: 100%;
          
-             position: relative;
-   transform-origin: top center;
+            position: sticky;
+            top: 0;
+            z-index: 1050;
+            transform-origin: top center;
         }
 
         @media (max-width: 991px) {
@@ -280,7 +301,21 @@
                     @if(auth()->user()->role === 'user')
                         <li class="nav-item"><a class="nav-link" href="{{ route('user.dashboard') }}"><i class="bi bi-house"></i> Trang chủ</a></li>
                                                 <li class="nav-item"><a class="nav-link" href="{{ route('user.services') }}"><i class="bi bi-bag"></i> Sản phẩm</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('user.myServices') }}"><i class="bi bi-bag-check"></i> Sản phẩm đã mua</a></li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-bag-check"></i> Sản phẩm đã mua
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                                <li><a class="dropdown-item" href="{{ route('user.myServices') }}"><i class="bi bi-receipt me-2"></i>Đơn hàng đã mua</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li>
+                                    <a class="dropdown-item d-flex align-items-center justify-content-between" href="{{ route('user.wishlist') }}">
+                                        <span><i class="bi bi-heart me-2"></i>Danh sách yêu thích</span>
+                                        <span class="badge bg-danger rounded-pill ms-2" id="navWishlistBadge" style="display:none;">0</span>
+                                    </a>
+                                </li>
+                            </ul>
+                        </li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('cart.index') }}"><i class="bi bi-cart-fill"></i> Giỏ hàng</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('user.chat.index') }}"><i class="bi bi-chat-left-text"></i> Hỗ trợ</a></li>
                         <li class="nav-item dropdown">
@@ -415,8 +450,8 @@
           <p id="reply"></p>
      </div>
  
-<main class="container mt-4">
-    <div class="container-fluid px-4">
+<main class="site-content container-fluid mt-4 px-0">
+    <div class="site-content-inner">
 
     @yield('content')
 
@@ -529,6 +564,25 @@ document.addEventListener('mousemove', (e) => {
 closeChat.addEventListener('click', () => {
     chatBox.style.display = 'none';
 });
+</script>
+<script>
+// Update wishlist badge count in navbar
+(function() {
+    const badge = document.getElementById('navWishlistBadge');
+    if (!badge) return;
+    try {
+        const items = JSON.parse(localStorage.getItem('sportsHubWishlist') || '[]');
+        const count = Array.isArray(items) ? items.length : 0;
+        if (count > 0) {
+            badge.textContent = count;
+            badge.style.display = '';
+        } else {
+            badge.style.display = 'none';
+        }
+    } catch(e) {
+        badge.style.display = 'none';
+    }
+})();
 </script>
 @stack('scripts')
 </body>

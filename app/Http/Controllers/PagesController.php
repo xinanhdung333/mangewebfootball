@@ -425,10 +425,18 @@ public function handleOrderPaymentMethod(Request $request, Order $order)
 
     // Update order with selected address
     if (!empty($data['selected_address_id'])) {
-        $order->update(['user_address_id' => $data['selected_address_id']]);
+        $order->update([
+            'user_address_id' => $data['selected_address_id']
+        ]);
     }
 
-    $payment = Payment::updateOrCreate(
+    /*
+    |--------------------------------------------------------------------------
+    | Tạo hoặc lấy Payment
+    |--------------------------------------------------------------------------
+    */
+
+    $payment = Payment::firstOrCreate(
         ['order_id' => $order->id],
         [
             'amount' => $order->total_amount,
@@ -436,32 +444,85 @@ public function handleOrderPaymentMethod(Request $request, Order $order)
             'user_address_id' => $data['selected_address_id'] ?? null,
         ]
     );
-    
-    if ($data['payment_method'] === 'momo') {
-         if ($payment->amount < 10000 || $payment->amount > 50000000) {
-            return back()->with('error', 'Số tiền phải từ 10k đến 50 triệu để thanh toán MoMo,vui lòng thanh toán bằng tiền mặt');
-        }
 
-        return redirect()->route('user.momo.pay', ['order_id' => $order->id]);
+    // Cập nhật amount / address nhưng KHÔNG reset status
+    $payment->update([
+        'amount' => $order->total_amount,
+        'user_address_id' => $data['selected_address_id'] ?? null,
+    ]);
+
+    /*
+    |--------------------------------------------------------------------------
+    | Nếu đã thanh toán thì không cho quay lại pending
+    |--------------------------------------------------------------------------
+    */
+
+    if (in_array($payment->status, ['paid', 'success'], true)) {
+        return redirect()->route('user.myServices')
+            ->with('success', 'Đơn hàng đã được thanh toán.');
     }
 
-    if ($data['payment_method'] === 'bank_transfer') {
+    /*
+    |--------------------------------------------------------------------------
+    | MOMO
+    |--------------------------------------------------------------------------
+    */
+
+    if ($data['payment_method'] === 'momo') {
+
+        if ($payment->amount < 10000 || $payment->amount > 50000000) {
+            return back()->with(
+                'error',
+                'Số tiền phải từ 10k đến 50 triệu để thanh toán MoMo, vui lòng thanh toán bằng tiền mặt'
+            );
+        }
+
         $payment->update([
-            'status' => 'success',
+            'status' => 'pending',
+            'paid_at' => null,
+            'payment_method' => 'momo',
+        ]);
+
+        return redirect()->route('user.momo.pay', [
+            'order_id' => $order->id
+        ]);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | BANK TRANSFER
+    |--------------------------------------------------------------------------
+    */
+
+    if ($data['payment_method'] === 'bank_transfer') {
+
+        $payment->update([
+            'status' => 'pending',
             'paid_at' => null,
             'payment_method' => 'bank_transfer',
         ]);
 
+        // Giữ Order pending.
+        // SePay webhook sẽ chuyển sang confirmed khi nhận tiền.
         $order->update([
-            'status' => 'confirmed',
-            'payment_method' => 'bank_transfer',
+            'status' => 'pending',
         ]);
 
         return redirect()->route('user.myServices')
-            ->with('success', 'Da ghi nhan yeu cau chuyen khoan MBBank. Don hang se duoc xac nhan sau khi doi soat.');
+            ->with(
+                'success',
+                'Vui lòng chuyển khoản theo QR. Đơn hàng sẽ tự động xác nhận sau khi nhận được tiền.'
+            );
     }
 
+    /*
+    |--------------------------------------------------------------------------
+    | CASH
+    |--------------------------------------------------------------------------
+    */
+
     DB::transaction(function () use ($order, $payment) {
+
         $payment->update([
             'status' => 'success',
             'paid_at' => now(),
@@ -474,12 +535,15 @@ public function handleOrderPaymentMethod(Request $request, Order $order)
 
         DB::table('order_items')
             ->where('order_id', $order->id)
-            ->update(['status' => 'confirmed']);
+            ->update([
+                'status' => 'confirmed'
+            ]);
 
         $serviceIds = OrderItem::where('order_id', $order->id)
             ->pluck('service_id');
 
         if ($order->cart_id) {
+
             CartItem::where('cart_id', $order->cart_id)
                 ->whereIn('service_id', $serviceIds)
                 ->delete();
@@ -487,7 +551,7 @@ public function handleOrderPaymentMethod(Request $request, Order $order)
     });
 
     return redirect()->route('user.myServices')
-        ->with('success', 'Da xac nhan thanh toan tien mat');
+        ->with('success', 'Đã xác nhận thanh toán tiền mặt');
 }
 
 public function showBookingPaymentMethod(Booking $booking)
@@ -560,17 +624,18 @@ public function handleBookingPaymentMethod(Request $request, Booking $booking)
     // 👉 CASH
     if ($data['payment_method'] === 'bank_transfer') {
         $payment->update([
-            'status' => 'success',
+            'status' => 'pending',
             'paid_at' => null,
             'payment_method' => 'bank_transfer',
         ]);
 
+        // Giữ booking pending, chờ webhook xác nhận thanh toán
         $booking->update([
-            'status' => 'confirmed',
+            'status' => 'pending',
         ]);
 
         return redirect()->route('user.myBookings')
-            ->with('success', 'Da ghi nhan yeu cau chuyen khoan MBBank. Booking se duoc xac nhan sau khi doi soat.');
+            ->with('success', 'Vui lòng chuyển khoản theo QR. Booking sẽ tự động xác nhận sau khi nhận được tiền.');
     }
 
     $payment->update([

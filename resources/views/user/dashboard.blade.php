@@ -15,6 +15,13 @@
     --ec-danger: #D0021B;
 }
 
+.ec-search-bar,
+.ec-search-bar *,
+.ec-main,
+.ec-main * {
+    box-sizing: border-box;
+}
+
 /* ---------- SEARCH BAR ---------- */
 .ec-search-bar {
     background: var(--ec-primary);
@@ -42,6 +49,7 @@
 .ec-brand:hover { color: #fff; }
 .ec-search-wrap {
     flex: 1;
+    min-width: 0;
     display: flex;
     background: #fff;
     border-radius: 6px;
@@ -49,6 +57,7 @@
 }
 .ec-search-wrap input {
     flex: 1;
+    min-width: 0;
     border: none;
     outline: none;
     padding: 10px 14px;
@@ -452,17 +461,44 @@
 @media (max-width: 767px) {
     .ec-stats { grid-template-columns: 1fr; }
     .ec-product-grid { grid-template-columns: repeat(2, 1fr); }
-    .ec-search-bar .inner { gap: 10px; }
+    .ec-search-bar .inner {
+        gap: 10px;
+        flex-wrap: wrap;
+    }
     .ec-brand { font-size: 1.1rem; }
+    .ec-search-wrap {
+        order: 3;
+        flex: 0 0 100%;
+    }
+    .ec-search-btn { padding: 0 14px; }
     .ec-flash { flex-direction: column; align-items: flex-start; }
     .ec-table { font-size: .8rem; }
     .ec-table thead th,
     .ec-table tbody td { padding: 8px; }
+    .ec-orders-block { overflow-x: auto; }
 }
 
 /* Fit within parent layout — stretch wider */
-.ec-search-bar { margin: -1rem -2.5rem 0; padding-left: 2.5rem; padding-right: 2.5rem; }
-.ec-main { max-width: 100%; margin: 0 -2.5rem; padding: 16px 2.5rem; width: calc(100% + 5rem); }
+.ec-search-bar {
+    width: 100vw;
+    margin: -1rem calc(50% - 50vw) 0;
+}
+.ec-main {
+    width: 100vw;
+    max-width: none;
+    margin: 0 calc(50% - 50vw);
+    padding-left: clamp(12px, 2vw, 32px);
+    padding-right: clamp(12px, 2vw, 32px);
+}
+
+@media (max-width: 360px) {
+    .ec-product-grid { grid-template-columns: 1fr; }
+    .toast-noti {
+        left: 12px;
+        right: 12px;
+        width: auto;
+    }
+}
 </style>
 
 {{-- ========== SEARCH BAR ========== --}}
