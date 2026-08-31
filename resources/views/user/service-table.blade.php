@@ -69,7 +69,12 @@
                                 <p class="text-muted mb-3">Phương thức thanh toán: {{ $order->payment->payment_method ?? 'Chưa xác định' }}</p>
                                 <div class="mt-auto d-flex justify-content-between align-items-center">
                                     <strong>{{ number_format($order->total_amount, 0, ',', '.') }}d</strong>
-                                    <a href="{{ route('user.orderDetail', $order->id) }}" class="btn btn-sm btn-outline-primary">Xem đơn hàng</a>
+                                    <div>
+                                        @if($order->status === 'pending')
+                                            <a href="{{ route('user.payment.order', $order->id) }}" class="btn btn-sm btn-primary me-1">Thanh toán</a>
+                                        @endif
+                                        <a href="{{ route('user.orderDetail', $order->id) }}" class="btn btn-sm btn-outline-primary">Xem chi tiết</a>
+                                    </div>
                                 </div>
                             </div>
                         </div>

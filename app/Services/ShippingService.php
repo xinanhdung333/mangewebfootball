@@ -86,27 +86,36 @@ class ShippingService
 
     private function demoShipmentData(Order $order): array
     {
+        /** @var OpenRouteService $ors */
+        $ors = app(OpenRouteService::class);
+        $shop = $ors->shopCoords();
+
         $pickup = [
-            'lat' => (float) config('services.ghn_demo.pickup_lat', 10.776889),
-            'lng' => (float) config('services.ghn_demo.pickup_lng', 106.700806),
+            'lat' => $shop['lat'],
+            'lng' => $shop['lng'],
         ];
+
         $delivery = $this->deliveryPointForOrder($order);
         $clientOrderCode = 'ORDER-' . $order->id . '-' . now()->format('YmdHis');
 
+        // Lấy tuyến đường thực từ ORS; nếu lỗi thì dùng đường thẳng
+        $routePoints = $ors->getRoutePoints($delivery['lat'], $delivery['lng'])
+            ?? $this->buildStraightRoute($pickup, $delivery);
+
         return [
-            'order_id' => $order->id,
-            'provider' => 'demo',
-            'tracking_code' => 'DEMO' . now()->format('ymd') . str_pad((string) $order->id, 5, '0', STR_PAD_LEFT),
+            'order_id'          => $order->id,
+            'provider'          => 'demo',
+            'tracking_code'     => 'DEMO' . now()->format('ymd') . str_pad((string) $order->id, 5, '0', STR_PAD_LEFT),
             'client_order_code' => $clientOrderCode,
-            'status' => OrderShipment::STATUS_CREATED,
-            'pickup_lat' => $pickup['lat'],
-            'pickup_lng' => $pickup['lng'],
-            'delivery_lat' => $delivery['lat'],
-            'delivery_lng' => $delivery['lng'],
-            'shipper_lat' => $pickup['lat'],
-            'shipper_lng' => $pickup['lng'],
-            'route_points' => $this->buildRoute($pickup, $delivery),
-            'last_status_at' => now(),
+            'status'            => OrderShipment::STATUS_CREATED,
+            'pickup_lat'        => $pickup['lat'],
+            'pickup_lng'        => $pickup['lng'],
+            'delivery_lat'      => $delivery['lat'],
+            'delivery_lng'      => $delivery['lng'],
+            'shipper_lat'       => $pickup['lat'],
+            'shipper_lng'       => $pickup['lng'],
+            'route_points'      => $routePoints,
+            'last_status_at'    => now(),
         ];
     }
 
@@ -208,24 +217,87 @@ class ShippingService
         ];
     }
 
-    private function deliveryPointForOrder(Order $order): array
-    {
-        $seed = $order->id % 9;
+private function geocode(\App\Models\UserAddress $address): ?array
+{
+    $attempts = [
+        trim(implode(', ', array_filter([
+            $address->street_address, $address->ward, $address->district, $address->city, 'Việt Nam',
+        ]))),
+        trim(implode(', ', array_filter([
+            $address->ward, $address->district, $address->city, 'Việt Nam',
+        ]))),
+        trim(implode(', ', array_filter([
+            $address->district, $address->city, 'Việt Nam',
+        ]))),
+    ];
 
+    foreach (array_unique(array_filter($attempts)) as $query) {
+        try {
+            $response = Http::timeout(6)
+                ->withHeaders(['User-Agent' => 'FootballHub/1.0'])
+                ->get('https://nominatim.openstreetmap.org/search', [
+                    'q' => $query, 'format' => 'json', 'limit' => 1,
+                ]);
+
+            $results = $response->json();
+
+            if (!empty($results)) {
+                return [
+                    'lat' => (float) $results[0]['lat'],
+                    'lng' => (float) $results[0]['lon'],
+                ];
+            }
+        } catch (\Throwable $e) {
+            Log::warning('Geocode attempt failed.', ['query' => $query, 'error' => $e->getMessage()]);
+        }
+    }
+
+    return null;
+}
+    private function deliveryPointForOrder(Order $order): array
+{
+    $address = $order->userAddress;
+
+    if ($address && $address->lat && $address->lng) {
         return [
-            'lat' => 10.776889 + (0.012 * (($seed % 3) + 1)),
-            'lng' => 106.700806 + (0.014 * ((int) floor($seed / 3) + 1)),
+            'lat' => (float) $address->lat,
+            'lng' => (float) $address->lng,
         ];
     }
 
-    private function buildRoute(array $pickup, array $delivery): array
+    if ($address) {
+        $geo = $this->geocode($address);
+
+        if ($geo) {
+            $address->update(['lat' => $geo['lat'], 'lng' => $geo['lng']]);
+            return $geo;
+        }
+
+        Log::warning('Không geocode được địa chỉ, dùng tọa độ giả để test.', [
+            'order_id' => $order->id,
+            'address_id' => $address->id,
+        ]);
+    }
+
+    // Fallback: tọa độ giả dựa theo ID để test (chỉ khi geocode thất bại hoặc không có address)
+    $seed = $order->id % 9;
+    $shopLat = (float) \App\Models\Setting::get('shop_lat', config('services.ors.shop_lat', 21.0285));
+    $shopLng = (float) \App\Models\Setting::get('shop_lng', config('services.ors.shop_lng', 105.8542));
+
+    return [
+        'lat' => $shopLat + (0.010 * (($seed % 3) + 1)),
+        'lng' => $shopLng + (0.012 * ((int) floor($seed / 3) + 1)),
+    ];
+}
+
+    private function buildStraightRoute(array $pickup, array $delivery): array
     {
         $points = [];
         $steps = 24;
 
         for ($i = 0; $i <= $steps; $i++) {
             $ratio = $i / $steps;
-            $curve = sin($ratio * pi()) * 0.01;
+            $curve = sin($ratio * pi()) * 0.003;
             $points[] = [
                 'lat' => $pickup['lat'] + (($delivery['lat'] - $pickup['lat']) * $ratio) + $curve,
                 'lng' => $pickup['lng'] + (($delivery['lng'] - $pickup['lng']) * $ratio) - ($curve / 2),

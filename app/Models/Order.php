@@ -16,8 +16,15 @@ class Order extends Model
         'cart_id',
         'user_address_id',
         'total_amount',
+        'shipping_fee',
+        'shipping_distance_km',
         'status',
-        'meta'
+        'payment_method',
+        'meta',
+        'note',
+        'shipping_service',
+        'voucher_code',
+        'voucher_discount'
     ];
 
     protected $casts = [

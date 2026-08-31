@@ -137,7 +137,8 @@ class MomoController extends Controller
         $partnerCode = config('momo.partnerCode');
         $accessKey = config('momo.accessKey');
         $secretKey = config('momo.secretKey');
-        $amount = (string) intval($order->total_amount);
+        $payment = Payment::where('order_id', $order->id)->first();
+        $amount = (string) intval($payment?->amount ?? $order->total_amount);
         $orderId = $order->id . '_' . uniqid();
         $orderInfo = 'Thanh_toan_don_hang_' . $order->id;
         $redirectUrl = config('momo.redirectUrl');

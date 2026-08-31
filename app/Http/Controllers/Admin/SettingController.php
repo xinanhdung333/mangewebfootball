@@ -13,7 +13,57 @@ use App\Models\Service;
 class SettingController extends Controller
 {
     public function index(){
-        return view('admin.settings.setting');
+        $settings = [
+            'shop_address' => \App\Models\Setting::get('shop_address'),
+            'shop_lat' => \App\Models\Setting::get('shop_lat', '21.0285'),
+            'shop_lng' => \App\Models\Setting::get('shop_lng', '105.8542'),
+            'shipping_fee_per_km' => \App\Models\Setting::get('shipping_fee_per_km', 15000),
+        ];
+        return view('admin.settings.setting', compact('settings'));
+    }
+
+    public function store(Request $request){
+        $request->validate([
+            'shop_address' => 'required|string',
+            'shop_lat' => 'required|numeric',
+            'shop_lng' => 'required|numeric',
+            'shipping_fee_per_km' => 'required|numeric|min:0',
+        ]);
+
+        \App\Models\Setting::set('shop_address', $request->shop_address);
+        \App\Models\Setting::set('shipping_fee_per_km', $request->shipping_fee_per_km);
+        
+        $lat = $request->shop_lat;
+        $lng = $request->shop_lng;
+        $geocodeMsg = '';
+
+        // Geocode shop address only if it's different or if we want to auto-update
+        // To be safe, we always try to geocode and if successful, overwrite.
+        try {
+            $response = \Illuminate\Support\Facades\Http::timeout(6)
+                ->withHeaders(['User-Agent' => 'FootballHub/1.0'])
+                ->get('https://nominatim.openstreetmap.org/search', [
+                    'q' => $request->shop_address, 
+                    'format' => 'json', 
+                    'limit' => 1,
+                ]);
+
+            $results = $response->json();
+            if (!empty($results)) {
+                $lat = $results[0]['lat'];
+                $lng = $results[0]['lon'];
+            } else {
+                $geocodeMsg = ' (Hệ thống không tự tìm được toạ độ cho địa chỉ này, đang sử dụng toạ độ bạn đã nhập thủ công)';
+            }
+        } catch (\Throwable $e) {
+            \Illuminate\Support\Facades\Log::warning('Geocode shop address failed: ' . $e->getMessage());
+            $geocodeMsg = ' (Lỗi gọi API bản đồ, đang sử dụng toạ độ nhập thủ công)';
+        }
+
+        \App\Models\Setting::set('shop_lat', $lat);
+        \App\Models\Setting::set('shop_lng', $lng);
+
+        return back()->with('success', 'Cập nhật cài đặt thành công!' . $geocodeMsg);
     }
     // ================== VIEW ==================
     public function pricing()

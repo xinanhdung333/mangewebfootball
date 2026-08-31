@@ -197,8 +197,13 @@
 
                     <hr>
 
-                    <!-- NÚT HỦY: CHỈ CHO PHÉP KHI PENDING -->
+                    <!-- NÚT THANH TOÁN / HỦY: CHỈ CHO PHÉP KHI PENDING -->
                     @if($booking->status === 'pending')
+                        <a href="{{ route('user.payment.booking', $booking->id) }}"
+                           class="btn btn-primary w-100 mb-2">
+                            <i class="bi bi-credit-card"></i> Thanh toán ngay
+                        </a>
+
                         <form method="POST" action="{{ route('user.cancelBooking', ['id' => $booking->id]) }}" 
                               onsubmit="return confirm('Bạn chắc chắn muốn hủy đặt sân này?');">
                             @csrf

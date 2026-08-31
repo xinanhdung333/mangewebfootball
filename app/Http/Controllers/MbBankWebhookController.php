@@ -367,10 +367,14 @@ class MbBankWebhookController extends Controller
     }
 
     /**
-     * Parse:
+     * Parse the transfer code from description.
+     *
+     * Supports:
      *
      * ORDER67
+     * BOOK25
      * BOOKING25
+     * DON67
      *
      * Also supports:
      *
@@ -387,13 +391,16 @@ class MbBankWebhookController extends Controller
 
         if (
             preg_match(
-                '/\b(ORDER|BOOKING)(\d+)\b/',
+                '/\b(ORDER|DON|BOOKING|BOOK)(\d+)\b/',
                 $description,
                 $matches
             )
         ) {
+            $prefix = $matches[1];
+            $type = in_array($prefix, ['ORDER', 'DON']) ? 'order' : 'booking';
+            
             return [
-                'type' => strtolower($matches[1]),
+                'type' => $type,
                 'id' => (int) $matches[2],
             ];
         }

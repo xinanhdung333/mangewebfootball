@@ -33,6 +33,8 @@ class AddressController extends Controller
             'city' => 'required|string|max:100',
             'postal_code' => 'nullable|string|max:20',
             'is_default' => 'nullable|boolean',
+            'lat' => 'nullable|numeric',
+            'lng' => 'nullable|numeric',
         ]);
 
         // Nếu đặt làm mặc định, xóa mặc định của địa chỉ cũ
@@ -69,6 +71,8 @@ class AddressController extends Controller
             'city' => 'required|string|max:100',
             'postal_code' => 'nullable|string|max:20',
             'is_default' => 'nullable|boolean',
+            'lat' => 'nullable|numeric',
+            'lng' => 'nullable|numeric',
         ]);
 
         // Nếu đặt làm mặc định, xóa mặc định của địa chỉ cũ

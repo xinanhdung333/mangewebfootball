@@ -23,6 +23,7 @@ use App\Http\Controllers\ForgotPasswordController;
 use App\Http\Controllers\Auth\PasswordResetLinkController;
 
 use App\Http\Controllers\Admin\SettingController;
+use App\Http\Controllers\Admin\ShippingMethodController;
 use App\Http\Controllers\AddressController;
 require __DIR__.'/auth.php';
 
@@ -85,7 +86,12 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
     Route::get('/home', [HomeController::class, 'indexadmin'])->name('home');
 //setting 
 Route::get('settings', [\App\Http\Controllers\Admin\SettingController::class, 'index'])->name('settings');
-
+Route::post('settings', [\App\Http\Controllers\Admin\SettingController::class, 'store'])->name('settings.store');
+Route::get('/shipping-methods', [ShippingMethodController::class, 'index'])->name('shipping-methods.index');
+Route::post('/shipping-methods', [ShippingMethodController::class, 'store'])->name('shipping-methods.store');
+Route::put('/shipping-methods/{shippingMethod}', [ShippingMethodController::class, 'update'])->name('shipping-methods.update');
+Route::delete('/shipping-methods/{shippingMethod}', [ShippingMethodController::class, 'destroy'])->name('shipping-methods.destroy');
+ 
  Route::get('settings/pricing', [\App\Http\Controllers\Admin\SettingController::class, 'pricing'])->name('settings.pricing');
     Route::post('settings/pricing', [\App\Http\Controllers\Admin\SettingController::class, 'storePricing'])->name('settings.pricing.store');
   // 🔥 SERVICE DISCOUNT
@@ -96,6 +102,13 @@ Route::get('settings', [\App\Http\Controllers\Admin\SettingController::class, 'i
         ->name('settings.service-discount.delete');
 
     Route::delete('settings/pricing/{id}', [\App\Http\Controllers\Admin\SettingController::class, 'deletePricing'])->name('settings.pricing.delete');
+
+    // Vouchers
+    Route::get('/vouchers', [\App\Http\Controllers\Admin\VoucherController::class, 'index'])->name('vouchers.index');
+    Route::post('/vouchers', [\App\Http\Controllers\Admin\VoucherController::class, 'store'])->name('vouchers.store');
+    Route::put('/vouchers/{voucher}', [\App\Http\Controllers\Admin\VoucherController::class, 'update'])->name('vouchers.update');
+    Route::delete('/vouchers/{voucher}', [\App\Http\Controllers\Admin\VoucherController::class, 'destroy'])->name('vouchers.destroy');
+
     Route::get('/dashboard', [AdminController::class, 'dashboard'])->name('dashboard');
     Route::get('/profile', [AdminController::class, 'profile'])->name('profile');
     Route::post('/profile', [AdminController::class, 'updateProfile'])->name('profile.update');
@@ -113,6 +126,10 @@ Route::get('/edit-status/{id}', [AdminController::class, 'editStatus'])
 Route::get('/edit-status-order/{id}', [AdminController::class, 'editStatusOrder'])
     ->name('edit.status.order');    Route::post('/update-order-status', [AdminController::class, 'updateOrderStatus'])->name('update.order.status');
     Route::post('/update-order-items-status', [AdminController::class, 'updateOrderItemsStatus'])->name('update.order.items.status');
+
+    // Shipment management from admin
+    Route::get('/order/{order}/shipment', [AdminController::class, 'viewShipment'])->name('order.shipment');
+    Route::post('/order/{order}/shipment/status', [AdminController::class, 'updateShipmentStatus'])->name('order.shipment.status');
     Route::get('/manage-services', [AdminController::class, 'manageServices'])->name('manage.services');
     Route::post('/store-service', [AdminController::class, 'storeService'])->name('store.service');
     Route::post('/update-service', [AdminController::class, 'updateService'])->name('update.service');
@@ -301,6 +318,7 @@ Route::post('/user/cart/update-item', [CartController::class, 'updateItem'])
     })->name('wishlist');
     Route::get('/payment/order/{order}', [PagesController::class, 'showOrderPaymentMethod'])->name('payment.order');
     Route::post('/payment/order/{order}', [PagesController::class, 'handleOrderPaymentMethod'])->name('payment.order.submit');
+    Route::post('/payment/order/{order}/apply-voucher', [PagesController::class, 'applyVoucher'])->name('payment.order.apply-voucher');
     Route::get('/payment/booking/{booking}', [PagesController::class, 'showBookingPaymentMethod'])->name('payment.booking');
     Route::post('/payment/booking/{booking}', [PagesController::class, 'handleBookingPaymentMethod'])->name('payment.booking.submit');
     //payments
@@ -348,3 +366,11 @@ Route::middleware(['auth', 'role:admin'])->get(
 // MB Bank Webhook (no auth, no CSRF)
 Route::post('/api/mbbank/webhook', [\App\Http\Controllers\MbBankWebhookController::class, 'handle'])
     ->name('mbbank.webhook');
+
+// Shipping fee & geocode (auth required)
+Route::middleware(['auth'])->group(function () {
+    Route::post('/api/shipping-fee', [\App\Http\Controllers\ShippingFeeController::class, 'calculate'])
+        ->name('shipping.fee');
+    Route::post('/api/geocode-address', [\App\Http\Controllers\ShippingFeeController::class, 'geocodeAddress'])
+        ->name('address.geocode');
+});

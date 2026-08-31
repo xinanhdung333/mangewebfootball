@@ -94,6 +94,7 @@ $statusMap = [
                         <th>SĐT</th>
                         <th>Dịch vụ</th>
                         <th>Trạng thái</th>
+                        <th>Vận chuyển</th>
                         <th>Tổng tiền</th>
                         <th>Ngày</th>
                         <th>Hành động</th>
@@ -130,6 +131,20 @@ $statusMap = [
                         </td>
 
                         <td>
+                            @if($order->shipment)
+                                <span class="badge
+                                    @if($order->shipment->status === 'delivered') bg-success
+                                    @elseif($order->shipment->status === 'delivering') bg-warning text-dark
+                                    @elseif($order->shipment->status === 'transporting') bg-info text-dark
+                                    @else bg-secondary @endif">
+                                    {{ $order->shipment->statusLabel() }}
+                                </span>
+                            @else
+                                <span class="text-muted" style="font-size:.78rem">Chưa tạo</span>
+                            @endif
+                        </td>
+
+                        <td>
                             <strong>{{ number_format($order->total_amount) }} đ</strong>
                         </td>
 
@@ -139,11 +154,16 @@ $statusMap = [
 
                         <td>
                             <a href="{{ route('admin.edit.status.order', $order->id) }}"
-                               class="btn btn-sm btn-warning">
+                               class="btn btn-sm btn-warning mb-1">
                                 Sửa
                             </a>
 
-                            <button class="btn btn-sm btn-info"
+                            <a href="{{ route('admin.order.shipment', $order->id) }}"
+                               class="btn btn-sm btn-primary mb-1" title="Theo dõi vận chuyển">
+                                <i class="bi bi-truck"></i>
+                            </a>
+
+                            <button class="btn btn-sm btn-info mb-1"
                                     data-bs-toggle="modal"
                                     data-bs-target="#modal{{ $order->id }}">
                                 Xem

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 use App\Models\Payment;
+use App\Models\ShippingMethod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\Service;
@@ -350,30 +351,34 @@ public function showOrderPaymentMethod(Order $order)
     $payment = Payment::firstOrCreate(
         ['order_id' => $order->id],
         [
-            'amount' => $order->total_amount,
+            'amount' => max(0, (float) $order->total_amount + (float) ($order->shipping_fee ?? 0) - (float) ($order->voucher_discount ?? 0)),
             'status' => 'pending',
         ]
     );
-$service = DB::table('order_items as oi')
-    ->join('services as s', 'oi.service_id', '=', 's.id')
-    ->where('oi.order_id', $order->id)
-    ->select('s.name', 's.price', 's.image', 'oi.quantity')
-    ->get();
 
-    // Get user addresses
+    $payment->update([
+        'amount' => max(0, (float) $order->total_amount + (float) ($order->shipping_fee ?? 0) - (float) ($order->voucher_discount ?? 0)),
+    ]);
+
+    $service = DB::table('order_items as oi')
+        ->join('services as s', 'oi.service_id', '=', 's.id')
+        ->where('oi.order_id', $order->id)
+        ->select('s.name', 's.price', 's.image', 'oi.quantity')
+        ->get();
+
     $addresses = \App\Models\UserAddress::where('user_id', auth()->id())->get();
 
     return view('user.payment-method', [
         'type' => 'order',
         'item' => $order,
-        'amount' => $order->total_amount,
+        'amount' => (float) $payment->amount,
         'submitRoute' => route('user.payment.order.submit', $order->id),
         'title' => 'Chon phuong thuc thanh toan don hang',
         'description' => 'Don hang #' . $order->id,
         'payment' => $payment,
         'services' => $service,
         'addresses' => $addresses,
-        'bankTransfer' => $this->mbBankQrData('order', $order->id, (int) $order->total_amount),
+        'bankTransfer' => $this->mbBankQrData('order', $order->id, (int) $payment->amount),
     ]);
 }
 private function toMinutes($time)
@@ -388,7 +393,11 @@ private function mbBankQrData(string $type, int $id, int $amount): array
     $accountNo = config('services.mbbank.account_no');
     $accountName = config('services.mbbank.account_name');
     $template = config('services.mbbank.qr_template', 'compact2');
-    $transferCode = strtoupper($type) . $id;
+    
+    // Đổi tiền tố mặc định
+    $prefix = $type === 'booking' ? 'BOOK' : 'ORDER';
+    $transferCode = $prefix . $id;
+    
     $qrUrl = null;
 
     if ($accountNo) {
@@ -414,42 +423,110 @@ private function mbBankQrData(string $type, int $id, int $amount): array
     ];
 }
 
-public function handleOrderPaymentMethod(Request $request, Order $order)
-{
-    abort_unless($order->user_id === auth()->id(), 403);
+    public function applyVoucher(Request $request, Order $order)
+    {
+        $request->validate([
+            'voucher_code' => 'required|string',
+        ]);
 
-    $data = $request->validate([
-        'payment_method' => 'required|in:momo,cash,bank_transfer',
-        'selected_address_id' => 'nullable|exists:user_addresses,id',
-    ]);
+        $voucher = \App\Models\Voucher::where('code', $request->voucher_code)
+            ->where('is_active', true)
+            ->where(function($q) {
+                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+            })->first();
 
-    // Update order with selected address
-    if (!empty($data['selected_address_id'])) {
-        $order->update([
-            'user_address_id' => $data['selected_address_id']
+        if (!$voucher) {
+            return response()->json(['success' => false, 'message' => 'Mã giảm giá không tồn tại hoặc đã hết hạn.']);
+        }
+
+        if ($order->total_amount < $voucher->min_order_amount) {
+            return response()->json(['success' => false, 'message' => 'Đơn hàng chưa đạt giá trị tối thiểu để áp dụng mã này.']);
+        }
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Áp dụng mã giảm giá thành công!',
+            'discount_amount' => $voucher->discount_amount,
+            'voucher_code' => $voucher->code
         ]);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Tạo hoặc lấy Payment
-    |--------------------------------------------------------------------------
-    */
+    public function handleOrderPaymentMethod(Request $request, Order $order)
+    {
+        abort_unless($order->user_id === auth()->id(), 403);
 
-    $payment = Payment::firstOrCreate(
-        ['order_id' => $order->id],
-        [
-            'amount' => $order->total_amount,
-            'status' => 'pending',
+        $data = $request->validate([
+            'payment_method' => 'required|in:momo,cash,bank_transfer',
+            'selected_address_id' => 'nullable|exists:user_addresses,id',
+            'note' => 'nullable|string',
+            'shipping_service' => 'nullable|string',
+            'shipping_fee' => 'nullable|numeric|min:0',
+            'voucher_code' => 'nullable|string',
+        ]);
+
+        $shippingMethod = null;
+        if (!empty($data['shipping_service'])) {
+            $shippingMethod = ShippingMethod::where('code', $data['shipping_service'])
+                ->where('is_active', true)
+                ->first();
+        }
+
+        $voucherDiscount = 0;
+        if (!empty($data['voucher_code'])) {
+            $voucher = \App\Models\Voucher::where('code', $data['voucher_code'])
+                ->where('is_active', true)
+                ->where(function($q) {
+                    $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
+                })->first();
+
+            if ($voucher && $order->total_amount >= $voucher->min_order_amount) {
+                $voucherDiscount = $voucher->discount_amount;
+            } else {
+                return back()->with('error', 'Mã giảm giá không hợp lệ hoặc không đủ điều kiện áp dụng.');
+            }
+        }
+
+        $submittedShippingFee = (float) ($request->input('shipping_fee', 0) ?? 0);
+        $baseShippingFee = (float) ($order->shipping_fee ?? 0);
+        $shippingMethodFee = $shippingMethod ? (float) $shippingMethod->extra_fee : 0;
+
+        // shipping_fee trong form đã là tổng phí ship đã tính + phụ phí phương thức được chọn.
+        // Không cộng lại `shippingMethodFee` khi đã có giá trị từ form, nếu không có thì mới cộng fallback.
+        $shippingFee = $submittedShippingFee > 0
+            ? $submittedShippingFee
+            : max(0, $baseShippingFee + $shippingMethodFee);
+
+        $finalAmount = max(0, (float) $order->total_amount + $shippingFee - $voucherDiscount);
+
+        // Update order with selected address, note, shipping and voucher
+        $order->update([
+            'user_address_id' => $data['selected_address_id'] ?? $order->user_address_id,
+            'note' => $data['note'] ?? null,
+            'shipping_service' => $data['shipping_service'] ?? null,
+            'shipping_fee' => $shippingFee,
+            'voucher_code' => $data['voucher_code'] ?? null,
+            'voucher_discount' => $voucherDiscount,
+        ]);
+
+        /*
+        |--------------------------------------------------------------------------
+        | Tạo hoặc lấy Payment
+        |--------------------------------------------------------------------------
+        */
+
+        $payment = Payment::firstOrCreate(
+            ['order_id' => $order->id],
+            [
+                'amount' => $finalAmount,
+                'status' => 'pending',
+                'user_address_id' => $data['selected_address_id'] ?? null,
+            ]
+        );
+
+        $payment->update([
+            'amount' => $finalAmount,
             'user_address_id' => $data['selected_address_id'] ?? null,
-        ]
-    );
-
-    // Cập nhật amount / address nhưng KHÔNG reset status
-    $payment->update([
-        'amount' => $order->total_amount,
-        'user_address_id' => $data['selected_address_id'] ?? null,
-    ]);
+        ]);
 
     /*
     |--------------------------------------------------------------------------
@@ -608,6 +685,16 @@ public function handleBookingPaymentMethod(Request $request, Booking $booking)
 
     // 👉 Lấy amount từ DB (chuẩn)
     $amount = (int) $payment->amount;
+
+    /*
+    |--------------------------------------------------------------------------
+    | Nếu đã thanh toán thì không cho phép submit lại form này để tránh reset trạng thái
+    |--------------------------------------------------------------------------
+    */
+    if (in_array($payment->status, ['paid', 'success'], true)) {
+        return redirect()->route('user.myBookings')
+            ->with('success', 'Đơn đặt sân này đã được thanh toán thành công!');
+    }
 
     // 👉 CHẶN MOMO nếu vượt giới hạn
     if ($data['payment_method'] === 'momo') {

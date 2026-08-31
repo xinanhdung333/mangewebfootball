@@ -695,7 +695,7 @@ public function updateService(Request $request)
 
 public function manageOrders(Request $request)
 {
-    $query = Order::with(['user', 'items.service']);
+    $query = Order::with(['user', 'items.service', 'shipment']);
 
     // FILTER USER
     if ($request->filled('user_id')) {
@@ -730,7 +730,38 @@ public function manageOrders(Request $request)
         'orders',
         'users'
     ));
-} /**
+} 
+
+    /**
+     * Admin: view shipment map for an order
+     */
+    public function viewShipment(Order $order, \App\Services\ShippingService $shipping)
+    {
+        $shipment = $shipping->ensureShipmentForOrder($order);
+
+        return view('admin.order-shipment', [
+            'order'    => $order->loadMissing(['user', 'items.service', 'userAddress']),
+            'shipment' => $shipment,
+            'tracking' => $shipping->trackingPayload($shipment),
+        ]);
+    }
+
+    /**
+     * Admin: update shipment status (AJAX)
+     */
+    public function updateShipmentStatus(Request $request, Order $order, \App\Services\ShippingService $shipping)
+    {
+        $data = $request->validate([
+            'status' => 'required|in:' . implode(',', \App\Models\OrderShipment::STATUSES),
+        ]);
+
+        $shipment = $shipping->ensureShipmentForOrder($order);
+        $shipment = $shipping->updateStatus($shipment, $data['status']);
+
+        return response()->json($shipping->trackingPayload($shipment));
+    }
+
+    /**
      * User service history
      */
     public function userServiceHistory()

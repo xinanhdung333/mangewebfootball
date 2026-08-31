@@ -61,8 +61,13 @@
                                 <p class="text-muted mb-3">Mã booking: #{{ $booking->id }}</p>
                                 <p class="text-muted mb-3">Phương thức thanh toán: {{ $booking->payment->payment_method ?? 'Chưa xác định' }}</p>
                                 <div class="mt-auto d-flex justify-content-between align-items-center">
-                                    <strong>{{ number_format($booking->total_price, 0, ',', '.') }}d</strong>
-                                    <a href="{{ route('user.bookingdetail', $booking->id) }}" class="btn btn-sm btn-outline-primary">Xem chi tiet</a>
+                                    <strong>{{ number_format($booking->total_price, 0, ',', '.') }}đ</strong>
+                                    <div>
+                                        @if($booking->status === 'pending')
+                                            <a href="{{ route('user.payment.booking', $booking->id) }}" class="btn btn-sm btn-primary me-1">Thanh toán</a>
+                                        @endif
+                                        <a href="{{ route('user.bookingdetail', $booking->id) }}" class="btn btn-sm btn-outline-primary">Xem chi tiết</a>
+                                    </div>
                                 </div>
                             </div>
                         </div>

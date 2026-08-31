@@ -63,11 +63,11 @@ class OrderShipment extends Model
     public static function labels(): array
     {
         return [
-            self::STATUS_CREATED => 'Da tao',
-            self::STATUS_PICKED_UP => 'Da lay hang',
-            self::STATUS_TRANSPORTING => 'Dang van chuyen',
-            self::STATUS_DELIVERING => 'Dang giao',
-            self::STATUS_DELIVERED => 'Da giao',
+            self::STATUS_CREATED      => 'Đã tạo đơn',
+            self::STATUS_PICKED_UP    => 'Đã lấy hàng',
+            self::STATUS_TRANSPORTING => 'Đang vận chuyển',
+            self::STATUS_DELIVERING   => 'Đang giao hàng',
+            self::STATUS_DELIVERED    => 'Đã giao thành công',
         ];
     }
 }

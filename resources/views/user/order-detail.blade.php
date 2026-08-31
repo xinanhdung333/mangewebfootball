@@ -258,6 +258,14 @@
 
                     <hr>
 
+                    @if($order->status === 'pending')
+                        <a href="{{ route('user.payment.order', $order->id) }}"
+                           class="btn btn-primary w-100 mb-2">
+                            <i class="bi bi-credit-card"></i>
+                            Thanh toán ngay
+                        </a>
+                    @endif
+
                     @if($order->status === 'confirmed' || $order->status === 'completed')
 
                         <a href="{{ route('user.exportInvoice', $order->id) }}"

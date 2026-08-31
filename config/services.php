@@ -69,4 +69,16 @@ return [
         'delivery_province' => env('GHN_DEMO_DELIVERY_PROVINCE', 'Hồ Chí Minh'),
     ],
 
+    // OpenRouteService - tính khoảng cách + phí ship
+    'ors' => [
+        'api_key'        => env('ORS_API_KEY'),
+        'endpoint'       => env('ORS_ENDPOINT', 'https://api.heigit.org/openrouteservice/v2/directions/driving-car/json'),
+        'shop_lat'       => env('SHOP_LAT', 21.0285),
+        'shop_lng'       => env('SHOP_LNG', 105.8542),
+        'base_fee'       => (int) env('SHIPPING_BASE_FEE', 15000),
+        'fee_per_km'     => (int) env('SHIPPING_FEE_PER_KM', 5000),
+        'free_threshold' => (int) env('SHIPPING_FREE_THRESHOLD', 200000),
+    ],
+
 ];
+

@@ -157,6 +157,68 @@ input:checked + .slider:before {
     <!-- Content -->
     <div class="content">
 
+        @if(session('success'))
+            <div class="alert alert-success">
+                {{ session('success') }}
+            </div>
+        @endif
+
+        <!-- Giao hàng -->
+        <div class="section">
+            <h3>Giao hàng & Vận chuyển</h3>
+            <form action="{{ route('admin.settings.store') }}" method="POST">
+                @csrf
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Địa chỉ cửa hàng (Shop Address)</label>
+                    <div class="input-group">
+                        <input type="text" id="shop_address" name="shop_address" class="form-control" placeholder="Ví dụ: 1 Đại Cồ Việt, Hai Bà Trưng, Hà Nội" value="{{ old('shop_address', $settings['shop_address'] ?? '') }}" required>
+                        <button type="button" class="btn btn-outline-secondary" id="btn-geocode" style="border-radius: 0 4px 4px 0;">
+                            <i class="bi bi-search"></i> Tìm toạ độ
+                        </button>
+                    </div>
+                    <small class="text-muted" id="geocode-msg">Bấm "Tìm toạ độ" để tự động điền Vĩ độ & Kinh độ bên dưới.</small>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Vĩ độ (Latitude)</label>
+                        <input type="text" id="shop_lat" name="shop_lat" class="form-control" value="{{ old('shop_lat', $settings['shop_lat'] ?? '21.0285') }}" required>
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label fw-bold">Kinh độ (Longitude)</label>
+                        <input type="text" id="shop_lng" name="shop_lng" class="form-control" value="{{ old('shop_lng', $settings['shop_lng'] ?? '105.8542') }}" required>
+                    </div>
+                    <div class="col-12 mb-3 mt-n2">
+                        <small class="text-warning"><i class="bi bi-info-circle"></i> Chỉ chỉnh sửa toạ độ nếu hệ thống tìm địa chỉ không chính xác. <a href="https://www.latlong.net/" target="_blank">Lấy toạ độ thủ công tại đây</a>.</small>
+                    </div>
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label fw-bold">Phí giao hàng mỗi km (VNĐ)</label>
+                    <input type="number" name="shipping_fee_per_km" class="form-control" value="{{ old('shipping_fee_per_km', $settings['shipping_fee_per_km'] ?? '15000') }}" required min="0">
+                </div>
+
+                <div class="d-flex gap-2 flex-wrap">
+                    <button type="submit" class="btn btn-primary" style="background:#ee4d2d; border-color:#ee4d2d;">Lưu cấu hình</button>
+                    <a href="{{ route('admin.shipping-methods.index') }}" class="btn btn-outline-secondary">Quản lý đơn vị vận chuyển</a>
+                </div>
+            </form>
+        </div>
+
+        <!-- Khuyến mãi -->
+        <div class="section">
+            <h3>Khuyến mãi</h3>
+            <a href="{{ route('admin.vouchers.index') }}" style="text-decoration:none; color:inherit;">
+                <div class="item">
+                    <div class="item-left">
+                        <i class="bi bi-ticket-perforated"></i>
+                        Quản lý mã giảm giá (Voucher)
+                    </div>
+                    <i class="bi bi-chevron-right"></i>
+                </div>
+            </a>
+        </div>
+
         <!-- Bảo mật -->
         <div class="section">
             <h3>Bảo mật</h3>
@@ -229,5 +291,46 @@ input:checked + .slider:before {
 
 </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const btnGeocode = document.getElementById('btn-geocode');
+    const inputAddress = document.getElementById('shop_address');
+    const inputLat = document.getElementById('shop_lat');
+    const inputLng = document.getElementById('shop_lng');
+    const msg = document.getElementById('geocode-msg');
+
+    btnGeocode.addEventListener('click', function() {
+        const address = inputAddress.value.trim();
+        if(!address) {
+            msg.innerHTML = '<span class="text-danger">Vui lòng nhập địa chỉ trước.</span>';
+            return;
+        }
+
+        btnGeocode.innerHTML = '<span class="spinner-border spinner-border-sm"></span>';
+        btnGeocode.disabled = true;
+        msg.innerHTML = '<span class="text-info">Đang tìm kiếm...</span>';
+
+        fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(address))
+            .then(res => res.json())
+            .then(data => {
+                if (data && data.length > 0) {
+                    inputLat.value = data[0].lat;
+                    inputLng.value = data[0].lon;
+                    msg.innerHTML = '<span class="text-success fw-bold"><i class="bi bi-check-circle"></i> Đã tìm thấy toạ độ!</span>';
+                } else {
+                    msg.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle"></i> Không tìm thấy địa chỉ này trên bản đồ. Bạn hãy thử nhập địa chỉ ngắn gọn hơn (vd: Quận/Thành phố) hoặc nhập toạ độ thủ công.</span>';
+                }
+            })
+            .catch(err => {
+                msg.innerHTML = '<span class="text-danger"><i class="bi bi-x-circle"></i> Lỗi kết nối đến bản đồ.</span>';
+            })
+            .finally(() => {
+                btnGeocode.innerHTML = '<i class="bi bi-search"></i> Tìm toạ độ';
+                btnGeocode.disabled = false;
+            });
+    });
+});
+</script>
 
 @endsection
