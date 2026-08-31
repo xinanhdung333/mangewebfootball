@@ -322,6 +322,16 @@
     gap: 10px;
     margin-bottom: 16px;
 }
+.ec-category-group {
+    margin-bottom: 18px;
+}
+.ec-category-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 18px 0 10px;
+}
 .ec-product-card {
     background: var(--ec-card);
     border: 1px solid var(--ec-border);
@@ -425,6 +435,98 @@
     text-align: right;
 }
 
+.voucher-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(17, 17, 17, 0.62);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 99999;
+}
+.voucher-modal {
+    position: relative;
+    width: min(480px, 100%);
+    background: linear-gradient(135deg, #fff9f0 0%, #fff 100%);
+    border: 1px solid rgba(255, 138, 61, 0.3);
+    border-radius: 22px;
+    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+    padding: 28px 24px 20px;
+    text-align: center;
+    animation: voucherFadeIn .25s ease-out;
+}
+@keyframes voucherFadeIn {
+    from { opacity: 0; transform: translateY(12px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+}
+.voucher-modal .close-btn {
+    position: absolute;
+    top: 12px;
+    right: 14px;
+    border: none;
+    background: transparent;
+    color: #7d7d7d;
+    font-size: 1.5rem;
+    line-height: 1;
+    cursor: pointer;
+}
+.voucher-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 999px;
+    background: #fff3dd;
+    color: #b96310;
+    font-size: .75rem;
+    font-weight: 700;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+}
+.voucher-title {
+    margin: 14px 0 10px;
+    font-size: clamp(1.4rem, 3vw, 2rem);
+    font-weight: 800;
+    color: #222;
+}
+.voucher-subtitle {
+    margin: 0 0 18px;
+    color: #555;
+    line-height: 1.6;
+    font-size: .95rem;
+}
+.voucher-code-box {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    margin: 18px auto 16px;
+    border: 2px dashed #ff8a3d;
+    background: #fff;
+    border-radius: 12px;
+    padding: 12px 14px;
+    max-width: 260px;
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #d9670a;
+    letter-spacing: .08em;
+}
+.voucher-copy-btn {
+    border: none;
+    background: linear-gradient(135deg, #ff8a3d, #ff5a3c);
+    color: #fff;
+    border-radius: 999px;
+    padding: 11px 18px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: opacity .2s;
+}
+.voucher-copy-btn:hover { opacity: .95; }
+.voucher-note {
+    margin-top: 12px;
+    color: #666;
+    font-size: .8rem;
+}
+    
 /* Toast */
 .toast-noti {
     position: fixed;
@@ -514,6 +616,27 @@
         <a href="{{ route('cart.index') }}" class="ec-cart-link"><i class="bi bi-cart3"></i></a>
     </div>
 </div>
+
+@if($homeVoucher)
+    <div id="voucherOverlay" class="voucher-overlay" aria-live="polite">
+        <div class="voucher-modal" role="dialog" aria-modal="true" aria-labelledby="voucherTitle">
+            <button type="button" class="close-btn" aria-label="Đóng" onclick="closeVoucherOverlay()">×</button>
+            <div class="voucher-badge">Voucher hot</div>
+            <h3 id="voucherTitle" class="voucher-title">Ưu đãi dành cho bạn</h3>
+            <p class="voucher-subtitle">
+                Giảm ngay <strong>{{ number_format($homeVoucher->discount_amount, 0, ',', '.') }}đ</strong>
+                cho đơn hàng từ <strong>{{ number_format($homeVoucher->min_order_amount, 0, ',', '.') }}đ</strong>.
+            </p>
+            <div class="voucher-code-box">
+                <span id="voucherCodeText">{{ $homeVoucher->code }}</span>
+            </div>
+            <button type="button" class="voucher-copy-btn" onclick="copyVoucherCode()">Sao chép mã</button>
+            <div class="voucher-note">
+                HSD: {{ $homeVoucher->expires_at ? \Carbon\Carbon::parse($homeVoucher->expires_at)->format('d/m/Y H:i') : 'Không giới hạn' }}
+            </div>
+        </div>
+    </div>
+@endif
 
 {{-- ========== MAIN LAYOUT ========== --}}
 <div class="ec-main">
@@ -608,6 +731,39 @@
             @endforelse
         </div>
 
+        @foreach($categories as $category)
+            @if($category->services->isNotEmpty())
+                <div class="ec-category-group">
+                    <div class="ec-category-header">
+                        <h4 class="ec-section-title" style="padding:0; margin:0;">{{ $category->name }}</h4>
+                        <a href="{{ route('user.services', ['category' => $category->id]) }}" class="ec-btn ec-btn-ghost" style="padding:6px 12px; font-size:.8rem;">Xem tất cả</a>
+                    </div>
+                    <div class="ec-product-grid">
+                        @foreach($category->services as $service)
+                            <a href="{{ route('user.serviceDetail', $service->id) }}" class="ec-product-card">
+                                @if($service->image)
+                                    <img src="{{ asset('uploads/services/' . $service->image) }}" alt="{{ $service->name }}" class="ec-product-img">
+                                @else
+                                    <div class="ec-product-img" style="display:flex;align-items:center;justify-content:center;color:#ccc;font-size:2rem;">
+                                        <i class="bi bi-image"></i>
+                                    </div>
+                                @endif
+                                <div class="ec-product-info">
+                                    <p class="ec-product-name">{{ $service->name }}</p>
+                                    <p class="ec-product-price">{{ formatCurrency($service->price) }}</p>
+                                    @if($service->quantity > 0)
+                                        <p class="ec-product-meta">Còn {{ $service->quantity }} sản phẩm</p>
+                                    @else
+                                        <p class="ec-product-meta" style="color:var(--ec-danger);">Hết hàng</p>
+                                    @endif
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+        @endforeach
+
         {{-- ĐƠN HÀNG GẦN ĐÂY --}}
         <div class="ec-orders-block">
             <h5><i class="bi bi-receipt"></i> Đơn hàng gần đây</h5>
@@ -695,9 +851,40 @@ function hideToast(id) {
     toast.classList.remove('show');
     toast.style.top = "-100px";
 }
+function closeVoucherOverlay() {
+    const overlay = document.getElementById('voucherOverlay');
+    if (overlay) overlay.style.display = 'none';
+}
+function copyVoucherCode() {
+    const code = document.getElementById('voucherCodeText')?.innerText;
+    if (!code) return;
+
+    if (navigator.clipboard && window.isSecureContext) {
+        navigator.clipboard.writeText(code).then(() => {
+            const btn = document.querySelector('.voucher-copy-btn');
+            if (!btn) return;
+            const originalText = btn.textContent;
+            btn.textContent = 'Đã sao chép';
+            setTimeout(() => { btn.textContent = originalText; }, 1200);
+        }).catch(() => {});
+        return;
+    }
+
+    const temp = document.createElement('textarea');
+    temp.value = code;
+    document.body.appendChild(temp);
+    temp.select();
+    document.execCommand('copy');
+    document.body.removeChild(temp);
+}
 document.addEventListener('DOMContentLoaded', function () {
     setTimeout(() => showToast('toast-rule', 0), 800);
     setTimeout(() => showToast('toast-news', 1), 1200);
+
+    const voucherOverlay = document.getElementById('voucherOverlay');
+    if (voucherOverlay) {
+        voucherOverlay.style.opacity = '1';
+    }
 });
 </script>
 @endsection

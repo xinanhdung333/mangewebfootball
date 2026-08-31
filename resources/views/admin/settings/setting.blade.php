@@ -205,6 +205,20 @@ input:checked + .slider:before {
             </form>
         </div>
 
+        <!-- Trang Giới thiệu -->
+        <div class="section">
+            <h3>Trang Giới thiệu</h3>
+            <a href="{{ route('admin.settings.about') }}" style="text-decoration:none; color:inherit;">
+                <div class="item">
+                    <div class="item-left">
+                        <i class="bi bi-pencil-square"></i>
+                        Chỉnh sửa nội dung trang giới thiệu
+                    </div>
+                    <i class="bi bi-chevron-right"></i>
+                </div>
+            </a>
+        </div>
+
         <!-- Khuyến mãi -->
         <div class="section">
             <h3>Khuyến mãi</h3>

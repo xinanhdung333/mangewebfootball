@@ -104,9 +104,9 @@ body {
 ======================= -->
 <div class="about-hero py-5">
     <div class="container text-center fade-in">
-        <h1 class="fw-bold display-5">Về chúng tôi</h1>
+        <h1 class="fw-bold display-5">{{ $about['hero_title'] }}</h1>
         <p class="lead opacity-75">
-            Sứ mệnh – Tầm nhìn – Giá trị của SportsHub
+            {{ $about['hero_subtitle'] }}
         </p>
     </div>
 </div>
@@ -119,17 +119,16 @@ body {
         <div class="row align-items-center g-5">
             <div class="col-md-6 fade-in">
                 <h2 class="fw-bold mb-3">
-                    Về <span class="text-primary">SportsHub</span>
+                    {{ $about['intro_title'] }}
                 </h2>
                 <p class="lead">
-                    SportsHub là nền tảng đặt sân bóng và dịch vụ đi kèm,
-                    kết nối cộng đồng yêu bóng đá với các sân chất lượng.
+                    {{ $about['intro_lead'] }}
                 </p>
                 <p>
-                    SportsHub là nền tảng đặt sân bóng và các dịch vụ đi kèm được xây dựng nhằm kết nối cộng đồng yêu bóng đá với những sân bóng chất lượng, uy tín và phù hợp với nhu cầu đa dạng của người chơi. Hệ thống cho phép người dùng dễ dàng tìm kiếm, so sánh và lựa chọn sân bóng theo vị trí, khung giờ, mức giá cũng như các dịch vụ hỗ trợ đi kèm, mang lại trải nghiệm đặt sân thuận tiện và nhanh chóng hơn so với phương thức truyền thống.
+                    {{ $about['intro_paragraph_1'] }}
                 </p>
                 <p>
-                    Xuất phát từ những khó khăn thực tế của người chơi bóng phong trào như việc tìm sân trống, thiếu thông tin minh bạch về giá cả, chất lượng sân và các dịch vụ liên quan, SportsHub ra đời với mục tiêu giải quyết triệt để những bất cập đó. Thông qua việc ứng dụng công nghệ vào quản lý và vận hành, chúng tôi xây dựng một hệ thống hiện đại, chính xác và minh bạch.
+                    {{ $about['intro_paragraph_2'] }}
                 </p>
             </div>
 
@@ -149,12 +148,12 @@ body {
 ======================= -->
 <div class="section bg-light">
     <div class="container fade-in">
-        <h2 class="fw-bold mb-3">Lịch sử ra đời</h2>
+        <h2 class="fw-bold mb-3">{{ $about['history_title'] }}</h2>
         <p>
-            SportsHub được hình thành từ một dự án nhỏ vào năm 2025, trong bối cảnh nhu cầu đặt sân bóng của người chơi phong trào ngày càng tăng cao nhưng các hình thức đặt sân vẫn chủ yếu mang tính thủ công, thiếu tính đồng bộ và minh bạch. Người chơi thường phải liên hệ trực tiếp với chủ sân, khó nắm bắt lịch trống, giá cả và chất lượng dịch vụ.
+            {{ $about['history_paragraph_1'] }}
         </p>
         <p>
-            Nhận thấy những hạn chế đó, nhóm phát triển đã từng bước xây dựng SportsHub như một giải pháp ứng dụng công nghệ vào quản lý và đặt sân bóng. Ban đầu, hệ thống chỉ tập trung vào chức năng đặt sân cơ bản. Qua thời gian, dựa trên nhu cầu thực tế và phản hồi từ người dùng, SportsHub được mở rộng với nhiều tính năng nâng cao.
+            {{ $about['history_paragraph_2'] }}
         </p>
     </div>
 </div>
@@ -174,7 +173,7 @@ body {
             </div>
 
             <div class="col-md-6 fade-in">
-                <h2 class="fw-bold mb-4">Vai trò trong cuộc sống</h2>
+                <h2 class="fw-bold mb-4">{{ $about['role_title'] }}</h2>
 
                 <div class="row g-3">
                     <div class="col-12">
@@ -221,10 +220,10 @@ body {
                 <div class="card card-hover h-100 border-0 rounded-4">
                     <div class="card-body">
                         <h5 class="fw-bold mb-3">
-                            <i class="bi bi-target text-danger"></i> Sứ mệnh
+                            <i class="bi bi-target text-danger"></i> {{ $about['mission_title'] }}
                         </h5>
                         <p>
-                            Mang đến một nền tảng đặt sân bóng hiện đại, thân thiện và dễ sử dụng, giúp mọi người tiếp cận thể thao một cách thuận tiện, nhanh chóng và bền vững. SportsHub hướng tới việc đơn giản hóa quá trình tìm kiếm, đặt sân và sử dụng các dịch vụ đi kèm.
+                            {{ $about['mission_text'] }}
                         </p>
                     </div>
                 </div>
@@ -234,10 +233,10 @@ body {
                 <div class="card card-hover h-100 border-0 rounded-4">
                     <div class="card-body">
                         <h5 class="fw-bold mb-3">
-                            <i class="bi bi-eye text-info"></i> Tầm nhìn
+                            <i class="bi bi-eye text-info"></i> {{ $about['vision_title'] }}
                         </h5>
                         <p>
-                SportsHub hướng tới trở thành hệ sinh thái thể thao phong trào hàng đầu Việt Nam, nơi kết nối toàn diện giữa người chơi, chủ sân và các dịch vụ liên quan đến thể thao. Chúng tôi mong muốn góp phần thúc đẩy phong trào thể thao phát triển bền vững.
+                            {{ $about['vision_text'] }}
                         </p>
                     </div>
                 </div>

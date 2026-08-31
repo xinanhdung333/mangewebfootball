@@ -87,6 +87,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth', 'role:admin'])->grou
 //setting 
 Route::get('settings', [\App\Http\Controllers\Admin\SettingController::class, 'index'])->name('settings');
 Route::post('settings', [\App\Http\Controllers\Admin\SettingController::class, 'store'])->name('settings.store');
+Route::get('settings/about', [\App\Http\Controllers\Admin\SettingController::class, 'aboutEditor'])->name('settings.about');
+Route::post('settings/about', [\App\Http\Controllers\Admin\SettingController::class, 'storeAbout'])->name('settings.about.store');
 Route::get('/shipping-methods', [ShippingMethodController::class, 'index'])->name('shipping-methods.index');
 Route::post('/shipping-methods', [ShippingMethodController::class, 'store'])->name('shipping-methods.store');
 Route::put('/shipping-methods/{shippingMethod}', [ShippingMethodController::class, 'update'])->name('shipping-methods.update');

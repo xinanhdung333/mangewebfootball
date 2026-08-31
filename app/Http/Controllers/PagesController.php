@@ -103,7 +103,21 @@ class PagesController extends Controller
         $bookings = $user ? $user->bookings()->latest()->take(5)->get() : [];
          $rule = PriceRule::first();
         $ruleService = ServiceDiscount::first();
-        $categories = Category::withCount('services')->get();
+        $homeVoucher = \App\Models\Voucher::query()
+            ->where('is_active', true)
+            ->where(function ($query) {
+                $query->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
+            ->orderByDesc('id')
+            ->first();
+        $categories = Category::withCount('services')
+            ->with(['services' => function ($query) {
+                $query->where('status', 'active')
+                    ->orderByDesc('created_at')
+                    ->limit(2);
+            }])
+            ->get();
         $featuredServices = Service::where('status', 'active')->latest()->take(8)->get();
         return view('user.dashboard', [
             'user' => $user,
@@ -113,6 +127,7 @@ class PagesController extends Controller
             'bookings' => $bookings,
             'rule' => $rule,
             'ruleService' => $ruleService,
+            'homeVoucher' => $homeVoucher,
             'categories' => $categories,
             'featuredServices' => $featuredServices,
         ]);  
@@ -348,16 +363,18 @@ public function showOrderPaymentMethod(Order $order)
 {
     abort_unless($order->user_id === auth()->id(), 403);
 
+    $initialPaymentAmount = max(0, (float) $order->total_amount + (float) ($order->shipping_fee ?? 0) - (float) ($order->voucher_discount ?? 0));
+
     $payment = Payment::firstOrCreate(
         ['order_id' => $order->id],
         [
-            'amount' => max(0, (float) $order->total_amount + (float) ($order->shipping_fee ?? 0) - (float) ($order->voucher_discount ?? 0)),
+            'amount' => $initialPaymentAmount,
             'status' => 'pending',
         ]
     );
 
     $payment->update([
-        'amount' => max(0, (float) $order->total_amount + (float) ($order->shipping_fee ?? 0) - (float) ($order->voucher_discount ?? 0)),
+        'amount' => $initialPaymentAmount,
     ]);
 
     $service = DB::table('order_items as oi')

@@ -279,7 +279,7 @@ Quét mã VietQR
 <div class="row g-3 align-items-center">
 <div class="col-md-4 text-center">
 @if(!empty($bankTransfer['qr_url'] ?? null))
-<img src="{{ $bankTransfer['qr_url'] }}" alt="MBBank VietQR" class="img-fluid rounded bg-white p-2" style="max-height:200px">
+<img id="bankTransferQrImage" src="{{ $bankTransfer['qr_url'] }}" alt="MBBank VietQR" class="img-fluid rounded bg-white p-2" style="max-height:200px">
 @else
 <div class="alert alert-warning mb-0 small">Chưa có QR vì thiếu số tài khoản MBBank trong .env</div>
 @endif
@@ -289,7 +289,7 @@ Quét mã VietQR
 <div class="col-6"><div class="text-muted">Ngân hàng</div><div class="fw-semibold">{{ $bankTransfer['bank_name'] ?? 'MBBank' }}</div></div>
 <div class="col-6"><div class="text-muted">Số tài khoản</div><div class="fw-semibold">{{ $bankTransfer['account_no'] ?? 'Chưa cấu hình' }}</div></div>
 <div class="col-6"><div class="text-muted">Chủ tài khoản</div><div class="fw-semibold">{{ $bankTransfer['account_name'] ?? 'Chưa cấu hình' }}</div></div>
-<div class="col-6"><div class="text-muted">Số tiền</div><div class="fw-semibold pay-accent-text">{{ number_format($amount,0,',','.') }}đ</div></div>
+<div class="col-6"><div class="text-muted">Số tiền</div><div id="bankTransferAmount" class="fw-semibold pay-accent-text">{{ number_format($amount,0,',','.') }}đ</div></div>
 <div class="col-12"><div class="text-muted">Nội dung chuyển khoản</div><div class="fw-bold text-danger">{{ $bankTransfer['transfer_code'] ?? '' }}</div></div>
 </div>
 </div>
@@ -776,11 +776,35 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     /* ── Update total with voucher ── */
+    const bankTransferQrBaseUrl = {!! json_encode($bankTransfer['qr_url'] ?? '') !!};
+    const bankTransferAmountEl = document.getElementById('bankTransferAmount');
+    const bankTransferQrImageEl = document.getElementById('bankTransferQrImage');
+
+    function updateBankTransferSummary() {
+        const ship = parseFloat(hiddenShippingFee ? hiddenShippingFee.value : 0) || 0;
+        const total = Math.max(0, baseAmount + ship - currentVoucherDiscount);
+
+        if (bankTransferAmountEl) {
+            bankTransferAmountEl.textContent = total.toLocaleString('vi-VN') + 'đ';
+        }
+
+        if (bankTransferQrBaseUrl && bankTransferQrImageEl) {
+            let updatedQrUrl = bankTransferQrBaseUrl;
+            if (updatedQrUrl.includes('amount=')) {
+                updatedQrUrl = updatedQrUrl.replace(/([?&])amount=\d+/, '$1amount=' + Math.round(total));
+            } else {
+                updatedQrUrl += (updatedQrUrl.includes('?') ? '&' : '?') + 'amount=' + Math.round(total);
+            }
+            bankTransferQrImageEl.src = updatedQrUrl;
+        }
+    }
+
     function updateTotal() {
         if (!summaryTotal || '{{ $type }}' !== 'order') return;
         const ship = parseFloat(hiddenShippingFee ? hiddenShippingFee.value : 0) || 0;
         const total = Math.max(0, baseAmount + ship - currentVoucherDiscount);
         summaryTotal.textContent = total.toLocaleString('vi-VN') + 'đ';
+        updateBankTransferSummary();
     }
 
     const originalShowFeeOnCard = showFeeOnCard;

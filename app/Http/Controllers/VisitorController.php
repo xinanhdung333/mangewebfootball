@@ -20,7 +20,24 @@ class VisitorController extends Controller
 
     public function about()
     {
-        return view('pages.visitor.about');
+        $about = [
+            'hero_title' => \App\Models\Setting::get('about_hero_title', 'Về chúng tôi'),
+            'hero_subtitle' => \App\Models\Setting::get('about_hero_subtitle', 'Sứ mệnh – Tầm nhìn – Giá trị của SportsHub'),
+            'intro_title' => \App\Models\Setting::get('about_intro_title', 'Về SportsHub'),
+            'intro_lead' => \App\Models\Setting::get('about_intro_lead', 'SportsHub là nền tảng đặt sân bóng và dịch vụ đi kèm, kết nối cộng đồng yêu bóng đá với các sân chất lượng.'),
+            'intro_paragraph_1' => \App\Models\Setting::get('about_intro_paragraph_1', 'SportsHub là nền tảng đặt sân bóng và các dịch vụ đi kèm được xây dựng nhằm kết nối cộng đồng yêu bóng đá với những sân bóng chất lượng, uy tín và phù hợp với nhu cầu đa dạng của người chơi.'),
+            'intro_paragraph_2' => \App\Models\Setting::get('about_intro_paragraph_2', 'Xuất phát từ những khó khăn thực tế của người chơi bóng phong trào như việc tìm sân trống, thiếu thông tin minh bạch về giá cả, chất lượng sân và các dịch vụ liên quan, SportsHub ra đời với mục tiêu giải quyết triệt để những bất cập đó.'),
+            'history_title' => \App\Models\Setting::get('about_history_title', 'Lịch sử ra đời'),
+            'history_paragraph_1' => \App\Models\Setting::get('about_history_paragraph_1', 'SportsHub được hình thành từ một dự án nhỏ vào năm 2025, trong bối cảnh nhu cầu đặt sân bóng của người chơi phong trào ngày càng tăng cao nhưng các hình thức đặt sân vẫn chủ yếu mang tính thủ công, thiếu tính đồng bộ và minh bạch.'),
+            'history_paragraph_2' => \App\Models\Setting::get('about_history_paragraph_2', 'Nhận thấy những hạn chế đó, nhóm phát triển đã từng bước xây dựng SportsHub như một giải pháp ứng dụng công nghệ vào quản lý và đặt sân bóng.'),
+            'role_title' => \App\Models\Setting::get('about_role_title', 'Vai trò trong cuộc sống'),
+            'mission_title' => \App\Models\Setting::get('about_mission_title', 'Sứ mệnh'),
+            'mission_text' => \App\Models\Setting::get('about_mission_text', 'Mang đến một nền tảng đặt sân bóng hiện đại, thân thiện và dễ sử dụng, giúp mọi người tiếp cận sân bóng tốt hơn.'),
+            'vision_title' => \App\Models\Setting::get('about_vision_title', 'Tầm nhìn'),
+            'vision_text' => \App\Models\Setting::get('about_vision_text', 'Trở thành nền tảng đặt sân bóng hàng đầu, kết nối cộng đồng và nâng cao trải nghiệm thể thao cộng đồng.'),
+        ];
+
+        return view('user.about', compact('about'));
     }
 public function dashboard()
 {
