@@ -27,6 +27,32 @@
 
     <div class="card shadow-sm border-0 mb-4">
         <div class="card-body">
+            <h5 class="fw-bold mb-2">Mốc miễn phí vận chuyển</h5>
+            <p class="text-muted small mb-3">Đơn hàng đạt từ mốc này sẽ được miễn phí phí vận chuyển. Nhập 0 để tắt.</p>
+            <form action="{{ route('admin.shipping-methods.free-threshold') }}" method="POST" class="row g-3 align-items-end">
+                @csrf
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold" for="free_shipping_threshold">Giá trị đơn hàng tối thiểu (đ)</label>
+                    <input
+                        id="free_shipping_threshold"
+                        type="number"
+                        name="free_shipping_threshold"
+                        class="form-control"
+                        min="0"
+                        step="1000"
+                        value="{{ old('free_shipping_threshold', $freeShippingThreshold) }}"
+                        required
+                    >
+                </div>
+                <div class="col-md-auto">
+                    <button type="submit" class="btn btn-primary">Lưu mốc miễn phí</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="card shadow-sm border-0 mb-4">
+        <div class="card-body">
             <h5 class="fw-bold mb-3">Thêm phương thức mới</h5>
             <form action="{{ route('admin.shipping-methods.store') }}" method="POST" class="row g-3 align-items-end">
                 @csrf

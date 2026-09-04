@@ -52,7 +52,23 @@ class ShippingMethodController extends Controller
                 ->get();
         }
 
-        return view('admin.settings.shipping-methods', compact('shippingMethods'));
+        $freeShippingThreshold = (int) \App\Models\Setting::get(
+            'free_shipping_threshold',
+            config('services.ors.free_threshold', 200000)
+        );
+
+        return view('admin.settings.shipping-methods', compact('shippingMethods', 'freeShippingThreshold'));
+    }
+
+    public function updateFreeShippingThreshold(Request $request)
+    {
+        $data = $request->validate([
+            'free_shipping_threshold' => ['required', 'numeric', 'min:0'],
+        ]);
+
+        \App\Models\Setting::set('free_shipping_threshold', (int) $data['free_shipping_threshold']);
+
+        return back()->with('success', 'Cập nhật mốc miễn phí vận chuyển thành công.');
     }
 
     public function store(Request $request)

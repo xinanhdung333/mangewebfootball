@@ -28,7 +28,6 @@ class ShippingFeeController extends Controller
 
         $orderTotal = (int) ($request->order_total ?? 0);
 
-        // Lấy tọa độ từ địa chỉ hoặc từ request
         if ($request->filled('address_id')) {
             $address = UserAddress::where('id', $request->address_id)
                 ->where('user_id', auth()->id())
@@ -39,7 +38,20 @@ class ShippingFeeController extends Controller
             }
 
             if (!$address->lat || !$address->lng) {
-                // Địa chỉ chưa có tọa độ → fallback phí cố định
+                $freeThreshold = (int) \App\Models\Setting::get(
+                    'free_shipping_threshold',
+                    config('services.ors.free_threshold', 200000)
+                );
+
+                if ($freeThreshold > 0 && $orderTotal >= $freeThreshold) {
+                    return response()->json([
+                        'fee'         => 0,
+                        'distance_km' => null,
+                        'is_free'     => true,
+                        'reason'      => 'Miễn phí ship cho đơn hàng từ ' . number_format($freeThreshold, 0, ',', '.') . 'đ',
+                    ]);
+                }
+
                 return response()->json([
                     'fee'         => config('services.ors.base_fee', 15000),
                     'distance_km' => null,
@@ -57,9 +69,7 @@ class ShippingFeeController extends Controller
             return response()->json(['error' => 'Cần cung cấp address_id hoặc lat/lng'], 422);
         }
 
-        $result = $this->ors->calculateShippingFee($lat, $lng, $orderTotal);
-
-        return response()->json($result);
+        return response()->json($this->ors->calculateShippingFee($lat, $lng, $orderTotal));
     }
 
     /**

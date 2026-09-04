@@ -111,6 +111,10 @@ class PagesController extends Controller
             })
             ->orderByDesc('id')
             ->first();
+        $freeShippingThreshold = (int) \App\Models\Setting::get(
+            'free_shipping_threshold',
+            config('services.ors.free_threshold', 200000)
+        );
         $categories = Category::withCount('services')
             ->with(['services' => function ($query) {
                 $query->where('status', 'active')
@@ -128,6 +132,7 @@ class PagesController extends Controller
             'rule' => $rule,
             'ruleService' => $ruleService,
             'homeVoucher' => $homeVoucher,
+            'freeShippingThreshold' => $freeShippingThreshold,
             'categories' => $categories,
             'featuredServices' => $featuredServices,
         ]);  
@@ -532,12 +537,20 @@ private function mbBankQrData(string $type, int $id, int $amount): array
         $submittedShippingFee = (float) ($request->input('shipping_fee', 0) ?? 0);
         $baseShippingFee = (float) ($order->shipping_fee ?? 0);
         $shippingMethodFee = $shippingMethod ? (float) $shippingMethod->extra_fee : 0;
+        $freeShippingThreshold = (int) \App\Models\Setting::get(
+            'free_shipping_threshold',
+            config('services.ors.free_threshold', 200000)
+        );
 
         // shipping_fee trong form đã là tổng phí ship đã tính + phụ phí phương thức được chọn.
         // Không cộng lại `shippingMethodFee` khi đã có giá trị từ form, nếu không có thì mới cộng fallback.
-        $shippingFee = $submittedShippingFee > 0
-            ? $submittedShippingFee
-            : max(0, $baseShippingFee + $shippingMethodFee);
+        if ($freeShippingThreshold > 0 && (float) $order->total_amount >= $freeShippingThreshold) {
+            $shippingFee = 0;
+        } else {
+            $shippingFee = $submittedShippingFee > 0
+                ? $submittedShippingFee
+                : max(0, $baseShippingFee + $shippingMethodFee);
+        }
 
         $finalAmount = max(0, (float) $order->total_amount + $shippingFee - $voucherDiscount);
 
