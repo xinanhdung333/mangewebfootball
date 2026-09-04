@@ -90,6 +90,7 @@ Route::post('settings', [\App\Http\Controllers\Admin\SettingController::class, '
 Route::get('settings/about', [\App\Http\Controllers\Admin\SettingController::class, 'aboutEditor'])->name('settings.about');
 Route::post('settings/about', [\App\Http\Controllers\Admin\SettingController::class, 'storeAbout'])->name('settings.about.store');
 Route::get('/shipping-methods', [ShippingMethodController::class, 'index'])->name('shipping-methods.index');
+Route::post('/shipping-methods/free-threshold', [ShippingMethodController::class, 'updateFreeShippingThreshold'])->name('shipping-methods.free-threshold');
 Route::post('/shipping-methods', [ShippingMethodController::class, 'store'])->name('shipping-methods.store');
 Route::put('/shipping-methods/{shippingMethod}', [ShippingMethodController::class, 'update'])->name('shipping-methods.update');
 Route::delete('/shipping-methods/{shippingMethod}', [ShippingMethodController::class, 'destroy'])->name('shipping-methods.destroy');

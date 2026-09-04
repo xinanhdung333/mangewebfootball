@@ -444,6 +444,12 @@
     justify-content: center;
     padding: 20px;
     z-index: 99999;
+    animation: overlayFadeIn .35s ease both;
+}
+.voucher-overlay.is-closing,
+.shipping-overlay.is-closing {
+    opacity: 0;
+    transition: opacity .25s ease;
 }
 .voucher-modal {
     position: relative;
@@ -454,11 +460,16 @@
     box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
     padding: 28px 24px 20px;
     text-align: center;
-    animation: voucherFadeIn .25s ease-out;
+    animation: voucherPopIn .55s cubic-bezier(.22, 1, .36, 1) both;
 }
-@keyframes voucherFadeIn {
-    from { opacity: 0; transform: translateY(12px) scale(0.98); }
-    to { opacity: 1; transform: translateY(0) scale(1); }
+@keyframes overlayFadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+@keyframes voucherPopIn {
+    0% { opacity: 0; transform: translateY(32px) scale(.9) rotate(-1deg); }
+    65% { opacity: 1; transform: translateY(-5px) scale(1.02) rotate(.3deg); }
+    100% { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
 }
 .voucher-modal .close-btn {
     position: absolute;
@@ -542,18 +553,63 @@
     padding: 12px;
     gap: 10px;
     z-index: 9999;
-    transition: all .35s ease;
+    transition: opacity .35s ease, transform .55s cubic-bezier(.22, 1, .36, 1);
+    transform: translate3d(0, -24px, 0) scale(.96);
     opacity: 0;
 }
 .toast-noti.show {
     top: 80px;
     opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
 }
 .toast-content { flex: 1; font-size: .82rem; }
 .toast-content strong { display: block; margin-bottom: 2px; }
 .toast-content p { margin: 0; font-size: .78rem; color: var(--ec-muted); }
 .toast-close { cursor: pointer; font-size: 1.1rem; color: #bbb; padding: 4px; }
 .toast-close:hover { color: var(--ec-dark); }
+
+.shipping-overlay {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    z-index: 100000;
+    pointer-events: none;
+}
+.shipping-modal {
+    pointer-events: auto;
+    position: relative;
+    width: min(440px, 100%);
+    padding: 28px 24px 24px;
+    text-align: center;
+    color: #fff;
+    border-radius: 24px;
+    background: linear-gradient(135deg, #ff5a3c, #ff8a3d 58%, #ffc857);
+    box-shadow: 0 24px 70px rgba(225, 74, 35, .38);
+    animation: shippingPopIn .65s cubic-bezier(.22, 1, .36, 1) both;
+}
+@keyframes shippingPopIn {
+    0% { opacity: 0; transform: translateY(42px) scale(.78) rotate(2deg); }
+    70% { opacity: 1; transform: translateY(-7px) scale(1.03) rotate(-.3deg); }
+    100% { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
+}
+.shipping-modal .close-btn { color: rgba(255,255,255,.8); }
+.shipping-icon {
+    display: inline-flex;
+    width: 66px;
+    height: 66px;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 10px;
+    border-radius: 50%;
+    background: rgba(255,255,255,.2);
+    font-size: 2rem;
+}
+.shipping-modal h3 { margin: 0 0 10px; font-size: 1.65rem; font-weight: 800; }
+.shipping-modal p { margin: 0; line-height: 1.6; color: rgba(255,255,255,.95); }
+.shipping-modal strong { color: #fff; font-size: 1.12em; }
 
 /* ---------- RESPONSIVE ---------- */
 @media (max-width: 991px) {
@@ -634,6 +690,17 @@
             <div class="voucher-note">
                 HSD: {{ $homeVoucher->expires_at ? \Carbon\Carbon::parse($homeVoucher->expires_at)->format('d/m/Y H:i') : 'Không giới hạn' }}
             </div>
+        </div>
+    </div>
+@endif
+
+@if($freeShippingThreshold > 0)
+    <div id="shippingOverlay" class="shipping-overlay" aria-live="polite">
+        <div class="shipping-modal" role="dialog" aria-modal="true" aria-labelledby="shippingTitle">
+            <button type="button" class="close-btn" aria-label="Đóng" onclick="closeShippingOverlay()">×</button>
+            <div class="shipping-icon"><i class="bi bi-truck"></i></div>
+            <h3 id="shippingTitle">Free ship cho bạn!</h3>
+            <p>Đơn hàng từ <strong>{{ number_format($freeShippingThreshold, 0, ',', '.') }}đ</strong><br>được miễn phí vận chuyển.</p>
         </div>
     </div>
 @endif
@@ -853,7 +920,17 @@ function hideToast(id) {
 }
 function closeVoucherOverlay() {
     const overlay = document.getElementById('voucherOverlay');
-    if (overlay) overlay.style.display = 'none';
+    if (overlay) {
+        overlay.classList.add('is-closing');
+        setTimeout(() => { overlay.style.display = 'none'; }, 260);
+    }
+}
+function closeShippingOverlay() {
+    const overlay = document.getElementById('shippingOverlay');
+    if (overlay) {
+        overlay.classList.add('is-closing');
+        setTimeout(() => { overlay.style.display = 'none'; }, 260);
+    }
 }
 function copyVoucherCode() {
     const code = document.getElementById('voucherCodeText')?.innerText;
@@ -884,6 +961,11 @@ document.addEventListener('DOMContentLoaded', function () {
     const voucherOverlay = document.getElementById('voucherOverlay');
     if (voucherOverlay) {
         voucherOverlay.style.opacity = '1';
+    }
+
+    const shippingOverlay = document.getElementById('shippingOverlay');
+    if (shippingOverlay) {
+        shippingOverlay.style.opacity = '1';
     }
 });
 </script>
