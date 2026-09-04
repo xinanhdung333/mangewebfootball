@@ -236,6 +236,7 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function(){
     ->name('check.booking');
     Route::get('/dashboard', [PagesController::class, 'dashboard'])->name('dashboard');
     Route::get('/about', [PagesController::class, 'about'])->name('about');
+    Route::get('/vouchers', [PagesController::class, 'vouchers'])->name('vouchers');
     
 
     // Fields & Services

@@ -132,6 +132,22 @@ class PagesController extends Controller
             'featuredServices' => $featuredServices,
         ]);  
     }
+
+    public function vouchers()
+    {
+        $vouchers = \App\Models\Voucher::query()
+            ->where('is_active', true)
+            ->where(function ($query) {
+                $query->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
+            ->orderByRaw('expires_at is null desc')
+            ->orderBy('expires_at')
+            ->get();
+
+        return view('user.vouchers', compact('vouchers'));
+    }
+
   public function myBookings()
 {
     return app(BookingController::class)->myBookings();
@@ -384,6 +400,15 @@ public function showOrderPaymentMethod(Order $order)
         ->get();
 
     $addresses = \App\Models\UserAddress::where('user_id', auth()->id())->get();
+    $availableVouchers = \App\Models\Voucher::query()
+        ->where('is_active', true)
+        ->where(function ($query) {
+            $query->whereNull('expires_at')
+                ->orWhere('expires_at', '>', now());
+        })
+        ->orderByRaw('expires_at is null desc')
+        ->orderBy('expires_at')
+        ->get();
 
     return view('user.payment-method', [
         'type' => 'order',
@@ -395,6 +420,7 @@ public function showOrderPaymentMethod(Order $order)
         'payment' => $payment,
         'services' => $service,
         'addresses' => $addresses,
+        'availableVouchers' => $availableVouchers,
         'bankTransfer' => $this->mbBankQrData('order', $order->id, (int) $payment->amount),
     ]);
 }

@@ -316,6 +316,7 @@
                                 </li>
                             </ul>
                         </li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('user.vouchers') }}"><i class="bi bi-ticket-perforated"></i> Ưu đãi</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('cart.index') }}"><i class="bi bi-cart-fill"></i> Giỏ hàng</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('user.chat.index') }}"><i class="bi bi-chat-left-text"></i> Hỗ trợ</a></li>
                         <li class="nav-item dropdown">

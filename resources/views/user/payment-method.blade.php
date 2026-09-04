@@ -314,6 +314,11 @@ Quét mã VietQR
 <input type="text" class="form-control pay-voucher-input" id="voucherInput" placeholder="Nhập mã giảm giá">
 <button type="button" class="btn pay-btn-outline" id="voucherApplyBtn">Áp dụng</button>
 </div>
+@if($type === 'order')
+<button type="button" class="btn btn-link px-0 pt-2 text-decoration-none" data-bs-toggle="modal" data-bs-target="#voucherPickerModal">
+    <i class="bi bi-ticket-detailed me-1"></i>Chọn voucher
+</button>
+@endif
 <div id="voucherMsg" class="small mt-2 text-muted"></div>
 </div>
 
@@ -536,6 +541,43 @@ input[type="radio"]:disabled + .pay-radio-row { opacity: .55; cursor: not-allowe
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin { display: inline-block; animation: spin 1s linear infinite; }
 </style>
+
+@if($type === 'order')
+<div class="modal fade" id="voucherPickerModal" tabindex="-1" aria-labelledby="voucherPickerTitle" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header">
+                <h5 class="modal-title" id="voucherPickerTitle"><i class="bi bi-ticket-perforated text-primary me-2"></i>Chọn voucher</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+            </div>
+            <div class="modal-body p-3">
+                @forelse($availableVouchers as $voucher)
+                    @php($isEligible = $item->total_amount >= $voucher->min_order_amount)
+                    <div class="border rounded-3 p-3 mb-3 {{ $isEligible ? '' : 'opacity-50 bg-light' }}">
+                        <div class="d-flex justify-content-between gap-3">
+                            <div>
+                                <div class="fw-bold text-primary">Giảm {{ number_format($voucher->discount_amount, 0, ',', '.') }}đ</div>
+                                <div class="small text-muted mt-1">Đơn tối thiểu {{ number_format($voucher->min_order_amount, 0, ',', '.') }}đ</div>
+                                <div class="small mt-2"><code>{{ $voucher->code }}</code>
+                                    @if($voucher->expires_at)
+                                        <span class="text-muted ms-1">· HSD {{ $voucher->expires_at->format('d/m/Y') }}</span>
+                                    @endif
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-sm {{ $isEligible ? 'btn-primary select-voucher' : 'btn-secondary' }} align-self-center"
+                                @disabled(!$isEligible) data-code="{{ $voucher->code }}">
+                                {{ $isEligible ? 'Chọn' : 'Chưa đủ điều kiện' }}
+                            </button>
+                        </div>
+                    </div>
+                @empty
+                    <p class="text-center text-muted mb-0 py-4">Hiện chưa có voucher khả dụng.</p>
+                @endforelse
+            </div>
+        </div>
+    </div>
+</div>
+@endif
 
 <script>
 document.addEventListener('DOMContentLoaded', function () {
@@ -774,6 +816,15 @@ document.addEventListener('DOMContentLoaded', function () {
             }
         });
     }
+
+    document.querySelectorAll('.select-voucher').forEach((button) => {
+        button.addEventListener('click', () => {
+            voucherInput.value = button.dataset.code;
+            const modalElement = document.getElementById('voucherPickerModal');
+            bootstrap.Modal.getInstance(modalElement)?.hide();
+            voucherBtn.click();
+        });
+    });
 
     /* ── Update total with voucher ── */
     const bankTransferQrBaseUrl = {!! json_encode($bankTransfer['qr_url'] ?? '') !!};
