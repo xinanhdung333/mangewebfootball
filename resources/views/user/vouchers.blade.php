@@ -17,10 +17,21 @@
                     <div class="voucher-accent"></div>
                     <div class="card-body p-4 d-flex flex-column">
                         <div class="d-flex justify-content-between align-items-start mb-3">
-                            <span class="badge text-bg-primary rounded-pill px-3 py-2">Mã giảm giá</span>
+                            <span class="badge text-bg-primary rounded-pill px-3 py-2">{{ $voucher->discount_type === 'free_shipping' ? 'Mã vận chuyển' : 'Mã giảm giá' }}</span>
                             <i class="bi bi-patch-check-fill text-success fs-4" title="Đang hiệu lực"></i>
                         </div>
-                        <div class="text-primary fw-bold fs-3 mb-1">-{{ number_format($voucher->discount_amount, 0, ',', '.') }}đ</div>
+                        <div class="text-primary fw-bold fs-3 mb-1">
+                            @if($voucher->discount_type === 'percentage')
+                                -{{ number_format($voucher->discount_amount, 0) }}%
+                            @elseif($voucher->discount_type === 'free_shipping')
+                                <span class="fs-4"><i class="bi bi-truck me-1"></i>Miễn phí vận chuyển</span>
+                            @else
+                                -{{ number_format($voucher->discount_amount, 0, ',', '.') }}đ
+                            @endif
+                        </div>
+                        @if($voucher->discount_type === 'percentage' && $voucher->max_discount_amount)
+                            <p class="small text-muted mb-1">Giảm tối đa {{ number_format($voucher->max_discount_amount, 0, ',', '.') }}đ</p>
+                        @endif
                         <p class="mb-3 text-muted">Áp dụng cho đơn từ {{ number_format($voucher->min_order_amount, 0, ',', '.') }}đ</p>
                         <div class="voucher-code d-flex align-items-center justify-content-between gap-2 mb-3">
                             <code>{{ $voucher->code }}</code>

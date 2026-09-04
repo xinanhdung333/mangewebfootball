@@ -47,7 +47,15 @@
                         <tr>
                             <td class="ps-4">#{{ $voucher->id }}</td>
                             <td><span class="badge bg-secondary font-monospace fs-6">{{ $voucher->code }}</span></td>
-                            <td class="text-danger fw-bold">{{ number_format($voucher->discount_amount, 0, ',', '.') }}đ</td>
+                            <td class="text-danger fw-bold">
+                                @if($voucher->discount_type === 'free_shipping')
+                                    <span class="text-success"><i class="bi bi-truck"></i> Freeship</span>
+                                @elseif($voucher->discount_type === 'percentage')
+                                    {{ number_format($voucher->discount_amount, 0) }}%@if($voucher->max_discount_amount) <small class="text-muted d-block">Tối đa {{ number_format($voucher->max_discount_amount, 0, ',', '.') }}đ</small>@endif
+                                @else
+                                    {{ number_format($voucher->discount_amount, 0, ',', '.') }}đ
+                                @endif
+                            </td>
                             <td>{{ number_format($voucher->min_order_amount, 0, ',', '.') }}đ</td>
                             <td>
                                 @if($voucher->expires_at)
@@ -99,12 +107,40 @@
                                                 <input type="text" name="code" class="form-control" value="{{ $voucher->code }}" required>
                                             </div>
                                             <div class="mb-3">
-                                                <label class="form-label fw-bold">Số tiền giảm (VNĐ)</label>
-                                                <input type="number" name="discount_amount" class="form-control" value="{{ $voucher->discount_amount }}" min="0" required>
+                                                <label class="form-label fw-bold">Loại ưu đãi</label>
+                                                <select name="discount_type" class="form-select voucher-type-select">
+                                                    <option value="fixed" @selected($voucher->discount_type === 'fixed')>Giảm tiền cố định</option>
+                                                    <option value="percentage" @selected($voucher->discount_type === 'percentage')>Giảm theo phần trăm</option>
+                                                    <option value="free_shipping" @selected($voucher->discount_type === 'free_shipping')>Miễn phí vận chuyển</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Giảm tiền (VNĐ)</label>
+                                                <input type="number" name="fixed_discount_amount" class="form-control voucher-fixed-amount" value="{{ $voucher->discount_type === 'fixed' ? $voucher->discount_amount : '' }}" min="0">
+                                            </div>
+                                            <div class="mb-3 voucher-percent-amount">
+                                                <label class="form-label fw-bold">Giảm theo phần trăm (%)</label>
+                                                <input type="number" name="discount_percent" class="form-control" value="{{ $voucher->discount_type === 'percentage' ? $voucher->discount_amount : '' }}" min="1" max="100" step="0.01" placeholder="Ví dụ: 20">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Giảm tối đa (chỉ mã %)</label>
+                                                <input type="number" name="max_discount_amount" class="form-control" value="{{ $voucher->max_discount_amount }}" min="0">
                                             </div>
                                             <div class="mb-3">
                                                 <label class="form-label fw-bold">Đơn tối thiểu (VNĐ)</label>
                                                 <input type="number" name="min_order_amount" class="form-control" value="{{ $voucher->min_order_amount }}" min="0" required>
+                                            </div>
+                                            <div class="row g-3 mb-3">
+                                                <div class="col-6"><label class="form-label fw-bold">Tổng lượt dùng</label><input type="number" name="usage_limit" class="form-control" value="{{ $voucher->usage_limit }}" min="1" placeholder="Không giới hạn"></div>
+                                                <div class="col-6"><label class="form-label fw-bold">Lượt / người</label><input type="number" name="usage_limit_per_user" class="form-control" value="{{ $voucher->usage_limit_per_user }}" min="1" placeholder="Không giới hạn"></div>
+                                            </div>
+                                            <div class="form-check mb-3">
+                                                <input class="form-check-input" type="checkbox" name="first_order_only" value="1" id="firstOrderOnly{{ $voucher->id }}" {{ $voucher->first_order_only ? 'checked' : '' }}>
+                                                <label class="form-check-label" for="firstOrderOnly{{ $voucher->id }}">Chỉ áp dụng cho đơn đầu tiên</label>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label fw-bold">Bắt đầu áp dụng</label>
+                                                <input type="datetime-local" name="starts_at" class="form-control" value="{{ $voucher->starts_at ? $voucher->starts_at->format('Y-m-d\\TH:i') : '' }}">
                                             </div>
                                             <div class="mb-3">
                                                 <label class="form-label fw-bold">Hạn sử dụng</label>
@@ -152,12 +188,40 @@
                         <input type="text" name="code" class="form-control" required placeholder="Ví dụ: SALE50K">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Số tiền giảm (VNĐ)</label>
-                        <input type="number" name="discount_amount" class="form-control" min="0" required placeholder="50000">
+                        <label class="form-label fw-bold">Loại ưu đãi</label>
+                        <select name="discount_type" class="form-select voucher-type-select">
+                            <option value="fixed">Giảm tiền cố định</option>
+                            <option value="percentage">Giảm theo phần trăm</option>
+                            <option value="free_shipping">Miễn phí vận chuyển</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Giảm tiền (VNĐ)</label>
+                        <input type="number" name="fixed_discount_amount" class="form-control voucher-fixed-amount" min="0" placeholder="50000">
+                    </div>
+                    <div class="mb-3 voucher-percent-amount">
+                        <label class="form-label fw-bold">Giảm theo phần trăm (%)</label>
+                        <input type="number" name="discount_percent" class="form-control" min="1" max="100" step="0.01" placeholder="Ví dụ: 20">
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">Đơn tối thiểu (VNĐ)</label>
                         <input type="number" name="min_order_amount" class="form-control" min="0" value="0" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Giảm tối đa (chỉ mã %)</label>
+                        <input type="number" name="max_discount_amount" class="form-control" min="0">
+                    </div>
+                    <div class="row g-3">
+                        <div class="col-md-6"><label class="form-label fw-bold">Tổng lượt dùng</label><input type="number" name="usage_limit" class="form-control" min="1" placeholder="Không giới hạn"></div>
+                        <div class="col-md-6"><label class="form-label fw-bold">Lượt / người</label><input type="number" name="usage_limit_per_user" class="form-control" min="1" placeholder="Không giới hạn"></div>
+                    </div>
+                    <div class="form-check mt-3">
+                        <input class="form-check-input" type="checkbox" name="first_order_only" value="1" id="addFirstOrderOnly">
+                        <label class="form-check-label" for="addFirstOrderOnly">Chỉ áp dụng cho đơn đầu tiên</label>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">Bắt đầu áp dụng</label>
+                        <input type="datetime-local" name="starts_at" class="form-control">
                     </div>
                     <div class="mb-3">
                         <label class="form-label fw-bold">Hạn sử dụng</label>
@@ -178,3 +242,37 @@
     </div>
 </div>
 @endsection
+
+@push('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    // Modal không được nằm trong <tbody>; đưa chúng về body để Bootstrap không bị nhấp nháy.
+    document.querySelectorAll('[id^="editVoucherModal-"]').forEach((modal) => {
+        document.body.appendChild(modal);
+    });
+
+    document.querySelectorAll('.voucher-type-select').forEach((select) => {
+        const form = select.closest('form');
+        const fixedInput = form.querySelector('.voucher-fixed-amount');
+        const percentInput = form.querySelector('[name="discount_percent"]');
+        const maxInput = form.querySelector('[name="max_discount_amount"]');
+
+        const syncVoucherInputs = () => {
+            const isFixed = select.value === 'fixed';
+            const isPercentage = select.value === 'percentage';
+            fixedInput.closest('.mb-3').classList.toggle('d-none', !isFixed);
+            percentInput.closest('.mb-3').classList.toggle('d-none', !isPercentage);
+            maxInput.closest('.mb-3').classList.toggle('d-none', !isPercentage);
+            fixedInput.disabled = !isFixed;
+            percentInput.disabled = !isPercentage;
+            maxInput.disabled = !isPercentage;
+            fixedInput.required = isFixed;
+            percentInput.required = isPercentage;
+        };
+
+        select.addEventListener('change', syncVoucherInputs);
+        syncVoucherInputs();
+    });
+});
+</script>
+@endpush

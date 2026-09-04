@@ -24,6 +24,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
 use App\Models\BookingPayment;
 use App\Models\Invoice;
+use App\Models\Voucher;
  use App\Models\ServiceDiscount;
 
 
@@ -101,8 +102,8 @@ class PagesController extends Controller
             
         // Get recent bookings
         $bookings = $user ? $user->bookings()->latest()->take(5)->get() : [];
-         $rule = PriceRule::first();
-        $ruleService = ServiceDiscount::first();
+         $rule = PriceRule::where('is_active', true)->first();
+        $ruleService = ServiceDiscount::where('is_active', true)->first();
         $homeVoucher = \App\Models\Voucher::query()
             ->where('is_active', true)
             ->where(function ($query) {
@@ -250,7 +251,7 @@ public function storeBooking(Request $request)
         $start = Carbon::createFromFormat('H:i', $data['start_time']);
         $end   = Carbon::createFromFormat('H:i', $data['end_time']);
 
-        $rules = PriceRule::where(function($q) use ($field) {
+        $rules = PriceRule::where('is_active', true)->where(function($q) use ($field) {
                 $q->where('field_id', $field->id)
                   ->orWhereNull('field_id');
             })
@@ -356,7 +357,7 @@ public function bookingcreate(Request $request)
     // 🔥 lấy rule (ưu tiên riêng > global)
     $priceRules = [];
     if ($field) {
-        $priceRules = PriceRule::where(function($q) use ($field) {
+        $priceRules = PriceRule::where('is_active', true)->where(function($q) use ($field) {
             $q->where('field_id', $field->id)
               ->orWhereNull('field_id');
         })
@@ -408,12 +409,22 @@ public function showOrderPaymentMethod(Order $order)
     $availableVouchers = \App\Models\Voucher::query()
         ->where('is_active', true)
         ->where(function ($query) {
+            $query->whereNull('starts_at')->orWhere('starts_at', '<=', now());
+        })
+        ->where(function ($query) {
             $query->whereNull('expires_at')
                 ->orWhere('expires_at', '>', now());
         })
         ->orderByRaw('expires_at is null desc')
         ->orderBy('expires_at')
         ->get();
+
+    $availableVouchers->each(function (Voucher $voucher) use ($order) {
+        $types = $voucher->discount_type === 'free_shipping' ? ['free_shipping'] : ['fixed', 'percentage'];
+        [$eligible, $reason] = $this->eligibleVoucherForOrder($voucher->code, $order, $types);
+        $voucher->user_eligible = (bool) $eligible;
+        $voucher->ineligible_reason = $reason;
+    });
 
     return view('user.payment-method', [
         'type' => 'order',
@@ -426,6 +437,8 @@ public function showOrderPaymentMethod(Order $order)
         'services' => $service,
         'addresses' => $addresses,
         'availableVouchers' => $availableVouchers,
+        'discountVouchers' => $availableVouchers->whereIn('discount_type', ['fixed', 'percentage']),
+        'shippingVouchers' => $availableVouchers->where('discount_type', 'free_shipping'),
         'bankTransfer' => $this->mbBankQrData('order', $order->id, (int) $payment->amount),
     ]);
 }
@@ -471,31 +484,59 @@ private function mbBankQrData(string $type, int $id, int $amount): array
     ];
 }
 
+    private function eligibleVoucherForOrder(string $code, Order $order, array $types): array
+    {
+        $voucher = Voucher::query()
+            ->where('code', $code)
+            ->whereIn('discount_type', $types)
+            ->where('is_active', true)
+            ->where(function ($query) { $query->whereNull('starts_at')->orWhere('starts_at', '<=', now()); })
+            ->where(function ($query) { $query->whereNull('expires_at')->orWhere('expires_at', '>', now()); })
+            ->first();
+
+        if (!$voucher) return [null, 'Mã không tồn tại, không đúng loại hoặc đã hết hạn.'];
+        if ((float) $order->total_amount < (float) $voucher->min_order_amount) return [null, 'Đơn hàng chưa đạt giá trị tối thiểu của mã này.'];
+
+        $usedOrders = Order::query()->where('id', '!=', $order->id)->whereNotIn('status', ['cancelled'])
+            ->where(function ($query) use ($voucher) {
+                $query->where('voucher_code', $voucher->code)->orWhere('shipping_voucher_code', $voucher->code);
+            });
+        if ($voucher->usage_limit !== null && (clone $usedOrders)->count() >= $voucher->usage_limit) return [null, 'Mã này đã hết lượt sử dụng.'];
+        if ($voucher->usage_limit_per_user !== null && (clone $usedOrders)->where('user_id', $order->user_id)->count() >= $voucher->usage_limit_per_user) return [null, 'Bạn đã dùng hết số lượt của mã này.'];
+        if ($voucher->first_order_only && Order::where('user_id', $order->user_id)->where('id', '!=', $order->id)->whereNotIn('status', ['cancelled'])->exists()) return [null, 'Mã này chỉ áp dụng cho đơn đầu tiên.'];
+
+        return [$voucher, null];
+    }
+
+    private function voucherDiscountAmount(Voucher $voucher, float $orderAmount): float
+    {
+        if ($voucher->discount_type === 'percentage') {
+            $discount = $orderAmount * ((float) $voucher->discount_amount / 100);
+            return min($discount, (float) ($voucher->max_discount_amount ?? $discount));
+        }
+
+        return min($orderAmount, (float) $voucher->discount_amount);
+    }
+
     public function applyVoucher(Request $request, Order $order)
     {
         $request->validate([
             'voucher_code' => 'required|string',
+            'scope' => 'nullable|in:discount,shipping',
         ]);
+        abort_unless($order->user_id === auth()->id(), 403);
 
-        $voucher = \App\Models\Voucher::where('code', $request->voucher_code)
-            ->where('is_active', true)
-            ->where(function($q) {
-                $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
-            })->first();
-
-        if (!$voucher) {
-            return response()->json(['success' => false, 'message' => 'Mã giảm giá không tồn tại hoặc đã hết hạn.']);
-        }
-
-        if ($order->total_amount < $voucher->min_order_amount) {
-            return response()->json(['success' => false, 'message' => 'Đơn hàng chưa đạt giá trị tối thiểu để áp dụng mã này.']);
-        }
+        $scope = $request->input('scope', 'discount');
+        $types = $scope === 'shipping' ? ['free_shipping'] : ['fixed', 'percentage'];
+        [$voucher, $message] = $this->eligibleVoucherForOrder($request->voucher_code, $order, $types);
+        if (!$voucher) return response()->json(['success' => false, 'message' => $message]);
 
         return response()->json([
             'success' => true,
-            'message' => 'Áp dụng mã giảm giá thành công!',
-            'discount_amount' => $voucher->discount_amount,
-            'voucher_code' => $voucher->code
+            'message' => 'Áp dụng mã thành công!',
+            'discount_amount' => $scope === 'shipping' ? 0 : $this->voucherDiscountAmount($voucher, (float) $order->total_amount),
+            'voucher_code' => $voucher->code,
+            'scope' => $scope,
         ]);
     }
 
@@ -510,6 +551,7 @@ private function mbBankQrData(string $type, int $id, int $amount): array
             'shipping_service' => 'nullable|string',
             'shipping_fee' => 'nullable|numeric|min:0',
             'voucher_code' => 'nullable|string',
+            'shipping_voucher_code' => 'nullable|string',
         ]);
 
         $shippingMethod = null;
@@ -521,17 +563,15 @@ private function mbBankQrData(string $type, int $id, int $amount): array
 
         $voucherDiscount = 0;
         if (!empty($data['voucher_code'])) {
-            $voucher = \App\Models\Voucher::where('code', $data['voucher_code'])
-                ->where('is_active', true)
-                ->where(function($q) {
-                    $q->whereNull('expires_at')->orWhere('expires_at', '>', now());
-                })->first();
+            [$voucher, $message] = $this->eligibleVoucherForOrder($data['voucher_code'], $order, ['fixed', 'percentage']);
+            if (!$voucher) return back()->with('error', $message);
+            $voucherDiscount = $this->voucherDiscountAmount($voucher, (float) $order->total_amount);
+        }
 
-            if ($voucher && $order->total_amount >= $voucher->min_order_amount) {
-                $voucherDiscount = $voucher->discount_amount;
-            } else {
-                return back()->with('error', 'Mã giảm giá không hợp lệ hoặc không đủ điều kiện áp dụng.');
-            }
+        $shippingVoucher = null;
+        if (!empty($data['shipping_voucher_code'])) {
+            [$shippingVoucher, $message] = $this->eligibleVoucherForOrder($data['shipping_voucher_code'], $order, ['free_shipping']);
+            if (!$shippingVoucher) return back()->with('error', $message);
         }
 
         $submittedShippingFee = (float) ($request->input('shipping_fee', 0) ?? 0);
@@ -544,7 +584,7 @@ private function mbBankQrData(string $type, int $id, int $amount): array
 
         // shipping_fee trong form đã là tổng phí ship đã tính + phụ phí phương thức được chọn.
         // Không cộng lại `shippingMethodFee` khi đã có giá trị từ form, nếu không có thì mới cộng fallback.
-        if ($freeShippingThreshold > 0 && (float) $order->total_amount >= $freeShippingThreshold) {
+        if ($shippingVoucher || ($freeShippingThreshold > 0 && (float) $order->total_amount >= $freeShippingThreshold)) {
             $shippingFee = 0;
         } else {
             $shippingFee = $submittedShippingFee > 0
@@ -561,6 +601,7 @@ private function mbBankQrData(string $type, int $id, int $amount): array
             'shipping_service' => $data['shipping_service'] ?? null,
             'shipping_fee' => $shippingFee,
             'voucher_code' => $data['voucher_code'] ?? null,
+            'shipping_voucher_code' => $data['shipping_voucher_code'] ?? null,
             'voucher_discount' => $voucherDiscount,
         ]);
 
@@ -924,8 +965,8 @@ public function exportInvoicebooking($id)
     {
         // use the Eloquent scope to include ratings
         $fields = Field::get();
-$rule = PriceRule::first();
-$ruleService = ServiceDiscount::first();
+$rule = PriceRule::where('is_active', true)->first();
+$ruleService = ServiceDiscount::where('is_active', true)->first();
         return view('user.fields', ['fields' => $fields,
         'rule' => $rule,
         'ruleService' => $ruleService
@@ -1207,7 +1248,7 @@ public function services(Request $request)
         $finalPrice = $service->price;
         $discountPercent = 0;
 
-        $rules = ServiceDiscount::where(function($q) use ($service) {
+        $rules = ServiceDiscount::where('is_active', true)->where(function($q) use ($service) {
             $q->where('service_id', $service->id)
               ->orWhereNull('service_id');
         })
@@ -1261,7 +1302,7 @@ if ($flashSale) {
     $flashPercent = (1 - $flashSale->multiplier) * 100;
     $flashnote = $flashSale->note;
 }
-$rule = PriceRule::first();
+$rule = PriceRule::where('is_active', true)->first();
 $categories = Category::orderBy('name')->get();
 return view('user.services', compact(
     'services',
@@ -1295,7 +1336,7 @@ public function cart()
         $discountPercent = 0;
 
         // ===== DISCOUNT RULE =====
-        $rules = ServiceDiscount::where(function ($q) use ($service) {
+        $rules = ServiceDiscount::where('is_active', true)->where(function ($q) use ($service) {
                 $q->where('service_id', $service->id)
                   ->orWhereNull('service_id');
             })

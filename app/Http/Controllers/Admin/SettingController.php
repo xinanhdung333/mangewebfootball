@@ -189,6 +189,7 @@ class SettingController extends Controller
             'start_time' => $request->start_time,
             'end_time'   => $request->end_time,
             'multiplier' => $request->multiplier,
+            'is_active'  => true,
         ]);
 
         return back()->with('success', 'Thêm giá sân thành công');
@@ -198,6 +199,16 @@ class SettingController extends Controller
     {
         PriceRule::findOrFail($id)->delete();
         return back()->with('success', 'Đã xoá giá sân');
+    }
+
+    public function togglePricing($id)
+    {
+        $rule = PriceRule::findOrFail($id);
+        $rule->update(['is_active' => !$rule->is_active]);
+
+        return back()->with('success', $rule->is_active
+            ? 'Đã áp dụng lại giá sân'
+            : 'Đã tạm dừng giá sân');
     }
 
     // ================== SERVICE DISCOUNT ==================
@@ -225,5 +236,15 @@ class SettingController extends Controller
     {
         ServiceDiscount::findOrFail($id)->delete();
         return back()->with('success', 'Đã xoá giảm giá dịch vụ');
+    }
+
+    public function toggleServiceDiscount($id)
+    {
+        $discount = ServiceDiscount::findOrFail($id);
+        $discount->update(['is_active' => !$discount->is_active]);
+
+        return back()->with('success', $discount->is_active
+            ? 'Đã áp dụng lại giảm giá dịch vụ'
+            : 'Đã tạm dừng giảm giá dịch vụ');
     }
 }

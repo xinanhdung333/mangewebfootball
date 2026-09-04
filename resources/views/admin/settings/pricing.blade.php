@@ -63,7 +63,8 @@
             <th>Sân</th>
             <th>Khung giờ</th>
             <th>Hệ số</th>
-            <th></th>
+            <th>Trạng thái</th>
+            <th>Thao tác</th>
         </tr>
 
         @foreach($rules as $r)
@@ -72,10 +73,24 @@
             <td>{{ $r->start_time }} - {{ $r->end_time }}</td>
             <td>x{{ $r->multiplier }}</td>
             <td>
+                <span class="badge {{ $r->is_active ? 'bg-success' : 'bg-secondary' }}">
+                    {{ $r->is_active ? 'Đang áp dụng' : 'Tạm dừng' }}
+                </span>
+            </td>
+            <td>
+                <div class="d-flex flex-wrap gap-2">
+                <form method="POST" action="{{ route('admin.settings.pricing.toggle', $r->id) }}">
+                    @csrf @method('PATCH')
+                    <button class="btn btn-sm {{ $r->is_active ? 'btn-outline-warning' : 'btn-outline-success' }}">
+                        <i class="bi {{ $r->is_active ? 'bi-pause-fill' : 'bi-play-fill' }} me-1"></i>
+                        {{ $r->is_active ? 'Tạm dừng' : 'Áp dụng' }}
+                    </button>
+                </form>
                 <form method="POST" action="{{ route('admin.settings.pricing.delete', $r->id) }}">
                     @csrf @method('DELETE')
                     <button onclick="return confirm('Xoá?')" class="btn btn-danger btn-sm">Xoá</button>
                 </form>
+                </div>
             </td>
         </tr>
         @endforeach
@@ -136,7 +151,8 @@
             <th>Khung giờ</th>
             <th>Giảm / Tăng</th>
             <th>Lý do</th>
-            <th></th>
+            <th>Trạng thái</th>
+            <th>Thao tác</th>
         </tr>
 
         @foreach($serviceDiscounts as $d)
@@ -168,10 +184,25 @@
             </td>
 
             <td>
+                <span class="badge {{ $d->is_active ? 'bg-success' : 'bg-secondary' }}">
+                    {{ $d->is_active ? 'Đang áp dụng' : 'Tạm dừng' }}
+                </span>
+            </td>
+
+            <td>
+                <div class="d-flex flex-wrap gap-2">
+                <form method="POST" action="{{ route('admin.settings.service-discount.toggle', $d->id) }}">
+                    @csrf @method('PATCH')
+                    <button class="btn btn-sm {{ $d->is_active ? 'btn-outline-warning' : 'btn-outline-success' }}">
+                        <i class="bi {{ $d->is_active ? 'bi-pause-fill' : 'bi-play-fill' }} me-1"></i>
+                        {{ $d->is_active ? 'Tạm dừng' : 'Áp dụng' }}
+                    </button>
+                </form>
                 <form method="POST" action="{{ route('admin.settings.service-discount.delete', $d->id) }}">
                     @csrf @method('DELETE')
                     <button onclick="return confirm('Xoá?')" class="btn btn-danger btn-sm">Xoá</button>
                 </form>
+                </div>
             </td>
         </tr>
         @endforeach

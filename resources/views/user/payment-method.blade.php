@@ -33,6 +33,7 @@
 <input type="hidden" id="selectedAddressId" name="selected_address_id" value="">
 <input type="hidden" id="hiddenShippingFee" name="shipping_fee" value="0">
 <input type="hidden" id="hiddenVoucherCode" name="voucher_code" value="">
+<input type="hidden" id="hiddenShippingVoucherCode" name="shipping_voucher_code" value="">
 
 <div class="row g-3">
 
@@ -341,6 +342,10 @@ Quét mã VietQR
 <span class="text-muted">Voucher giảm giá</span>
 <span id="summaryVoucherAmount" class="text-success">-0đ</span>
 </div>
+<div class="d-flex justify-content-between small mb-2 d-none" id="summaryShippingVoucherRow">
+<span class="text-muted">Voucher vận chuyển</span>
+<span class="text-success">Miễn phí vận chuyển</span>
+</div>
 @endif
 
 <hr>
@@ -552,20 +557,32 @@ input[type="radio"]:disabled + .pay-radio-row { opacity: .55; cursor: not-allowe
             </div>
             <div class="modal-body p-3">
                 @forelse($availableVouchers as $voucher)
-                    @php($isEligible = $item->total_amount >= $voucher->min_order_amount)
+                    @php($isEligible = $item->total_amount >= $voucher->min_order_amount && ($voucher->user_eligible ?? true))
+                    @php($scope = $voucher->discount_type === 'free_shipping' ? 'shipping' : 'discount')
                     <div class="border rounded-3 p-3 mb-3 {{ $isEligible ? '' : 'opacity-50 bg-light' }}">
                         <div class="d-flex justify-content-between gap-3">
                             <div>
-                                <div class="fw-bold text-primary">Giảm {{ number_format($voucher->discount_amount, 0, ',', '.') }}đ</div>
+                                <div class="fw-bold text-primary">
+                                    @if($scope === 'shipping')
+                                        <i class="bi bi-truck me-1"></i>Miễn phí vận chuyển
+                                    @elseif($voucher->discount_type === 'percentage')
+                                        Giảm {{ number_format($voucher->discount_amount, 0) }}%@if($voucher->max_discount_amount) · tối đa {{ number_format($voucher->max_discount_amount, 0, ',', '.') }}đ@endif
+                                    @else
+                                        Giảm {{ number_format($voucher->discount_amount, 0, ',', '.') }}đ
+                                    @endif
+                                </div>
                                 <div class="small text-muted mt-1">Đơn tối thiểu {{ number_format($voucher->min_order_amount, 0, ',', '.') }}đ</div>
                                 <div class="small mt-2"><code>{{ $voucher->code }}</code>
                                     @if($voucher->expires_at)
                                         <span class="text-muted ms-1">· HSD {{ $voucher->expires_at->format('d/m/Y') }}</span>
                                     @endif
                                 </div>
+                                @if(!$isEligible && $voucher->ineligible_reason)
+                                    <div class="small text-danger mt-1">{{ $voucher->ineligible_reason }}</div>
+                                @endif
                             </div>
                             <button type="button" class="btn btn-sm {{ $isEligible ? 'btn-primary select-voucher' : 'btn-secondary' }} align-self-center"
-                                @disabled(!$isEligible) data-code="{{ $voucher->code }}">
+                                @disabled(!$isEligible) data-code="{{ $voucher->code }}" data-scope="{{ $scope }}">
                                 {{ $isEligible ? 'Chọn' : 'Chưa đủ điều kiện' }}
                             </button>
                         </div>
@@ -709,11 +726,11 @@ document.addEventListener('DOMContentLoaded', function () {
             currentShippingFreeFlag = !!isFree;
             lastDistanceKm = distKm ?? null;
 
-            const effectiveFee = currentShippingFreeFlag ? 0 : currentCalculatedShippingFee + selectedShippingExtraFee;
-            const feeDisp = currentShippingFreeFlag ? 'Miễn phí' : effectiveFee.toLocaleString('vi-VN') + 'đ';
+            const effectiveFee = (currentShippingFreeFlag || hasFreeShippingVoucher) ? 0 : currentCalculatedShippingFee + selectedShippingExtraFee;
+            const feeDisp = (currentShippingFreeFlag || hasFreeShippingVoucher) ? 'Miễn phí' : effectiveFee.toLocaleString('vi-VN') + 'đ';
             const distDisp = distKm ? ' (~' + parseFloat(distKm).toFixed(1) + ' km)' : '';
 
-            if (summaryShip) summaryShip.innerHTML = '<span class="text-' + (currentShippingFreeFlag ? 'success' : 'info') + '">' + feeDisp + distDisp + '</span>';
+            if (summaryShip) summaryShip.innerHTML = '<span class="text-' + (currentShippingFreeFlag || hasFreeShippingVoucher ? 'success' : 'info') + '">' + feeDisp + distDisp + '</span>';
             if (shippingServiceFeeLabel) shippingServiceFeeLabel.textContent = feeDisp + distDisp;
             hiddenShipFee.value = effectiveFee;
             const total = baseAmount + effectiveFee - currentVoucherDiscount;
@@ -762,9 +779,13 @@ document.addEventListener('DOMContentLoaded', function () {
     const voucherInput = document.getElementById('voucherInput');
     const voucherMsg = document.getElementById('voucherMsg');
     const hiddenVoucherCode = document.getElementById('hiddenVoucherCode');
+    const hiddenShippingVoucherCode = document.getElementById('hiddenShippingVoucherCode');
     const summaryVoucherRow = document.getElementById('summaryVoucherRow');
     const summaryVoucherAmount = document.getElementById('summaryVoucherAmount');
+    const summaryShippingVoucherRow = document.getElementById('summaryShippingVoucherRow');
     let currentVoucherDiscount = 0;
+    let hasFreeShippingVoucher = false;
+    let activeVoucherScope = 'discount';
 
     if (voucherBtn && '{{ $type }}' === 'order') {
         voucherBtn.addEventListener('click', async function () {
@@ -785,15 +806,22 @@ document.addEventListener('DOMContentLoaded', function () {
                         'Content-Type': 'application/json',
                         'X-CSRF-TOKEN': '{{ csrf_token() }}'
                     },
-                    body: JSON.stringify({ voucher_code: code })
+                    body: JSON.stringify({ voucher_code: code, scope: activeVoucherScope })
                 });
 
                 const data = await response.json();
                 
                 if (data.success) {
                     voucherMsg.innerHTML = `<span class="text-success"><i class="bi bi-check-circle"></i> ${data.message}</span>`;
-                    hiddenVoucherCode.value = data.voucher_code;
-                    currentVoucherDiscount = parseFloat(data.discount_amount);
+                    if (data.scope === 'shipping') {
+                        hiddenShippingVoucherCode.value = data.voucher_code;
+                        hasFreeShippingVoucher = true;
+                        summaryShippingVoucherRow?.classList.remove('d-none');
+                        updateSummary(currentCalculatedShippingFee, null, lastDistanceKm, currentShippingFreeFlag);
+                    } else {
+                        hiddenVoucherCode.value = data.voucher_code;
+                        currentVoucherDiscount = parseFloat(data.discount_amount);
+                    }
                     
                     if (summaryVoucherRow && summaryVoucherAmount) {
                         summaryVoucherRow.classList.remove('d-none');
@@ -803,8 +831,14 @@ document.addEventListener('DOMContentLoaded', function () {
                     updateTotal();
                 } else {
                     voucherMsg.innerHTML = `<span class="text-danger"><i class="bi bi-x-circle"></i> ${data.message}</span>`;
-                    hiddenVoucherCode.value = '';
-                    currentVoucherDiscount = 0;
+                    if (activeVoucherScope === 'shipping') {
+                        hiddenShippingVoucherCode.value = '';
+                        hasFreeShippingVoucher = false;
+                        summaryShippingVoucherRow?.classList.add('d-none');
+                    } else {
+                        hiddenVoucherCode.value = '';
+                        currentVoucherDiscount = 0;
+                    }
                     if (summaryVoucherRow) summaryVoucherRow.classList.add('d-none');
                     updateTotal();
                 }
@@ -817,9 +851,12 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
+    voucherInput?.addEventListener('input', () => activeVoucherScope = 'discount');
+
     document.querySelectorAll('.select-voucher').forEach((button) => {
         button.addEventListener('click', () => {
             voucherInput.value = button.dataset.code;
+            activeVoucherScope = button.dataset.scope || 'discount';
             const modalElement = document.getElementById('voucherPickerModal');
             bootstrap.Modal.getInstance(modalElement)?.hide();
             voucherBtn.click();

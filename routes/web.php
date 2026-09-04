@@ -97,12 +97,15 @@ Route::delete('/shipping-methods/{shippingMethod}', [ShippingMethodController::c
  
  Route::get('settings/pricing', [\App\Http\Controllers\Admin\SettingController::class, 'pricing'])->name('settings.pricing');
     Route::post('settings/pricing', [\App\Http\Controllers\Admin\SettingController::class, 'storePricing'])->name('settings.pricing.store');
+    Route::patch('settings/pricing/{id}/toggle', [\App\Http\Controllers\Admin\SettingController::class, 'togglePricing'])->name('settings.pricing.toggle');
   // 🔥 SERVICE DISCOUNT
     Route::post('/service-discount/store', [SettingController::class, 'storeServiceDiscount'])
         ->name('settings.service-discount.store');
 
     Route::delete('/service-discount/{id}', [SettingController::class, 'deleteServiceDiscount'])
         ->name('settings.service-discount.delete');
+    Route::patch('/service-discount/{id}/toggle', [SettingController::class, 'toggleServiceDiscount'])
+        ->name('settings.service-discount.toggle');
 
     Route::delete('settings/pricing/{id}', [\App\Http\Controllers\Admin\SettingController::class, 'deletePricing'])->name('settings.pricing.delete');
 

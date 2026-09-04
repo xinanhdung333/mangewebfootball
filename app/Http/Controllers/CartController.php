@@ -254,7 +254,7 @@ $currentMin = $now->hour * 60 + $now->minute;
 $finalPrice = $service->price;
 
 // lấy rule
-$rules = ServiceDiscount::where(function($q) use ($service) {
+$rules = ServiceDiscount::where('is_active', true)->where(function($q) use ($service) {
     $q->where('service_id', $service->id)
       ->orWhereNull('service_id');
 })
@@ -343,7 +343,7 @@ public function checkoutSelected(Request $request)
 
             $finalPrice = $service->price;
 
-            $rules = ServiceDiscount::where(function ($q) use ($service) {
+            $rules = ServiceDiscount::where('is_active', true)->where(function ($q) use ($service) {
                 $q->where('service_id', $service->id)
                   ->orWhereNull('service_id');
             })

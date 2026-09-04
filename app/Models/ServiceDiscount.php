@@ -14,6 +14,10 @@ class ServiceDiscount extends Model
 
     'is_active'
 ];
+
+protected $casts = [
+    'is_active' => 'boolean',
+];
 public function service()
 {
     return $this->belongsTo(\App\Models\Service::class, 'service_id');

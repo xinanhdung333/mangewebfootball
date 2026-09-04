@@ -49,8 +49,8 @@ public function dashboard()
    
 
     $bookings = $user ? $user->bookings()->latest()->take(5)->get() : [];
-$rule = PriceRule::first();
-$ruleService = ServiceDiscount::first();
+$rule = PriceRule::where('is_active', true)->first();
+$ruleService = ServiceDiscount::where('is_active', true)->first();
     return view('pages.visitor.dashboard', [
         'user' => $user,
         'stats_total' => $stats_total,
@@ -65,8 +65,8 @@ $ruleService = ServiceDiscount::first();
     {
         // use the Eloquent scope to include ratings
         $fields = Field::get();
-$rule = PriceRule::first();
-$ruleService = ServiceDiscount::first();
+$rule = PriceRule::where('is_active', true)->first();
+$ruleService = ServiceDiscount::where('is_active', true)->first();
         return view('user.fields', ['fields' => $fields,
         'rule' => $rule,
         'ruleService' => $ruleService
@@ -161,7 +161,7 @@ public function services(Request $request)
         $finalPrice = $service->price;
         $discountPercent = 0;
 
-        $rules = ServiceDiscount::where(function($q) use ($service) {
+        $rules = ServiceDiscount::where('is_active', true)->where(function($q) use ($service) {
             $q->where('service_id', $service->id)
               ->orWhereNull('service_id');
         })
@@ -215,7 +215,7 @@ if ($flashSale) {
     $flashPercent = (1 - $flashSale->multiplier) * 100;
     $flashnote = $flashSale->note;
 }
-$rule = PriceRule::first();
+$rule = PriceRule::where('is_active', true)->first();
 $categories = Category::orderBy('name')->get();
 return view('pages.visitor.services', compact(
     'services',

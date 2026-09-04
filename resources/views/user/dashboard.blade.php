@@ -435,107 +435,137 @@
     text-align: right;
 }
 
-.voucher-overlay {
+.promo-notification-stack {
     position: fixed;
     inset: 0;
-    background: rgba(17, 17, 17, 0.62);
+    z-index: 99999;
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 20px;
-    z-index: 99999;
-    animation: overlayFadeIn .35s ease both;
+    gap: 12px;
+    padding: 24px;
+    background: rgba(9, 9, 11, .62);
+    backdrop-filter: blur(2px);
+    animation: promoBackdropIn .25s ease-out both;
 }
+.promo-notification-stack[hidden] { display: none; }
+.voucher-overlay,
+.shipping-overlay {
+    width: min(460px, 100%);
+    animation: promoSlideIn .4s ease-out both;
+}
+.voucher-overlay[hidden] { display: none; }
 .voucher-overlay.is-closing,
 .shipping-overlay.is-closing {
     opacity: 0;
-    transition: opacity .25s ease;
+    transform: translateY(-8px);
+    transition: opacity .2s ease, transform .2s ease;
 }
 .voucher-modal {
     position: relative;
-    width: min(480px, 100%);
-    background: linear-gradient(135deg, #fff9f0 0%, #fff 100%);
-    border: 1px solid rgba(255, 138, 61, 0.3);
-    border-radius: 22px;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
-    padding: 28px 24px 20px;
-    text-align: center;
-    animation: voucherPopIn .55s cubic-bezier(.22, 1, .36, 1) both;
+    width: 100%;
+    background: #fff;
+    border: 1px solid #f0d5ce;
+    border-top: 6px solid #ee4d2d;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(24, 24, 27, .1);
+    padding: 28px 28px 22px;
+    text-align: left;
 }
-@keyframes overlayFadeIn {
+@keyframes promoSlideIn {
+    from { opacity: 0; transform: translateY(12px) scale(.96); }
+    to { opacity: 1; transform: translateY(0); }
+}
+@keyframes promoBackdropIn {
     from { opacity: 0; }
     to { opacity: 1; }
 }
-@keyframes voucherPopIn {
-    0% { opacity: 0; transform: translateY(32px) scale(.9) rotate(-1deg); }
-    65% { opacity: 1; transform: translateY(-5px) scale(1.02) rotate(.3deg); }
-    100% { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
-}
 .voucher-modal .close-btn {
     position: absolute;
-    top: 12px;
-    right: 14px;
-    border: none;
-    background: transparent;
-    color: #7d7d7d;
-    font-size: 1.5rem;
+    top: -18px;
+    right: -18px;
+    width: 38px;
+    height: 38px;
+    border: 2px solid #fff;
+    border-radius: 50%;
+    background: #3f3f46;
+    color: #fff;
+    font-size: 1.4rem;
     line-height: 1;
     cursor: pointer;
 }
 .voucher-badge {
     display: inline-block;
     padding: 6px 12px;
-    border-radius: 999px;
-    background: #fff3dd;
-    color: #b96310;
+    border-radius: 8px;
+    background: #fff1ed;
+    color: #d73211;
     font-size: .75rem;
     font-weight: 700;
     letter-spacing: .08em;
     text-transform: uppercase;
 }
 .voucher-title {
-    margin: 14px 0 10px;
-    font-size: clamp(1.4rem, 3vw, 2rem);
-    font-weight: 800;
-    color: #222;
+    margin: 12px 40px 6px 0;
+    font-size: 1.5rem;
+    font-weight: 700;
+    letter-spacing: -.02em;
+    color: #18181b;
 }
 .voucher-subtitle {
-    margin: 0 0 18px;
-    color: #555;
-    line-height: 1.6;
+    margin: 0 0 16px;
+    color: #52525b;
+    line-height: 1.5;
     font-size: .95rem;
 }
 .voucher-code-box {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 8px;
-    margin: 18px auto 16px;
-    border: 2px dashed #ff8a3d;
-    background: #fff;
-    border-radius: 12px;
-    padding: 12px 14px;
-    max-width: 260px;
-    font-size: 1.15rem;
-    font-weight: 800;
-    color: #d9670a;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 0 0 12px;
+    border: 1px dashed #ee4d2d;
+    background: #fff8f6;
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-size: 1rem;
+    font-weight: 700;
+    color: #d73211;
     letter-spacing: .08em;
 }
 .voucher-copy-btn {
-    border: none;
-    background: linear-gradient(135deg, #ff8a3d, #ff5a3c);
+    border: 1px solid #ee4d2d;
+    background: #ee4d2d;
     color: #fff;
-    border-radius: 999px;
-    padding: 11px 18px;
-    font-weight: 700;
+    border-radius: 8px;
+    padding: 8px 12px;
+    font-size: .8125rem;
+    font-weight: 600;
     cursor: pointer;
-    transition: opacity .2s;
+    white-space: nowrap;
+    transition: transform .2s ease, background-color .2s ease;
 }
-.voucher-copy-btn:hover { opacity: .95; }
+.voucher-copy-btn:hover { background: #d73211; transform: scale(1.02); }
+.voucher-copy-btn.is-copied { background: #166534; border-color: #166534; }
 .voucher-note {
-    margin-top: 12px;
-    color: #666;
-    font-size: .8rem;
+    color: #71717a;
+    font-size: .75rem;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+}
+.voucher-note a { color: #ee4d2d; font-weight: 600; text-decoration: none; }
+.voucher-note a:hover { text-decoration: underline; }
+@media (max-width: 575.98px) {
+    .promo-notification-stack { padding: 20px 16px; }
+    .voucher-modal { padding: 22px 18px 18px; }
+    .voucher-modal .close-btn { top: -14px; right: -8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+    .voucher-overlay, .shipping-overlay { animation: none; }
+    .voucher-copy-btn { transition: none; }
 }
     
 /* Toast */
@@ -569,47 +599,43 @@
 .toast-close:hover { color: var(--ec-dark); }
 
 .shipping-overlay {
-    position: fixed;
-    inset: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    z-index: 100000;
-    pointer-events: none;
+    width: min(460px, 100%);
 }
+.shipping-overlay[hidden] { display: none; }
 .shipping-modal {
-    pointer-events: auto;
     position: relative;
-    width: min(440px, 100%);
-    padding: 28px 24px 24px;
-    text-align: center;
-    color: #fff;
-    border-radius: 24px;
-    background: linear-gradient(135deg, #ff5a3c, #ff8a3d 58%, #ffc857);
-    box-shadow: 0 24px 70px rgba(225, 74, 35, .38);
-    animation: shippingPopIn .65s cubic-bezier(.22, 1, .36, 1) both;
+    width: 100%;
+    display: grid;
+    grid-template-columns: 52px 1fr;
+    gap: 14px;
+    align-items: center;
+    padding: 18px 52px 18px 18px;
+    color: #18181b;
+    border: 1px solid #f0d5ce;
+    border-left: 4px solid #ee4d2d;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 8px 24px rgba(24, 24, 27, .1);
 }
-@keyframes shippingPopIn {
-    0% { opacity: 0; transform: translateY(42px) scale(.78) rotate(2deg); }
-    70% { opacity: 1; transform: translateY(-7px) scale(1.03) rotate(-.3deg); }
-    100% { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
+.shipping-modal .close-btn {
+    position: absolute; top: 10px; right: 10px; width: 32px; height: 32px;
+    border: 0; border-radius: 50%; background: #f4f4f5; color: #52525b;
+    font-size: 1.25rem; line-height: 1; cursor: pointer;
 }
-.shipping-modal .close-btn { color: rgba(255,255,255,.8); }
 .shipping-icon {
-    display: inline-flex;
-    width: 66px;
-    height: 66px;
+    display: flex;
+    width: 52px;
+    height: 52px;
     align-items: center;
     justify-content: center;
-    margin-bottom: 10px;
-    border-radius: 50%;
-    background: rgba(255,255,255,.2);
-    font-size: 2rem;
+    border-radius: 8px;
+    background: #fff1ed;
+    color: #ee4d2d;
+    font-size: 1.5rem;
 }
-.shipping-modal h3 { margin: 0 0 10px; font-size: 1.65rem; font-weight: 800; }
-.shipping-modal p { margin: 0; line-height: 1.6; color: rgba(255,255,255,.95); }
-.shipping-modal strong { color: #fff; font-size: 1.12em; }
+.shipping-modal h3 { margin: 0 0 4px; font-size: 1rem; font-weight: 700; letter-spacing: -.01em; }
+.shipping-modal p { margin: 0; line-height: 1.45; color: #52525b; font-size: .8125rem; }
+.shipping-modal strong { color: #ee4d2d; }
 
 /* ---------- RESPONSIVE ---------- */
 @media (max-width: 991px) {
@@ -673,36 +699,52 @@
     </div>
 </div>
 
+@if($homeVoucher || $freeShippingThreshold > 0)
+<div id="promoNotificationStack" class="promo-notification-stack" aria-label="Thông báo ưu đãi" hidden>
 @if($homeVoucher)
-    <div id="voucherOverlay" class="voucher-overlay" aria-live="polite">
-        <div class="voucher-modal" role="dialog" aria-modal="true" aria-labelledby="voucherTitle">
-            <button type="button" class="close-btn" aria-label="Đóng" onclick="closeVoucherOverlay()">×</button>
-            <div class="voucher-badge">Voucher hot</div>
-            <h3 id="voucherTitle" class="voucher-title">Ưu đãi dành cho bạn</h3>
-            <p class="voucher-subtitle">
-                Giảm ngay <strong>{{ number_format($homeVoucher->discount_amount, 0, ',', '.') }}đ</strong>
+    <aside id="voucherOverlay" class="voucher-overlay" data-voucher-id="{{ $homeVoucher->id }}" aria-live="polite" hidden>
+        <div class="voucher-modal" role="dialog" aria-labelledby="voucherTitle" aria-describedby="voucherDescription">
+            <button type="button" class="close-btn" aria-label="Đóng thông báo voucher" onclick="closeVoucherOverlay()">×</button>
+            <div class="voucher-badge">Ưu đãi mới</div>
+            <h3 id="voucherTitle" class="voucher-title">Voucher dành cho bạn</h3>
+            <p id="voucherDescription" class="voucher-subtitle">
+                @if($homeVoucher->discount_type === 'percentage')
+                    Giảm <strong>{{ number_format($homeVoucher->discount_amount, 0) }}%</strong>
+                    @if($homeVoucher->max_discount_amount)
+                        , tối đa <strong>{{ number_format($homeVoucher->max_discount_amount, 0, ',', '.') }}đ</strong>
+                    @endif
+                @elseif($homeVoucher->discount_type === 'free_shipping')
+                    <strong>Miễn phí vận chuyển</strong>
+                @else
+                    Giảm ngay <strong>{{ number_format($homeVoucher->discount_amount, 0, ',', '.') }}đ</strong>
+                @endif
                 cho đơn hàng từ <strong>{{ number_format($homeVoucher->min_order_amount, 0, ',', '.') }}đ</strong>.
             </p>
             <div class="voucher-code-box">
                 <span id="voucherCodeText">{{ $homeVoucher->code }}</span>
+                <button type="button" class="voucher-copy-btn" onclick="copyVoucherCode()"><i class="bi bi-copy me-1" aria-hidden="true"></i><span>Sao chép</span></button>
             </div>
-            <button type="button" class="voucher-copy-btn" onclick="copyVoucherCode()">Sao chép mã</button>
             <div class="voucher-note">
-                HSD: {{ $homeVoucher->expires_at ? \Carbon\Carbon::parse($homeVoucher->expires_at)->format('d/m/Y H:i') : 'Không giới hạn' }}
+                <span><i class="bi bi-clock me-1" aria-hidden="true"></i>HSD: {{ $homeVoucher->expires_at ? \Carbon\Carbon::parse($homeVoucher->expires_at)->format('d/m/Y H:i') : 'Không giới hạn' }}</span>
+                <a href="{{ route('user.vouchers') }}">Xem tất cả</a>
             </div>
         </div>
-    </div>
+    </aside>
 @endif
 
 @if($freeShippingThreshold > 0)
-    <div id="shippingOverlay" class="shipping-overlay" aria-live="polite">
-        <div class="shipping-modal" role="dialog" aria-modal="true" aria-labelledby="shippingTitle">
-            <button type="button" class="close-btn" aria-label="Đóng" onclick="closeShippingOverlay()">×</button>
-            <div class="shipping-icon"><i class="bi bi-truck"></i></div>
-            <h3 id="shippingTitle">Free ship cho bạn!</h3>
-            <p>Đơn hàng từ <strong>{{ number_format($freeShippingThreshold, 0, ',', '.') }}đ</strong><br>được miễn phí vận chuyển.</p>
+    <aside id="shippingOverlay" class="shipping-overlay" aria-live="polite" hidden>
+        <div class="shipping-modal" role="status" aria-labelledby="shippingTitle">
+            <button type="button" class="close-btn" aria-label="Đóng thông báo miễn phí vận chuyển" onclick="closeShippingOverlay()">×</button>
+            <div class="shipping-icon" aria-hidden="true"><i class="bi bi-truck"></i></div>
+            <div>
+                <h3 id="shippingTitle">Miễn phí vận chuyển</h3>
+                <p>Đơn từ <strong>{{ number_format($freeShippingThreshold, 0, ',', '.') }}đ</strong> được miễn phí vận chuyển.</p>
+            </div>
         </div>
-    </div>
+    </aside>
+@endif
+</div>
 @endif
 
 {{-- ========== MAIN LAYOUT ========== --}}
@@ -918,32 +960,50 @@ function hideToast(id) {
     toast.classList.remove('show');
     toast.style.top = "-100px";
 }
+function syncPromoStack() {
+    const stack = document.getElementById('promoNotificationStack');
+    if (!stack) return;
+
+    const visiblePromos = stack.querySelectorAll('.voucher-overlay:not([hidden]), .shipping-overlay:not([hidden])');
+    if (visiblePromos.length === 0) stack.hidden = true;
+}
 function closeVoucherOverlay() {
     const overlay = document.getElementById('voucherOverlay');
     if (overlay) {
         overlay.classList.add('is-closing');
-        setTimeout(() => { overlay.style.display = 'none'; }, 260);
+        setTimeout(() => {
+            overlay.hidden = true;
+            syncPromoStack();
+        }, 210);
     }
 }
 function closeShippingOverlay() {
     const overlay = document.getElementById('shippingOverlay');
     if (overlay) {
         overlay.classList.add('is-closing');
-        setTimeout(() => { overlay.style.display = 'none'; }, 260);
+        setTimeout(() => {
+            overlay.hidden = true;
+            syncPromoStack();
+        }, 210);
     }
 }
 function copyVoucherCode() {
-    const code = document.getElementById('voucherCodeText')?.innerText;
+    const code = document.getElementById('voucherCodeText')?.innerText.trim();
     if (!code) return;
 
+    const button = document.querySelector('.voucher-copy-btn');
+    const markCopied = () => {
+        if (!button) return;
+        button.classList.add('is-copied');
+        button.querySelector('span').textContent = 'Đã chép';
+        setTimeout(() => {
+            button.classList.remove('is-copied');
+            button.querySelector('span').textContent = 'Sao chép';
+        }, 1600);
+    };
+
     if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(code).then(() => {
-            const btn = document.querySelector('.voucher-copy-btn');
-            if (!btn) return;
-            const originalText = btn.textContent;
-            btn.textContent = 'Đã sao chép';
-            setTimeout(() => { btn.textContent = originalText; }, 1200);
-        }).catch(() => {});
+        navigator.clipboard.writeText(code).then(markCopied).catch(() => {});
         return;
     }
 
@@ -953,19 +1013,36 @@ function copyVoucherCode() {
     temp.select();
     document.execCommand('copy');
     document.body.removeChild(temp);
+    markCopied();
 }
 document.addEventListener('DOMContentLoaded', function () {
     setTimeout(() => showToast('toast-rule', 0), 800);
     setTimeout(() => showToast('toast-news', 1), 1200);
 
+    const promoStack = document.getElementById('promoNotificationStack');
     const voucherOverlay = document.getElementById('voucherOverlay');
     if (voucherOverlay) {
-        voucherOverlay.style.opacity = '1';
+        voucherOverlay.hidden = false;
     }
 
     const shippingOverlay = document.getElementById('shippingOverlay');
     if (shippingOverlay) {
-        shippingOverlay.style.opacity = '1';
+        shippingOverlay.hidden = false;
+    }
+
+    if (promoStack && (voucherOverlay || shippingOverlay)) {
+        promoStack.hidden = false;
+    }
+
+    setTimeout(() => {
+        closeVoucherOverlay();
+        closeShippingOverlay();
+    }, 5000);
+});
+document.addEventListener('keydown', function (event) {
+    if (event.key === 'Escape') {
+        closeVoucherOverlay();
+        closeShippingOverlay();
     }
 });
 </script>

@@ -24,6 +24,7 @@ class Order extends Model
         'note',
         'shipping_service',
         'voucher_code',
+        'shipping_voucher_code',
         'voucher_discount'
     ];
 

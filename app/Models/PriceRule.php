@@ -9,6 +9,11 @@ class PriceRule extends Model
         'start_time',
         'end_time',
         'multiplier',
+        'is_active',
+    ];
+
+    protected $casts = [
+        'is_active' => 'boolean',
     ];
 
     public function field()

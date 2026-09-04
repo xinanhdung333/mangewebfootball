@@ -222,6 +222,7 @@
     cursor:not-allowed;
 }
 </style>
+@if($rule)
 <a href="{{route('user.fields')}}">
 <div id="toast-noti" class="toast-noti">
     <i class="bi bi-megaphone-fill"></i>
@@ -232,6 +233,7 @@
     <span class="toast-close" onclick="hideToast()">×</span>
 </div>
 </a>
+@endif
 
 <style>
 .toast-noti {
