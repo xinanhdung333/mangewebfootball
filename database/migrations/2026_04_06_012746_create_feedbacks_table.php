@@ -13,9 +13,9 @@ return new class extends Migration
     {
         Schema::create('feedbacks', function (Blueprint $table) {
             $table->integer('id', true);
-            $table->integer('user_id')->index('idx_user');
-            $table->integer('booking_id')->nullable()->index('idx_booking');
-            $table->integer('service_id')->nullable()->index('idx_service');
+            $table->integer('user_id')->index('idx_feedbacks_user');
+            $table->integer('booking_id')->nullable()->index('idx_feedbacks_booking');
+            $table->integer('service_id')->nullable()->index('idx_feedbacks_service');
             $table->text('message');
             $table->tinyInteger('rating')->nullable()->default(0);
             $table->dateTime('created_at')->nullable()->useCurrent();

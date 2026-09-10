@@ -584,6 +584,45 @@ closeChat.addEventListener('click', () => {
     }
 })();
 </script>
+<script>
+document.querySelectorAll('form[action="{{ route('logout') }}"]').forEach(form => {
+    form.addEventListener('submit', async function (event) {
+        event.preventDefault();
+
+        const button = this.querySelector('button[type="submit"]');
+        const originalText = button ? button.innerHTML : '';
+        if (button) {
+            button.disabled = true;
+            button.innerHTML = 'Dang dang xuat...';
+        }
+
+        try {
+            const response = await fetch(this.action, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                },
+                body: new FormData(this),
+            });
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Khong the dang xuat');
+            }
+
+            window.location.href = data.redirect_url || "{{ route('home') }}";
+        } catch (error) {
+            alert(error.message);
+            if (button) {
+                button.disabled = false;
+                button.innerHTML = originalText;
+            }
+        }
+    });
+});
+</script>
 @stack('scripts')
 </body>
 </html>

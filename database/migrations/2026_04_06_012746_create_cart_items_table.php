@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('cart_items', function (Blueprint $table) {
             $table->integer('id', true);
-            $table->integer('cart_id')->index('idx_cart');
-            $table->integer('service_id')->index('idx_service');
+            $table->integer('cart_id')->index('idx_cart_items_cart');
+            $table->integer('service_id')->index('idx_cart_items_service');
             $table->integer('quantity')->default(1);
             $table->decimal('price', 12);
             $table->dateTime('created_at')->useCurrent();

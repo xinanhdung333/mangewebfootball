@@ -31,6 +31,14 @@ Route::get('/h', function () {
     return view('h');
 });
 
+Route::get('/home', function () {
+    if (auth()->check()) {
+        return redirect()->route('user.dashboard');
+    }
+
+    return redirect()->route('visitor.dashboard');
+})->name('dashboard');
+
 // Route::post('/forgot-password', function (Request $request) {
 //     $request->validate(['email' => 'required|email']);
 
@@ -53,6 +61,12 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [\App\Http\Controllers\ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [\App\Http\Controllers\ProfileController::class, 'destroy'])->name('profile.destroy');
+});
 
 // Fields & Services
 Route::get('/services', [ServiceController::class, 'index'])->name('services.index');

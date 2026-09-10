@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('orders', function (Blueprint $table) {
             $table->integer('id', true);
-            $table->integer('user_id')->index('idx_user');
-            $table->integer('cart_id')->nullable()->index('idx_cart');
+            $table->integer('user_id')->index('idx_orders_user');
+            $table->integer('cart_id')->nullable()->index('idx_orders_cart');
             $table->decimal('total_amount', 12)->default(0);
             $table->string('payment_method', 50)->nullable();
             $table->enum('status', ['pending', 'confirmed', 'processing', 'in_progress', 'completed', 'cancelled'])->default('pending');

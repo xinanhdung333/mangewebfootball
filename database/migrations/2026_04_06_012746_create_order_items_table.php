@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('order_items', function (Blueprint $table) {
             $table->integer('id', true);
-            $table->integer('order_id')->index('idx_order');
-            $table->integer('service_id')->index('idx_service');
+            $table->integer('order_id')->index('idx_order_items_order');
+            $table->integer('service_id')->index('idx_order_items_service');
             $table->integer('quantity')->default(1);
             $table->decimal('price', 12);
             $table->dateTime('created_at')->useCurrent();

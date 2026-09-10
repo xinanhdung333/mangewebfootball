@@ -13,8 +13,8 @@ return new class extends Migration
     {
         Schema::create('booking_services', function (Blueprint $table) {
             $table->integer('id', true);
-            $table->integer('booking_id')->index('idx_booking');
-            $table->integer('service_id')->index('idx_service');
+            $table->integer('booking_id')->index('idx_booking_services_booking');
+            $table->integer('service_id')->index('idx_booking_services_service');
             $table->integer('quantity')->default(1);
         });
     }

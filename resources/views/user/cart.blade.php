@@ -81,7 +81,7 @@ style="width:25px;height:25px;cursor:pointer;">
                                                 </span>
                                             </p>
 
-                                            <form method="POST" action="{{ route('user.removeFromCart') }}" style="display: inline;">
+                                            <form method="POST" action="{{ route('user.removeFromCart') }}" class="remove-cart-form" style="display: inline;">
                                                 @csrf
                                                 <input type="hidden" name="cart_item_id" value="{{ $item['id'] }}">
                                                 <button type="submit" class="btn btn-sm btn-danger">
@@ -216,6 +216,19 @@ style="width:25px;height:25px;cursor:pointer;">
 
 <script>
    document.addEventListener('DOMContentLoaded', function () {
+    function recalculateCartTotal() {
+        let total = 0;
+        document.querySelectorAll('.cart-item').forEach(row => {
+            const qty = parseInt(row.querySelector('.qty')?.textContent || '0');
+            const price = parseFloat(row.dataset.price || '0');
+            total += qty * price;
+        });
+
+        const totalEl = document.getElementById('cart-total');
+        if (totalEl) {
+            totalEl.textContent = total.toLocaleString('vi-VN') + ' VND';
+        }
+    }
 
     // ======================
     // QTY UPDATE
@@ -238,6 +251,7 @@ style="width:25px;height:25px;cursor:pointer;">
 
             const price = parseFloat(row.dataset.price);
             totalEl.textContent = (price * qty).toLocaleString('vi-VN') + ' VNĐ';
+            recalculateCartTotal();
 
             fetch("{{ route('user.cart.updateItem') }}", {
                 method: "POST",
@@ -291,7 +305,47 @@ style="width:25px;height:25px;cursor:pointer;">
         document.getElementById('selected-items-all').value = allIds.join(',');
     });
 
+    document.querySelectorAll('.remove-cart-form').forEach(form => {
+        form.addEventListener('submit', async function (event) {
+            event.preventDefault();
+
+            if (!confirm('Ban muon xoa san pham nay khoi gio hang?')) {
+                return;
+            }
+
+            const row = this.closest('.cart-item');
+            const button = this.querySelector('button[type="submit"]');
+            const originalText = button.innerHTML;
+            button.disabled = true;
+            button.innerHTML = 'Dang xoa...';
+
+            try {
+                const response = await fetch(this.action, {
+                    method: 'POST',
+                    headers: {
+                        'Accept': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                    },
+                    body: new FormData(this),
+                });
+                const data = await response.json().catch(() => ({}));
+
+                if (!response.ok) {
+                    throw new Error(data.message || 'Khong the xoa san pham');
+                }
+
+                row.remove();
+                recalculateCartTotal();
+            } catch (error) {
+                alert(error.message);
+                button.disabled = false;
+                button.innerHTML = originalText;
+            }
+        });
+    });
 });
 </script>
 
 @endsection
+

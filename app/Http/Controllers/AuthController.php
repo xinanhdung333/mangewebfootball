@@ -28,11 +28,30 @@ class AuthController extends Controller
             $request->session()->regenerate();
             $user = Auth::user();
 
-            if ($user->role === 'admin') return redirect('/admin/statistics');
-            if ($user->role === 'boss') return redirect('/boss/statistics');
-            if ($user->role === 'user') return redirect('user/dashboard');
+            if ($user->role === 'admin') {
+                $redirectUrl = url('/admin/statistics');
+            } elseif ($user->role === 'boss') {
+                $redirectUrl = url('/boss/statistics');
+            } elseif ($user->role === 'user') {
+                $redirectUrl = route('dashboard');
+            } else {
+                $redirectUrl = route('dashboard');
+            }
 
-            return redirect('/dashboard');
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'Login successful',
+                    'redirect_url' => $redirectUrl,
+                ]);
+            }
+
+            return redirect($redirectUrl);
+        }
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Email hoac mat khau khong chinh xac',
+            ], 422);
         }
 
         return back()->withErrors([
@@ -49,23 +68,33 @@ public function register(Request $request)
 {
     $data = $request->validate([
         'name' => 'required|string|max:255',
-        'email' => 'required|email:rfc,dns|unique:users,email',
-        'phone' => 'required|string|max:20|unique:users,phone',
+        'email' => 'required|email|unique:users,email',
+        'phone' => 'nullable|string|max:20|unique:users,phone',
         'password' => 'required|string|min:6|confirmed',
     ]);
 
     $id = DB::table('users')->max('id') + 1;
 
-    User::create([
+    $user = User::create([
         'id' => $id,
         'name' => $data['name'],
         'email' => $data['email'],
-        'phone' => $data['phone'],
+        'phone' => $data['phone'] ?? '',
         'password' => Hash::make($data['password']),
         'role' => 'user',
     ]);
 
-    return redirect()->route('login')
+    Auth::login($user);
+    $request->session()->regenerate();
+
+    if ($request->expectsJson()) {
+        return response()->json([
+            'message' => 'Register successful',
+            'redirect_url' => route('dashboard'),
+        ], 201);
+    }
+
+    return redirect()->route('dashboard')
         ->with('success','Đăng ký thành công');
 }
  
@@ -74,6 +103,14 @@ public function register(Request $request)
         Auth::logout();
         $request->session()->invalidate();
         $request->session()->regenerateToken();
+
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Logged out',
+                'redirect_url' => route('home'),
+            ]);
+        }
+
         return redirect()->route('home');
     }
 }

@@ -195,7 +195,16 @@ public function storeBooking(Request $request)
     ]);
 
     $user = Auth::user();
-    if (!$user) return redirect()->route('login');
+    if (!$user) {
+        if ($request->expectsJson()) {
+            return response()->json([
+                'message' => 'Ban can dang nhap de dat san.',
+                'redirect_url' => route('login'),
+            ], 401);
+        }
+
+        return redirect()->route('login');
+    }
 
     // ===== check trùng =====
     $exists = Booking::where('field_id', $data['field_id'])
@@ -212,6 +221,10 @@ public function storeBooking(Request $request)
         ->exists();
 
     if ($exists) {
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Khung gio da co nguoi dat'], 422);
+        }
+
         return back()->with('error', 'Khung giờ đã có người đặt');
     }
 
@@ -223,11 +236,16 @@ public function storeBooking(Request $request)
 
         $service = Service::find($serviceId);
         if (!$service || $service->quantity < $qty) {
+            if ($request->expectsJson()) {
+                return response()->json(['message' => 'Dich vu da het hang hoac khong du so luong'], 422);
+            }
+
             return back()->with('error', 'Dich vu da het hang hoac khong du so luong');
         }
     }
 
-    $booking = DB::transaction(function () use ($data, $user, $request) {
+    try {
+        $booking = DB::transaction(function () use ($data, $user, $request) {
 
         $field = Field::findOrFail($data['field_id']);
 
@@ -310,7 +328,14 @@ public function storeBooking(Request $request)
         }
 
         return $booking;
-    });
+        });
+    } catch (\RuntimeException $exception) {
+        if ($request->expectsJson()) {
+            return response()->json(['message' => $exception->getMessage()], 422);
+        }
+
+        return back()->with('error', $exception->getMessage());
+    }
 
     // ===== SERVICES TOTAL =====
     $totalPriceServices = DB::table('booking_services as bs')
@@ -327,6 +352,14 @@ public function storeBooking(Request $request)
         'amount' => $finalTotal,
         'status' => 'pending'
     ]);
+
+    if ($request->expectsJson()) {
+        return response()->json([
+            'message' => 'Dat san thanh cong',
+            'booking_id' => $booking->id,
+            'redirect_url' => route('user.payment.booking', $booking->id),
+        ], 201);
+    }
 
     return redirect()->route('user.payment.booking', $booking->id);
 }
@@ -852,7 +885,7 @@ Invoice::create([
 
     return $pdf->stream("hoa-don-{$order->id}.pdf");
 }
- public function cancelBooking($id)
+ public function cancelBooking(Request $request, $id)
 {
     $booking = Booking::findOrFail($id);
 
@@ -863,12 +896,23 @@ Invoice::create([
 
     // chỉ cho hủy nếu chưa hoàn thành
     if ($booking->status === 'completed') {
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Khong the huy booking da hoan thanh'], 422);
+        }
+
         return redirect()->back()->with('error', 'Không thể hủy booking đã hoàn thành');
     }
 
     // cập nhật trạng thái
     $booking->status = 'cancelled';
     $booking->save();
+
+    if ($request->expectsJson()) {
+        return response()->json([
+            'message' => 'Huy booking thanh cong',
+            'redirect_url' => route('user.myBookings'),
+        ]);
+    }
 
     return redirect()->back()->with('success', 'Hủy booking thành công');
 }
@@ -1395,6 +1439,10 @@ public function removeFromCart(Request $request)
     $id = $request->input('cart_item_id');
 
     if (!$id) {
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Khong co ID'], 422);
+        }
+
         return back()->with('error', 'Không có ID');
     }
 
@@ -1405,10 +1453,18 @@ public function removeFromCart(Request $request)
         ->first();
 
     if (!$cartItem) {
+        if ($request->expectsJson()) {
+            return response()->json(['message' => 'Khong tim thay san pham'], 404);
+        }
+
         return back()->with('error', 'Không tìm thấy sản phẩm');
     }
 
     $cartItem->delete();
+
+    if ($request->expectsJson()) {
+        return response()->json(['message' => 'Da xoa khoi gio hang']);
+    }
 
     return redirect()->route('user.cart')->with('success', 'Đã xóa khỏi giỏ hàng');
 }
@@ -1552,3 +1608,4 @@ public function orderDetail($id)
 // taoj payment
 
 }
+

@@ -204,8 +204,7 @@
                             <i class="bi bi-credit-card"></i> Thanh toán ngay
                         </a>
 
-                        <form method="POST" action="{{ route('user.cancelBooking', ['id' => $booking->id]) }}" 
-                              onsubmit="return confirm('Bạn chắc chắn muốn hủy đặt sân này?');">
+                        <form method="POST" action="{{ route('user.cancelBooking', ['id' => $booking->id]) }}" id="cancel-booking-form">
                             @csrf
                             <button type="submit" class="btn btn-danger w-100">
                                 <i class="bi bi-x-circle"></i> Hủy đặt sân
@@ -245,4 +244,46 @@
     </div>
 </div>
 
+<script>
+const cancelBookingForm = document.getElementById('cancel-booking-form');
+
+if (cancelBookingForm) {
+    cancelBookingForm.addEventListener('submit', async function (event) {
+        event.preventDefault();
+
+        if (!confirm('Ban chac chan muon huy dat san nay?')) {
+            return;
+        }
+
+        const button = this.querySelector('button[type="submit"]');
+        const originalText = button.innerHTML;
+        button.disabled = true;
+        button.innerHTML = 'Dang huy...';
+
+        try {
+            const response = await fetch(this.action, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                },
+                body: new FormData(this),
+            });
+            const data = await response.json().catch(() => ({}));
+
+            if (!response.ok) {
+                throw new Error(data.message || 'Khong the huy booking');
+            }
+
+            window.location.href = data.redirect_url || "{{ route('user.myBookings') }}";
+        } catch (error) {
+            alert(error.message);
+            button.disabled = false;
+            button.innerHTML = originalText;
+        }
+    });
+}
+</script>
 @endsection
+

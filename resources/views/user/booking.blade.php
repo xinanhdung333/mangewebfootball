@@ -272,6 +272,21 @@ function clearError() {
     errorBox.innerHTML = '';
     errorBox.classList.add('d-none');
 }
+
+async function readJsonResponse(response) {
+    const data = await response.json().catch(() => ({}));
+
+    if (!response.ok) {
+        if (data.errors) {
+            const messages = Object.values(data.errors).flat().join('<br>');
+            throw new Error(messages || data.message || 'Co loi xay ra');
+        }
+
+        throw new Error(data.message || 'Co loi xay ra');
+    }
+
+    return data;
+}
 document.addEventListener('DOMContentLoaded', function () {
 
     const fieldPricePerHour = {{ $field->price_per_hour }};
@@ -460,51 +475,68 @@ if (noteBox) {
         .forEach(el => el.addEventListener('change', checkBooking));
 
     // ===== SUBMIT =====
-    document.getElementById('bookingForm').addEventListener('submit', function (e) {
+    document.getElementById('bookingForm').addEventListener('submit', async function (e) {
+        e.preventDefault();
 
         if (submitBtn.disabled) {
-            e.preventDefault();
             return;
         }
 
-     clearError();
+        clearError();
 
-const bookingDate = document.getElementById('booking_date').value;
-const startTime = document.getElementById('start_time').value;
-const endTime = document.getElementById('end_time').value;
+        const bookingDate = document.getElementById('booking_date').value;
+        const startTime = document.getElementById('start_time').value;
+        const endTime = document.getElementById('end_time').value;
 
-if (!bookingDate || !startTime || !endTime) {
-    e.preventDefault();
-    showError('Vui lòng nhập đủ thông tin');
-    return;
-}
+        if (!bookingDate || !startTime || !endTime) {
+            showError('Vui long nhap du thong tin');
+            return;
+        }
 
-if (startTime === endTime) {
-    e.preventDefault();
-    showError('Không cho phép đặt sân');
-    return;
-}
-if (startTime >= endTime) {
-    e.preventDefault();
-    showError('Giờ kết thúc phải lớn hơn giờ bắt đầu');
-    return;
-}
-const today = new Date();
-today.setHours(0,0,0,0);
+        if (startTime === endTime) {
+            showError('Khong cho phep dat san voi cung gio bat dau va ket thuc');
+            return;
+        }
 
-const selectedDate = new Date(bookingDate);
+        if (startTime >= endTime) {
+            showError('Gio ket thuc phai lon hon gio bat dau');
+            return;
+        }
 
-if (selectedDate < today) {
-    e.preventDefault();
-    showError('Ngày không hợp lệ');
-    return;
-}
+        const today = new Date();
+        today.setHours(0,0,0,0);
+        const selectedDate = new Date(bookingDate);
 
-submitBtn.disabled = true;
-submitBtn.innerHTML = 'Đang xử lý...';
-        });
-    // ===== INIT =====
+        if (selectedDate < today) {
+            showError('Ngay khong hop le');
+            return;
+        }
+
+        submitBtn.disabled = true;
+        const originalText = submitBtn.innerHTML;
+        submitBtn.innerHTML = 'Dang xu ly...';
+
+        try {
+            const response = await fetch(this.action, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}',
+                },
+                body: new FormData(this),
+            });
+
+            const data = await readJsonResponse(response);
+            window.location.href = data.redirect_url || "{{ route('user.myBookings') }}";
+        } catch (error) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+            showError(error.message);
+        }
+    });    // ===== INIT =====
     updateTotal();
 });
 </script>
 @endsection
+

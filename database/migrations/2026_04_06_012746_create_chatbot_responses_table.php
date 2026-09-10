@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('chatbot_responses', function (Blueprint $table) {
             $table->integer('id', true);
-            $table->integer('intent_id')->index('intent_id');
+            $table->integer('intent_id')->index('idx_chatbot_responses_intent');
             $table->text('response_text');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrentOnUpdate()->useCurrent();

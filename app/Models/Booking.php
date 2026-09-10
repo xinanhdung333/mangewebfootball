@@ -20,6 +20,7 @@ class Booking extends Model
         'end_time',
         'total_price',
         'status',
+        'note',
         'notes'
     ];
 

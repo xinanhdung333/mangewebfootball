@@ -8,6 +8,10 @@ return new class extends Migration
 {
     public function up(): void
     {
+        if (Schema::hasColumn('messages', 'attachment_path')) {
+            return;
+        }
+
         Schema::table('messages', function (Blueprint $table) {
             $table->string('attachment_path')->nullable()->after('message');
             $table->string('attachment_original_name')->nullable()->after('attachment_path');
@@ -18,6 +22,10 @@ return new class extends Migration
 
     public function down(): void
     {
+        if (! Schema::hasColumn('messages', 'attachment_path')) {
+            return;
+        }
+
         Schema::table('messages', function (Blueprint $table) {
             $table->dropColumn([
                 'attachment_path',

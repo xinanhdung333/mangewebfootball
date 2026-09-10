@@ -16,8 +16,10 @@ return new class extends Migration
             $table->string('name', 100);
             $table->string('avt')->nullable();
             $table->string('email', 100);
+            $table->timestamp('email_verified_at')->nullable();
             $table->string('phone', 20);
             $table->string('password')->nullable();
+            $table->rememberToken();
             $table->enum('role', ['user', 'admin', 'boss'])->default('user');
             $table->timestamp('created_at')->useCurrent();
             $table->timestamp('updated_at')->useCurrentOnUpdate()->useCurrent();
