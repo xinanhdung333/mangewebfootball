@@ -180,21 +180,53 @@
     min-width: 0;
 }
 
-/* Stats row */
+/* Stats carousel — thẻ cuộn ngang trên mobile, dạng lưới trên desktop. */
+.ec-stats-section {
+    margin-bottom: 16px;
+}
+.ec-stats-heading {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+.ec-stats-heading h4 {
+    margin: 0;
+    color: var(--ec-dark);
+    font-size: .95rem;
+    font-weight: 800;
+    letter-spacing: .35px;
+}
+.ec-stats-heading span {
+    color: var(--ec-muted);
+    font-size: .78rem;
+}
 .ec-stats {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
     gap: 12px;
-    margin-bottom: 16px;
+    margin-bottom: 8px;
 }
 .ec-stat-card {
+    position: relative;
+    overflow: hidden;
     background: var(--ec-card);
-    border-radius: 4px;
+    border-radius: 12px;
     padding: 18px 16px;
     box-shadow: 0 1px 4px rgba(0,0,0,.08);
     display: flex;
     align-items: center;
     gap: 14px;
+}
+.ec-stat-card::after {
+    position: absolute;
+    right: -22px;
+    bottom: -30px;
+    width: 86px;
+    height: 86px;
+    border-radius: 50%;
+    background: rgba(238, 77, 45, .06);
+    content: "";
 }
 .ec-stat-icon {
     width: 46px;
@@ -220,6 +252,22 @@
     color: var(--ec-dark);
     margin: 0;
     line-height: 1.3;
+}
+.ec-stats-indicator {
+    display: none;
+    justify-content: center;
+    gap: 5px;
+    padding-top: 2px;
+}
+.ec-stats-indicator span {
+    width: 18px;
+    height: 5px;
+    border-radius: 999px;
+    background: #dedede;
+}
+.ec-stats-indicator span.active {
+    width: 30px;
+    background: var(--ec-primary);
 }
 
 /* Flash sale banner */
@@ -435,107 +483,135 @@
     text-align: right;
 }
 
-.voucher-overlay {
+/* ========== SHARED OVERLAY ========== */
+.modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(17, 17, 17, 0.62);
+    background: rgba(0, 0, 0, 0.5);
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
+    padding: 16px;
     z-index: 99999;
-    animation: overlayFadeIn .35s ease both;
-}
-.voucher-overlay.is-closing,
-.shipping-overlay.is-closing {
     opacity: 0;
-    transition: opacity .25s ease;
+    transition: opacity .3s ease;
+    pointer-events: none;
 }
+.modal-overlay.is-open {
+    opacity: 1;
+    pointer-events: auto;
+}
+.modal-overlay.is-closing {
+    opacity: 0;
+    pointer-events: none;
+}
+
+/* ========== VOUCHER MODAL ========== */
 .voucher-modal {
     position: relative;
-    width: min(480px, 100%);
-    background: linear-gradient(135deg, #fff9f0 0%, #fff 100%);
-    border: 1px solid rgba(255, 138, 61, 0.3);
-    border-radius: 22px;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
-    padding: 28px 24px 20px;
+    width: min(440px, 100%);
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+    overflow: hidden;
+    transform: translateY(40px) scale(0.93);
+    opacity: 0;
+    transition: transform .45s cubic-bezier(0.22, 1, 0.36, 1), opacity .35s ease;
+}
+.modal-overlay.is-open .voucher-modal {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+.voucher-modal-header {
+    background: #ee4d2d;
+    padding: 20px 24px 16px;
     text-align: center;
-    animation: voucherPopIn .55s cubic-bezier(.22, 1, .36, 1) both;
+    position: relative;
 }
-@keyframes overlayFadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
-}
-@keyframes voucherPopIn {
-    0% { opacity: 0; transform: translateY(32px) scale(.9) rotate(-1deg); }
-    65% { opacity: 1; transform: translateY(-5px) scale(1.02) rotate(.3deg); }
-    100% { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
-}
-.voucher-modal .close-btn {
+.voucher-modal-header .close-btn {
     position: absolute;
-    top: 12px;
-    right: 14px;
+    top: 10px;
+    right: 12px;
     border: none;
-    background: transparent;
-    color: #7d7d7d;
-    font-size: 1.5rem;
-    line-height: 1;
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    font-size: 1.1rem;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    line-height: 1;
+    transition: background .2s;
 }
-.voucher-badge {
+.voucher-modal-header .close-btn:hover {
+    background: rgba(255,255,255,0.35);
+}
+.voucher-modal-header-label {
     display: inline-block;
-    padding: 6px 12px;
-    border-radius: 999px;
-    background: #fff3dd;
-    color: #b96310;
-    font-size: .75rem;
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    font-size: .7rem;
     font-weight: 700;
-    letter-spacing: .08em;
+    letter-spacing: .1em;
     text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 999px;
+    margin-bottom: 10px;
 }
-.voucher-title {
-    margin: 14px 0 10px;
-    font-size: clamp(1.4rem, 3vw, 2rem);
+.voucher-modal-header h3 {
+    margin: 0 0 4px;
+    font-size: clamp(1.2rem, 3vw, 1.55rem);
     font-weight: 800;
-    color: #222;
+    color: #fff;
 }
-.voucher-subtitle {
-    margin: 0 0 18px;
-    color: #555;
-    line-height: 1.6;
-    font-size: .95rem;
+.voucher-modal-header p {
+    margin: 0;
+    color: rgba(255,255,255,.85);
+    font-size: .88rem;
+}
+.voucher-modal-body {
+    padding: 20px 24px 24px;
+    text-align: center;
 }
 .voucher-code-box {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px;
-    margin: 18px auto 16px;
-    border: 2px dashed #ff8a3d;
-    background: #fff;
-    border-radius: 12px;
-    padding: 12px 14px;
-    max-width: 260px;
-    font-size: 1.15rem;
+    margin: 0 auto 18px;
+    border: 2px dashed #ee4d2d;
+    background: #fff8f6;
+    border-radius: 10px;
+    padding: 12px 18px;
+    max-width: 280px;
+    font-size: 1.2rem;
     font-weight: 800;
-    color: #d9670a;
-    letter-spacing: .08em;
+    color: #ee4d2d;
+    letter-spacing: .1em;
 }
 .voucher-copy-btn {
     border: none;
-    background: linear-gradient(135deg, #ff8a3d, #ff5a3c);
+    background: #ee4d2d;
     color: #fff;
-    border-radius: 999px;
-    padding: 11px 18px;
+    border-radius: 10px;
+    padding: 12px 28px;
     font-weight: 700;
+    font-size: .95rem;
     cursor: pointer;
-    transition: opacity .2s;
+    transition: background .2s, transform .15s;
+    width: 100%;
+    max-width: 280px;
 }
-.voucher-copy-btn:hover { opacity: .95; }
+.voucher-copy-btn:hover {
+    background: #d94426;
+    transform: translateY(-1px);
+}
 .voucher-note {
     margin-top: 12px;
-    color: #666;
-    font-size: .8rem;
+    color: #888;
+    font-size: .78rem;
 }
     
 /* Toast */
@@ -568,72 +644,166 @@
 .toast-close { cursor: pointer; font-size: 1.1rem; color: #bbb; padding: 4px; }
 .toast-close:hover { color: var(--ec-dark); }
 
-.shipping-overlay {
-    position: fixed;
-    inset: 0;
+/* ========== SHIPPING MODAL ========== */
+.shipping-modal {
+    position: relative;
+    width: min(400px, 100%);
+    background: #fff;
+    border-radius: 20px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.18);
+    overflow: hidden;
+    transform: translateY(40px) scale(0.93);
+    opacity: 0;
+    transition: transform .45s cubic-bezier(0.22, 1, 0.36, 1), opacity .35s ease;
+}
+.modal-overlay.is-open .shipping-modal {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+}
+.shipping-modal-header {
+    background: #1a73e8;
+    padding: 24px 24px 20px;
+    text-align: center;
+    position: relative;
+}
+.shipping-modal-header .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 12px;
+    border: none;
+    background: rgba(255,255,255,0.2);
+    color: #fff;
+    font-size: 1.1rem;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
     display: flex;
     align-items: center;
     justify-content: center;
-    padding: 20px;
-    z-index: 100000;
-    pointer-events: none;
+    line-height: 1;
+    transition: background .2s;
 }
-.shipping-modal {
-    pointer-events: auto;
-    position: relative;
-    width: min(440px, 100%);
-    padding: 28px 24px 24px;
-    text-align: center;
-    color: #fff;
-    border-radius: 24px;
-    background: linear-gradient(135deg, #ff5a3c, #ff8a3d 58%, #ffc857);
-    box-shadow: 0 24px 70px rgba(225, 74, 35, .38);
-    animation: shippingPopIn .65s cubic-bezier(.22, 1, .36, 1) both;
+.shipping-modal-header .close-btn:hover {
+    background: rgba(255,255,255,0.35);
 }
-@keyframes shippingPopIn {
-    0% { opacity: 0; transform: translateY(42px) scale(.78) rotate(2deg); }
-    70% { opacity: 1; transform: translateY(-7px) scale(1.03) rotate(-.3deg); }
-    100% { opacity: 1; transform: translateY(0) scale(1) rotate(0); }
-}
-.shipping-modal .close-btn { color: rgba(255,255,255,.8); }
 .shipping-icon {
     display: inline-flex;
-    width: 66px;
-    height: 66px;
+    width: 60px;
+    height: 60px;
     align-items: center;
     justify-content: center;
-    margin-bottom: 10px;
+    margin-bottom: 12px;
     border-radius: 50%;
-    background: rgba(255,255,255,.2);
-    font-size: 2rem;
+    background: rgba(255,255,255,0.18);
+    font-size: 1.8rem;
+    color: #fff;
 }
-.shipping-modal h3 { margin: 0 0 10px; font-size: 1.65rem; font-weight: 800; }
-.shipping-modal p { margin: 0; line-height: 1.6; color: rgba(255,255,255,.95); }
-.shipping-modal strong { color: #fff; font-size: 1.12em; }
+.shipping-modal-header h3 {
+    margin: 0;
+    font-size: 1.45rem;
+    font-weight: 800;
+    color: #fff;
+}
+.shipping-modal-body {
+    padding: 20px 24px 24px;
+    text-align: center;
+}
+.shipping-modal-body p {
+    margin: 0 0 18px;
+    color: #555;
+    font-size: .95rem;
+    line-height: 1.7;
+}
+.shipping-modal-body strong {
+    color: #1a73e8;
+    font-size: 1.05em;
+}
+.shipping-modal-cta {
+    display: inline-block;
+    background: #1a73e8;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    padding: 12px 28px;
+    font-weight: 700;
+    font-size: .95rem;
+    cursor: pointer;
+    text-decoration: none;
+    transition: background .2s, transform .15s;
+    width: 100%;
+    max-width: 280px;
+    text-align: center;
+}
+.shipping-modal-cta:hover {
+    background: #1558c0;
+    color: #fff;
+    transform: translateY(-1px);
+}
 
 /* ---------- RESPONSIVE ---------- */
 @media (max-width: 991px) {
     .ec-sidebar { display: none; }
     .ec-product-grid { grid-template-columns: repeat(3, 1fr); }
+    .ec-main { padding-left: 12px; padding-right: 12px; }
 }
 @media (max-width: 767px) {
-    .ec-stats { grid-template-columns: 1fr; }
-    .ec-product-grid { grid-template-columns: repeat(2, 1fr); }
-    .ec-search-bar .inner {
+    .ec-stats {
+        display: flex;
         gap: 10px;
-        flex-wrap: wrap;
+        margin-right: -10px;
+        padding: 2px 10px 6px 2px;
+        overflow-x: auto;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
     }
-    .ec-brand { font-size: 1.1rem; }
+    .ec-stats::-webkit-scrollbar { display: none; }
+    .ec-stat-card {
+        flex: 0 0 min(82vw, 285px);
+        min-height: 92px;
+        padding: 14px 12px;
+        scroll-snap-align: start;
+    }
+    .ec-stat-info .ec-stat-val { font-size: 1.1rem; }
+    .ec-stats-indicator { display: flex; }
+    .ec-product-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+    .ec-search-bar .inner {
+        gap: 8px;
+        flex-wrap: wrap;
+        padding: 0 10px;
+    }
+    .ec-brand { font-size: 1rem; }
     .ec-search-wrap {
         order: 3;
         flex: 0 0 100%;
     }
-    .ec-search-btn { padding: 0 14px; }
-    .ec-flash { flex-direction: column; align-items: flex-start; }
-    .ec-table { font-size: .8rem; }
+    .ec-search-wrap input { padding: 8px 10px; font-size: .88rem; }
+    .ec-search-btn { padding: 0 12px; }
+    .ec-flash { flex-direction: column; align-items: flex-start; padding: 12px 14px; gap: 10px; }
+    .ec-flash-badge { font-size: .78rem; padding: 4px 10px; }
+    .ec-flash-text { font-size: .85rem; min-width: 0; }
+    .ec-table { font-size: .78rem; }
     .ec-table thead th,
-    .ec-table tbody td { padding: 8px; }
-    .ec-orders-block { overflow-x: auto; }
+    .ec-table tbody td { padding: 6px 8px; }
+    .ec-orders-block { overflow-x: auto; padding: 12px; }
+    .ec-orders-block h5 { font-size: .88rem; }
+    .ec-section-title { font-size: .85rem; padding: 10px 0 8px; }
+    .ec-btn { padding: 6px 14px; font-size: .82rem; }
+    .ec-product-info { padding: 8px; }
+    .ec-product-name { font-size: .78rem; }
+    .ec-product-price { font-size: .88rem; }
+
+    /* Voucher modal */
+    .voucher-modal { width: min(480px, 92vw); padding: 20px 16px 16px; }
+    .voucher-title { font-size: clamp(1.2rem, 4vw, 1.6rem); }
+    .voucher-code-box { max-width: 220px; font-size: 1rem; padding: 10px 12px; }
+
+    /* Shipping modal */
+    .shipping-modal { width: min(400px, 92vw); padding: 22px 18px 18px; }
+    .shipping-modal h3 { font-size: 1.35rem; }
+
+    /* Toast */
+    .toast-noti { width: 260px; right: 10px; }
 }
 
 /* Fit within parent layout — stretch wider */
@@ -645,17 +815,53 @@
     width: 100vw;
     max-width: none;
     margin: 0 calc(50% - 50vw);
-    padding-left: clamp(12px, 2vw, 32px);
-    padding-right: clamp(12px, 2vw, 32px);
+    padding-left: clamp(8px, 2vw, 32px);
+    padding-right: clamp(8px, 2vw, 32px);
 }
 
+@media (max-width: 480px) {
+    .ec-product-grid { grid-template-columns: repeat(2, 1fr); gap: 6px; }
+    .ec-stat-card { gap: 10px; }
+    .ec-stat-icon { width: 38px; height: 38px; font-size: 1.1rem; }
+    .ec-product-img { aspect-ratio: 1/1; }
+}
+
+@media (max-width: 767px) {
+    /* MASONRY LAYOUT FOR PRODUCTS */
+    .ec-product-grid {
+        display: block !important;
+        column-count: 2;
+        column-gap: 8px;
+    }
+    .ec-product-card {
+        border-radius: 12px !important;
+        margin-bottom: 8px;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        display: inline-block;
+        width: 100%;
+        overflow: hidden;
+    }
+    .ec-product-img {
+        height: auto !important;
+        aspect-ratio: auto !important; /* let it stagger */
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+    }
+}
+@media (max-width: 480px) {
+    .ec-product-grid { column-gap: 6px; }
+    .ec-product-card { margin-bottom: 6px; }
+}
 @media (max-width: 360px) {
-    .ec-product-grid { grid-template-columns: 1fr; }
+    .ec-product-grid { column-count: 1; }
     .toast-noti {
-        left: 12px;
-        right: 12px;
+        left: 8px;
+        right: 8px;
         width: auto;
     }
+    .ec-search-bar { padding: 10px 0; }
+    .ec-main { padding-left: 6px; padding-right: 6px; }
 }
 </style>
 
@@ -674,35 +880,42 @@
 </div>
 
 @if($homeVoucher)
-    <div id="voucherOverlay" class="voucher-overlay" aria-live="polite">
-        <div class="voucher-modal" role="dialog" aria-modal="true" aria-labelledby="voucherTitle">
+<div id="voucherOverlay" class="modal-overlay" aria-live="polite">
+    <div class="voucher-modal" role="dialog" aria-modal="true" aria-labelledby="voucherTitle">
+        <div class="voucher-modal-header">
             <button type="button" class="close-btn" aria-label="Đóng" onclick="closeVoucherOverlay()">×</button>
-            <div class="voucher-badge">Voucher hot</div>
-            <h3 id="voucherTitle" class="voucher-title">Ưu đãi dành cho bạn</h3>
-            <p class="voucher-subtitle">
-                Giảm ngay <strong>{{ number_format($homeVoucher->discount_amount, 0, ',', '.') }}đ</strong>
-                cho đơn hàng từ <strong>{{ number_format($homeVoucher->min_order_amount, 0, ',', '.') }}đ</strong>.
-            </p>
+            <div class="voucher-modal-header-label">🎟 Voucher đặc biệt</div>
+            <h3 id="voucherTitle">Ưu đãi dành cho bạn!</h3>
+            <p>Giảm <strong style="color:#fff; font-size:1.1em;">{{ number_format($homeVoucher->discount_amount, 0, ',', '.') }}đ</strong>
+               cho đơn từ {{ number_format($homeVoucher->min_order_amount, 0, ',', '.') }}đ</p>
+        </div>
+        <div class="voucher-modal-body">
             <div class="voucher-code-box">
                 <span id="voucherCodeText">{{ $homeVoucher->code }}</span>
             </div>
             <button type="button" class="voucher-copy-btn" onclick="copyVoucherCode()">Sao chép mã</button>
             <div class="voucher-note">
-                HSD: {{ $homeVoucher->expires_at ? \Carbon\Carbon::parse($homeVoucher->expires_at)->format('d/m/Y H:i') : 'Không giới hạn' }}
+                HSD: {{ $homeVoucher->expires_at ? \Carbon\Carbon::parse($homeVoucher->expires_at)->format('d/m/Y') : 'Không giới hạn' }}
             </div>
         </div>
     </div>
+</div>
 @endif
 
 @if($freeShippingThreshold > 0)
-    <div id="shippingOverlay" class="shipping-overlay" aria-live="polite">
-        <div class="shipping-modal" role="dialog" aria-modal="true" aria-labelledby="shippingTitle">
+<div id="shippingOverlay" class="modal-overlay" aria-live="polite">
+    <div class="shipping-modal" role="dialog" aria-modal="true" aria-labelledby="shippingTitle">
+        <div class="shipping-modal-header">
             <button type="button" class="close-btn" aria-label="Đóng" onclick="closeShippingOverlay()">×</button>
             <div class="shipping-icon"><i class="bi bi-truck"></i></div>
-            <h3 id="shippingTitle">Free ship cho bạn!</h3>
+            <h3 id="shippingTitle">Free Ship cho bạn!</h3>
+        </div>
+        <div class="shipping-modal-body">
             <p>Đơn hàng từ <strong>{{ number_format($freeShippingThreshold, 0, ',', '.') }}đ</strong><br>được miễn phí vận chuyển.</p>
+            <a href="{{ route('user.services') }}" class="shipping-modal-cta">Mua ngay</a>
         </div>
     </div>
+</div>
 @endif
 
 {{-- ========== MAIN LAYOUT ========== --}}
@@ -732,30 +945,39 @@
     {{-- ===== RIGHT CONTENT ===== --}}
     <div class="ec-content">
 
-        {{-- Stats --}}
-        <div class="ec-stats">
-            <div class="ec-stat-card">
-                <div class="ec-stat-icon"><i class="bi bi-bag"></i></div>
-                <div class="ec-stat-info">
-                    <h6>Đơn hàng</h6>
-                    <p class="ec-stat-val">{{ $stats_total }}</p>
-                </div>
+        {{-- Thống kê dạng carousel trên mobile --}}
+        <section class="ec-stats-section" aria-labelledby="stats-title">
+            <div class="ec-stats-heading">
+                <h4 id="stats-title">TỔNG QUAN</h4>
+                <span>Vuốt để xem thêm</span>
             </div>
-            <div class="ec-stat-card">
-                <div class="ec-stat-icon"><i class="bi bi-bag-check"></i></div>
-                <div class="ec-stat-info">
-                    <h6>Đã xác nhận</h6>
-                    <p class="ec-stat-val">{{ $stats_confirmed }}</p>
-                </div>
+            <div class="ec-stats">
+                <article class="ec-stat-card">
+                    <div class="ec-stat-icon"><i class="bi bi-bag"></i></div>
+                    <div class="ec-stat-info">
+                        <h6>Đơn hàng</h6>
+                        <p class="ec-stat-val">{{ $stats_total }}</p>
+                    </div>
+                </article>
+                <article class="ec-stat-card">
+                    <div class="ec-stat-icon"><i class="bi bi-bag-check"></i></div>
+                    <div class="ec-stat-info">
+                        <h6>Đã xác nhận</h6>
+                        <p class="ec-stat-val">{{ $stats_confirmed }}</p>
+                    </div>
+                </article>
+                <article class="ec-stat-card">
+                    <div class="ec-stat-icon"><i class="bi bi-cash-stack"></i></div>
+                    <div class="ec-stat-info">
+                        <h6>Tổng chi tiêu</h6>
+                        <p class="ec-stat-val">{{ formatCurrency($stats_revenue) }}</p>
+                    </div>
+                </article>
             </div>
-            <div class="ec-stat-card">
-                <div class="ec-stat-icon"><i class="bi bi-cash-stack"></i></div>
-                <div class="ec-stat-info">
-                    <h6>Tổng chi tiêu</h6>
-                    <p class="ec-stat-val">{{ formatCurrency($stats_revenue) }}</p>
-                </div>
+            <div class="ec-stats-indicator" aria-hidden="true">
+                <span class="active"></span><span></span><span></span>
             </div>
-        </div>
+        </section>
 
         {{-- Flash Sale --}}
         <div class="ec-flash">
@@ -905,67 +1127,105 @@
 </a>
 
 <script>
-function showToast(id, index = 0) {
-    const toast = document.getElementById(id);
-    if (!toast) return;
-    toast.style.top = (80 + index * 80) + "px";
-    toast.classList.add('show');
-    setTimeout(() => hideToast(id), 10000);
+function _openOverlay(overlay) {
+    if (!overlay) return;
+    overlay.style.display = 'flex';
+    // Force reflow for animation to trigger
+    overlay.offsetHeight;
+    overlay.classList.add('is-open');
 }
-function hideToast(id) {
-    const toast = document.getElementById(id);
-    if (!toast) return;
-    toast.classList.remove('show');
-    toast.style.top = "-100px";
+
+function _closeOverlay(overlay, callback) {
+    if (!overlay) return;
+    overlay.classList.remove('is-open');
+    overlay.classList.add('is-closing');
+    setTimeout(() => {
+        overlay.style.display = 'none';
+        overlay.classList.remove('is-closing');
+        if (typeof callback === 'function') callback();
+    }, 350);
 }
+
 function closeVoucherOverlay() {
-    const overlay = document.getElementById('voucherOverlay');
-    if (overlay) {
-        overlay.classList.add('is-closing');
-        setTimeout(() => { overlay.style.display = 'none'; }, 260);
-    }
+    const voucherOverlay = document.getElementById('voucherOverlay');
+    const shippingOverlay = document.getElementById('shippingOverlay');
+    _closeOverlay(voucherOverlay, () => {
+        // Sau khi đóng Voucher → mới hiện Free Ship (không chồng)
+        if (shippingOverlay) {
+            setTimeout(() => _openOverlay(shippingOverlay), 150);
+        }
+    });
 }
+
 function closeShippingOverlay() {
     const overlay = document.getElementById('shippingOverlay');
-    if (overlay) {
-        overlay.classList.add('is-closing');
-        setTimeout(() => { overlay.style.display = 'none'; }, 260);
-    }
+    _closeOverlay(overlay);
 }
+
 function copyVoucherCode() {
-    const code = document.getElementById('voucherCodeText')?.innerText;
+    const code = document.getElementById('voucherCodeText')?.innerText?.trim();
     if (!code) return;
 
+    const btn = document.querySelector('.voucher-copy-btn');
+    const doCopy = () => {
+        if (btn) { btn.textContent = '✓ Đã sao chép!'; setTimeout(() => { btn.textContent = 'Sao chép mã'; }, 1400); }
+    };
+
     if (navigator.clipboard && window.isSecureContext) {
-        navigator.clipboard.writeText(code).then(() => {
-            const btn = document.querySelector('.voucher-copy-btn');
-            if (!btn) return;
-            const originalText = btn.textContent;
-            btn.textContent = 'Đã sao chép';
-            setTimeout(() => { btn.textContent = originalText; }, 1200);
-        }).catch(() => {});
+        navigator.clipboard.writeText(code).then(doCopy).catch(() => {});
         return;
     }
-
     const temp = document.createElement('textarea');
     temp.value = code;
     document.body.appendChild(temp);
     temp.select();
     document.execCommand('copy');
     document.body.removeChild(temp);
+    doCopy();
 }
-document.addEventListener('DOMContentLoaded', function () {
-    setTimeout(() => showToast('toast-rule', 0), 800);
-    setTimeout(() => showToast('toast-news', 1), 1200);
 
-    const voucherOverlay = document.getElementById('voucherOverlay');
-    if (voucherOverlay) {
-        voucherOverlay.style.opacity = '1';
+function showToast(id, index = 0) {
+    const toast = document.getElementById(id);
+    if (!toast) return;
+    const isMobile = window.innerWidth <= 576;
+    toast.style.top = ((isMobile ? 60 : 80) + index * 90) + 'px';
+    toast.classList.add('show');
+    setTimeout(() => hideToast(id), 8000);
+}
+function hideToast(id) {
+    const toast = document.getElementById(id);
+    if (!toast) return;
+    toast.classList.remove('show');
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    // Toast notifications
+    setTimeout(() => showToast('toast-rule', 0), 1200);
+    setTimeout(() => showToast('toast-news', 1), 1700);
+
+    // Stats scroll indicator
+    const stats = document.querySelector('.ec-stats');
+    const indicators = document.querySelectorAll('.ec-stats-indicator span');
+    if (stats && indicators.length) {
+        stats.addEventListener('scroll', function () {
+            const cardWidth = stats.querySelector('.ec-stat-card')?.getBoundingClientRect().width || 1;
+            const activeIndex = Math.min(indicators.length - 1, Math.round(stats.scrollLeft / (cardWidth + 10)));
+            indicators.forEach((indicator, index) => {
+                indicator.classList.toggle('active', index === activeIndex);
+            });
+        }, { passive: true });
     }
 
+    // Show Voucher first (if exists), then Free Ship after it's closed
+    const voucherOverlay = document.getElementById('voucherOverlay');
     const shippingOverlay = document.getElementById('shippingOverlay');
-    if (shippingOverlay) {
-        shippingOverlay.style.opacity = '1';
+
+    if (voucherOverlay) {
+        // Có Voucher → hiện voucher, Free Ship sẽ hiện sau khi đóng voucher
+        setTimeout(() => _openOverlay(voucherOverlay), 600);
+    } else if (shippingOverlay) {
+        // Không có Voucher → hiện luôn Free Ship
+        setTimeout(() => _openOverlay(shippingOverlay), 600);
     }
 });
 </script>

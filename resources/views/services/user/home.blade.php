@@ -59,25 +59,44 @@
 }
 .jumbotron {
     background-image: url('../assets/images/2340596.jpg') !important;
+    background-size: cover;
+    background-position: center;
 }
 
+.hero-title {
+    font-size: clamp(24px, 5vw, 48px);
+    font-weight: 700;
+}
+.hero-btn {
+    padding: 10px 24px;
+    font-size: 16px;
+    border-radius: 8px;
+}
+
+@media (max-width: 576px) {
+    .hero-btn {
+        padding: 8px 16px;
+        font-size: 14px;
+    }
+}
 </style>
 
  <div class="container mt-4">
         <div class="row">
-            <div class="col-md-12">
+        <div class="col-md-12">
                 <div class="jumbotron bg-light p-5 rounded text-white" style="background-color: rgba(0,0,0,0.35);">
-                    <h1 class="display-4">Chào mừng tới SportsHub</h1>
-                    <p class="lead">Đặt sân bóng nhanh chóng, dễ dàng và an toàn</p>
-                    <hr>
+                    <h1 class="hero-title">Chào mừng tới SportsHub</h1>
+                    <p class="lead mb-3" style="font-size:clamp(15px,3.5vw,20px);">Đặt sân bóng nhanh chóng, dễ dàng và an toàn</p>
+                    <hr class="my-3">
 
-                      <a href="{{ url('/user/fields') }}" class="btn btn-primary btn-lg">
+                      <a href="{{ url('/user/fields') }}" class="btn btn-primary hero-btn">
                                 <i class="bi bi-calendar-plus"></i> Đặt sân ngay
                             </a>
                    
                 </div>
             </div>
         </div>
+    </div>
 
 
     <!-- Hiển thị phần feature giống mẫu HTML5 UP khi chưa đăng nhập -->

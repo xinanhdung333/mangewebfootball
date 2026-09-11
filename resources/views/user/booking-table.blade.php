@@ -107,3 +107,20 @@
         </div>
     </div>
 @endif
+
+<style>
+@media (max-width: 576px) {
+    /* Ảnh trong card booking: giảm chiều cao tối thiểu */
+    .col-sm-4 img { min-height: 100px !important; max-height: 130px; }
+    /* Card body gọn */
+    .col-sm-8 .card-body { padding: 8px 10px !important; }
+    .col-sm-8 .card-title { font-size: 13px; margin-bottom: 4px; }
+    .col-sm-8 .text-muted { font-size: 12px; margin-bottom: 4px !important; }
+    .col-sm-8 strong { font-size: 13px; }
+    .col-sm-8 .btn-sm { font-size: 11px; padding: 3px 8px; }
+    /* Thống kê summary cards */
+    .row.g-3.mb-4 .card-body { padding: 8px 12px !important; }
+    .row.g-3.mb-4 h6 { font-size: 12px; margin-bottom: 2px; }
+    .row.g-3.mb-4 .fs-4 { font-size: 1.1rem !important; }
+}
+</style>

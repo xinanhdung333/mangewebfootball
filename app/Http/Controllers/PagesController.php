@@ -122,7 +122,7 @@ class PagesController extends Controller
                     ->limit(2);
             }])
             ->get();
-        $featuredServices = Service::where('status', 'active')->latest()->take(8)->get();
+        $featuredServices = Service::where('status', 'active')->latest()->take(50)->get();
         return view('user.dashboard', [
             'user' => $user,
             'stats_total' => $stats_total,

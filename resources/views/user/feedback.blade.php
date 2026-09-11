@@ -474,6 +474,24 @@ box-shadow:0 6px 20px rgba(0,0,0,0.08);
 
 }
 
+/* === MOBILE COMPACT === */
+@media (max-width: 576px) {
+    /* Ảnh nhỏ cố định thay vì 120x120 */
+    .history-item img[style*="120px"] {
+        width: 70px !important;
+        height: 70px !important;
+    }
+    /* Card padding gọn */
+    .history-item .card-body { padding: 8px 10px !important; }
+    /* Font gọn */
+    .history-item h5 { font-size: 13px; margin-bottom: 2px; }
+    .history-item p { font-size: 12px; margin-bottom: 3px !important; }
+    .history-item .text-warning { font-size: 14px; }
+    /* Tab label gọn trên mobile */
+    .nav-tabs .nav-link { font-size: 13px; padding: 6px 10px; }
+    .nav-tabs .bi { display: none; }
+}
+
 </style>
 
 <script>

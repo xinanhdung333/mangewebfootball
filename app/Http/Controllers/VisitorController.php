@@ -51,6 +51,8 @@ public function dashboard()
     $bookings = $user ? $user->bookings()->latest()->take(5)->get() : [];
 $rule = PriceRule::first();
 $ruleService = ServiceDiscount::first();
+    $products = Service::take(50)->get();
+
     return view('pages.visitor.dashboard', [
         'user' => $user,
         'stats_total' => $stats_total,
@@ -58,7 +60,8 @@ $ruleService = ServiceDiscount::first();
         'stats_revenue' => $stats_revenue,
         'bookings' => $bookings,
         'rule'     => $rule,
-        'ruleService'=>$ruleService
+        'ruleService'=>$ruleService,
+        'products' => $products
     ]);
 }
       public function fields()

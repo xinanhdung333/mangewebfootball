@@ -1,6 +1,30 @@
 @extends('layouts.app')
 
 @section('content')
+<style>
+@media (max-width: 576px) {
+    /* Header chat gọn */
+    #user-chat-admin-info img { width: 36px !important; height: 36px !important; }
+    #user-chat-admin-info h5 { font-size: 14px; }
+    #user-chat-admin-info small { font-size: 11px; }
+    .card-header.py-3 { padding: 8px 12px !important; }
+
+    /* Khung tin nhắn */
+    #user-chat-body { min-height: 280px !important; max-height: 380px !important; padding: 8px !important; }
+
+    /* Bubble tin nhắn */
+    #user-chat-body .mb-3 [style*="max-width"],
+    #user-chat-body [style*="max-width: 80%"] { max-width: 88% !important; }
+    #user-chat-body .p-3 { padding: 8px 10px !important; font-size: 13px; }
+    #user-chat-body img.rounded-circle { width: 28px !important; height: 28px !important; }
+    #user-chat-body .text-xs { font-size: 10px; }
+
+    /* Footer gửi tin */
+    .card-footer { padding: 8px 10px !important; }
+    .card-footer .btn { padding: 5px 10px; font-size: 13px; }
+    .card-footer .form-control { font-size: 13px; }
+}
+</style>
 <div class="container-fluid py-4">
     <div class="row mb-4">
         <div class="col-md-12">

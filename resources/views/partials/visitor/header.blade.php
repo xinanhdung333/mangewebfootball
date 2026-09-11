@@ -37,10 +37,17 @@
   position: fixed;
   top: 80%;
   left: 90%;
-  width: 80px;
-  height: 80px;
+  width: 45px;
+  height: auto;
   cursor: grab;
   z-index: 9999;
+}
+@media (max-width: 768px) {
+    #mascot {
+        width: 40px !important;
+        left: auto !important;
+        right: 14px !important;
+    }
 }
     </style>
 

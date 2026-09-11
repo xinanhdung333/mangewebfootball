@@ -1,4 +1,6 @@
-/* Bootstrap sẽ xử lý hầu hết CSS, thêm custom CSS ở đây nếu cần */
+/* ========================================
+   SPORTSHUB — GLOBAL STYLES (RESPONSIVE)
+   ======================================== */
 *,
 *::before,
 *::after {
@@ -6,46 +8,98 @@
     min-width: 0;
 }
 
-
-picture,
-video,
-svg {
-    max-width: 60PX !important;
+/* --- Icon / small image constraints (scoped, NOT global) --- */
+.imgservice {
+    max-width: 60px !important;
     height: 60px !important;
     display: block;
 }
+
+/* --- Service detail image — responsive --- */
 .imageservicedetail {
- width: 600px !important; height: 500px !important; object-fit: contain; border: 1px solid #ddd; border-radius: 12px; background:#f9f9f9;
+    width: 100%;
+    max-width: 600px;
+    height: auto;
+    aspect-ratio: 6 / 5;
+    object-fit: contain;
+    border: 1px solid #ddd;
+    border-radius: 12px;
+    background: #f9f9f9;
 }
+
+/* --- Chatbot floating button --- */
 .chatbot {
     position: fixed;
     bottom: 20px;
     right: 20px;
-    width: 200px !important;
-    height: 100px !important;
+    width: 80px !important;
+    height: 80px !important;
     cursor: pointer;
     z-index: 1000;
 }
+
+/* --- Field images --- */
 .fields {
     width: 100% !important;
-    height: 300px !important;
+    height: 220px !important;
     object-fit: cover;
 }
-.imgservice {
-       max-width: 60PX !important;
-    height: 60px !important;
-     display: block;
-}
-.product-image{
-width:100% !important;
-height:140px !important;
-object-fit:cover !important;
+
+/* --- Product images --- */
+.product-image {
+    width: 100% !important;
+    height: 140px !important;
+    object-fit: cover !important;
 }
 
+/* ========== BODY ========== */
 body {
-    background-attachment: scroll; /* mobile-friendly */
+    background-image: url('../images/pngtree-sleek-gradient-background-with-smooth-black-texture-image_13782877.png') !important;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-attachment: scroll;
+    background-position: center;
+    min-height: 100vh;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    display: flex;
+    flex-direction: column;
 }
 
+html, body {
+    height: 100%;
+    margin: 0;
+    width: 100%;
+    overflow-x: hidden;
+}
+
+/* ========== LAYOUT ========== */
+.content {
+    flex: 1 0 auto;
+}
+
+main.flex-fill {
+    flex: 1 0 auto;
+}
+
+footer {
+    flex-shrink: 0;
+    background-color: #212529;
+    color: #fff;
+    text-align: center;
+    padding: 1rem 0;
+    margin-top: auto;
+    border-top: 1px solid #dee2e6;
+}
+
+.container {
+    background: transparent !important;
+}
+
+.content-sidebar {
+    background: transparent !important;
+}
+
+/* ========== STAT CARDS ========== */
 .stat-card {
     border-radius: 15px;
     transition: transform 0.3s, box-shadow 0.3s;
@@ -60,55 +114,13 @@ body {
     box-shadow: 0 8px 15px rgba(0,0,0,0.2);
 }
 
-body {
-    background-image: url('../images/pngtree-sleek-gradient-background-with-smooth-black-texture-image_13782877.png') !important;
-    background-size: cover;       /* phóng to bao phủ toàn bộ */
-    background-repeat: no-repeat; /* không lặp ảnh */
-    background-attachment: scroll; /* mobile-friendly */
-    background-position: center;  /* căn giữa */
-    min-height: 100vh;   
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-}
-html, body {
-    height: 100%;
-    margin: 0; /* xoá margin mặc định */
-}
-
-body {
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-}
-
-.content {
-    flex: 1 0 auto; /* chiếm phần còn lại */
-}
-
-
-main.flex-fill {
-    flex: 1 0 auto; /* chiếm phần còn lại */
-}
-
-footer {
-    flex-shrink: 0;
-    background-color: #212529;
-    color: #fff;
-    text-align: center;
-    padding: 1rem 0;
-}
-.container {
-    background: transparent !important;
-}
-
-.content-sidebar {
-    background: transparent !important;
-}
-
+/* ========== NAVBAR ========== */
 .navbar-brand {
     font-weight: bold;
     font-size: 1.5rem;
 }
 
+/* ========== JUMBOTRON ========== */
 .jumbotron {
     border-radius: 0.5rem;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
@@ -124,6 +136,7 @@ footer {
     border-color: rgba(255, 255, 255, 0.3);
 }
 
+/* ========== CARDS ========== */
 .card {
     border-radius: 0.5rem;
     box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
@@ -135,6 +148,7 @@ footer {
     box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
 }
 
+/* ========== TABLE ========== */
 .table {
     background-color: white;
 }
@@ -145,26 +159,25 @@ footer {
     border-top: none;
 }
 
+/* ========== BUTTONS ========== */
 .btn {
     border-radius: 0.25rem;
     font-weight: 500;
 }
 
+/* ========== ALERTS ========== */
 .alert {
     border-radius: 0.5rem;
     border: none;
 }
 
-footer {
-    margin-top: auto;
-    border-top: 1px solid #dee2e6;
-}
-
+/* ========== BADGES ========== */
 .badge {
     padding: 0.5rem 0.75rem;
     font-size: 0.875rem;
 }
 
+/* ========== FORMS ========== */
 .form-control,
 .form-select {
     border-radius: 0.25rem;
@@ -176,48 +189,7 @@ footer {
     box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
 }
 
-/* Responsive */
-@media (max-width: 768px) {
-    .jumbotron {
-        padding: 1.5rem !important;
-    }
-
-    .jumbotron h1 {
-        font-size: 1.75rem;
-    }
-
-    .btn {
-        margin-bottom: 0.5rem;
-    }
-
-    .navbar-nav {
-        flex-direction: column;
-    }
-
-    .navbar-nav .nav-link {
-        padding-left: 0.75rem;
-        padding-right: 0.75rem;
-    }
-
-    .dropdown-menu {
-        width: 100%;
-    }
-
-    .container,
-    .container-fluid {
-        padding-left: 0.75rem;
-        padding-right: 0.75rem;
-    }
-
-    .table-responsive {
-        width: 100%;
-    }
-
-    .v {
-        background-color: #2ac82fff;
-    }
-}
-
+/* ========== TABLE CUSTOM ========== */
 .table-custom thead {
     background: linear-gradient(90deg, #0d6efd 0%, #cfc1e5 100%) !important;
     color: #fff;
@@ -235,13 +207,7 @@ footer {
     background-color: #e7f1ff;
 }
 
-@media (max-width: 768px) {
-    .table-custom {
-        font-size: 0.95rem;
-    }
-}
-
-/* Footer styles */
+/* ========== FOOTER ========== */
 .site-footer {
     background: linear-gradient(180deg, #111827 0%, #1f2937 100%);
     color: #d1d5db;
@@ -273,7 +239,7 @@ footer {
 .site-footer .footer-sponsors a {
     display: inline-block;
 }
-.site-footer .social-links a { 
+.site-footer .social-links a {
     font-size: 1.15rem;
     color: #d1d5db;
 }
@@ -284,11 +250,202 @@ footer {
     color: #9ca3af;
 }
 
+/* ==========================================================
+   RESPONSIVE — TABLET (≤ 991px)
+   ========================================================== */
+@media (max-width: 991px) {
+    .navbar-nav {
+        flex-direction: column;
+        width: 100%;
+    }
+    .navbar-nav .nav-item,
+    .navbar-nav > li {
+        width: 100%;
+    }
+    .navbar-nav .nav-link {
+        padding: 0.6rem 0.75rem;
+        width: 100%;
+    }
+    .dropdown-menu {
+        width: 100%;
+    }
+}
+
+/* ==========================================================
+   RESPONSIVE — MOBILE (≤ 768px)
+   ========================================================== */
+@media (max-width: 768px) {
+    .jumbotron {
+        padding: 1.5rem !important;
+    }
+    .jumbotron h1 {
+        font-size: 1.75rem;
+    }
+
+    .container,
+    .container-fluid {
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+
+    /* Tables auto-scroll horizontally */
+    .table-responsive,
+    .table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+    }
+
+    .table-custom {
+        font-size: 0.85rem;
+    }
+
+    /* Cards: less hover transform on mobile */
+    .card:hover {
+        transform: translateY(-2px);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px) scale(1.02);
+    }
+
+    /* Fields image shorter on mobile */
+    .fields {
+        height: 180px !important;
+    }
+
+    /* Chatbot smaller on mobile */
+    .chatbot {
+        width: 60px !important;
+        height: 60px !important;
+        bottom: 14px;
+        right: 14px;
+    }
+}
+
+/* ==========================================================
+   RESPONSIVE — SMALL MOBILE (≤ 576px)
+   ========================================================== */
 @media (max-width: 576px) {
+    .navbar {
+        padding: 0.25rem 0.5rem;
+    }
+
+    .navbar-brand {
+        font-size: 1.1rem;
+    }
+
+    .navbar-toggler {
+        padding: 0.25rem 0.5rem;
+        font-size: 1rem;
+    }
+
+    .nav-link {
+        font-size: 0.85rem !important;
+        padding: 0.4rem 0.5rem !important;
+    }
+
+    .dropdown-menu {
+        font-size: 0.85rem;
+        padding: 0.25rem 0;
+    }
+
+    .container,
+    .container-fluid {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+
+    h1, .display-4 {
+        font-size: 1.6rem !important;
+    }
+
+    h2 {
+        font-size: 1.3rem !important;
+    }
+
+    .lead {
+        font-size: 0.95rem !important;
+    }
+
+    .jumbotron {
+        padding: 1.25rem !important;
+        margin-bottom: 1rem !important;
+    }
+
+    /* Touch-friendly buttons but compact */
+    .btn {
+        min-height: 38px;
+        padding: 0.4rem 0.8rem;
+        font-size: 0.85rem;
+    }
+
+    .btn-lg {
+        padding: 0.5rem 1rem;
+        font-size: 0.95rem;
+    }
+
+    /* Footer */
+    .site-footer {
+        padding-top: 1.5rem !important;
+        padding-bottom: 1rem !important;
+    }
+    .site-footer h5, .site-footer h6 {
+        margin-bottom: 0.5rem !important;
+        font-size: 1.05rem;
+    }
+    .site-footer p, .site-footer li, .site-footer a {
+        font-size: 0.85rem;
+        margin-bottom: 0.25rem !important;
+    }
     .site-footer .footer-sponsors {
         align-items: flex-start;
     }
     .site-footer .sponsor-logo {
-        max-width: 100px;
+        max-width: 80px;
+    }
+    .footer-bottom {
+        margin-top: 1rem !important;
+        padding-top: 0.75rem !important;
+    }
+
+    /* Service detail image */
+    .imageservicedetail {
+        max-width: 100%;
+        border-radius: 8px;
+    }
+
+    /* Card layout compression */
+    .card {
+        margin-bottom: 0.75rem;
+    }
+    .card-body {
+        padding: 0.75rem;
+    }
+
+    /* Badge sizing */
+    .badge {
+        padding: 0.35rem 0.55rem;
+        font-size: 0.75rem;
+    }
+}
+
+/* ==========================================================
+   RESPONSIVE — VERY SMALL (≤ 360px)
+   ========================================================== */
+@media (max-width: 360px) {
+    .container,
+    .container-fluid {
+        padding-left: 0.35rem;
+        padding-right: 0.35rem;
+    }
+
+    .fields {
+        height: 150px !important;
+    }
+
+    .btn {
+        font-size: 0.82rem;
+        padding: 0.45rem 0.75rem;
     }
 }

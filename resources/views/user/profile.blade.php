@@ -20,7 +20,8 @@
             </div>
         </div>
 
-        <div class="card" style="max-height:500px; overflow-y:auto;">
+
+        <div class="card d-none d-md-block" style="max-height:500px; overflow-y:auto;">
             <div class="card-body">
                 <h5 class="mb-3">Lịch sử giao dịch</h5>
 
@@ -59,6 +60,7 @@
             </div>
         </div>
     </div>
+
 
     <div class="col-md-8">
         @if ($errors->any())

@@ -67,11 +67,13 @@
                                 <p class="text-muted mb-2">{{ $items->count() }} sản phẩm trong đơn</p>
                                 <p class="text-muted mb-2">Tổng số lượng: {{ $items->sum('quantity') }}</p>
                                 <p class="text-muted mb-3">Phương thức thanh toán: {{ $order->payment->payment_method ?? 'Chưa xác định' }}</p>
-                                <div class="mt-auto d-flex justify-content-between align-items-center">
-                                    <strong>{{ number_format($order->total_amount, 0, ',', '.') }}d</strong>
-                                    <div>
+                                <div class="mt-auto">
+                                    <div class="d-flex align-items-center justify-content-between flex-wrap gap-1 mb-1">
+                                        <strong class="order-price">{{ number_format($order->total_amount, 0, ',', '.') }}đ</strong>
+                                    </div>
+                                    <div class="order-btn-row">
                                         @if($order->status === 'pending')
-                                            <a href="{{ route('user.payment.order', $order->id) }}" class="btn btn-sm btn-primary me-1">Thanh toán</a>
+                                            <a href="{{ route('user.payment.order', $order->id) }}" class="btn btn-sm btn-primary">Thanh toán</a>
                                         @endif
                                         <a href="{{ route('user.orderDetail', $order->id) }}" class="btn btn-sm btn-outline-primary">Xem chi tiết</a>
                                     </div>
@@ -94,23 +96,47 @@
 @endif
 
 @if($myServices->hasPages())
-    <div class="d-flex flex-column flex-md-row justify-content-between align-items-center gap-3 mt-4">
-        <div class="text-white small">
-            Hiển thị {{ $myServices->firstItem() }}-{{ $myServices->lastItem() }} trong tổng {{ $myServices->total() }} dịch vụ
-        </div>
-        <div class="d-flex flex-column align-items-center gap-2">
-            <div class="text-white small">Trang {{ $myServices->currentPage() }} / {{ $myServices->lastPage() }}</div>
-        <div class="service-pagination bg-white rounded-3 px-3 py-2 shadow-sm d-flex flex-wrap justify-content-center gap-2">
+    @php
+        $cur  = $myServices->currentPage();
+        $last = $myServices->lastPage();
+        $window = 2; // pages shown each side of current
+        $pages = [];
+        for ($p = max(1, $cur - $window); $p <= min($last, $cur + $window); $p++) {
+            $pages[] = $p;
+        }
+    @endphp
+    <div class="service-pagination-wrap">
+        <div class="spag-info">Trang {{ $cur }} / {{ $last }} &nbsp;·&nbsp; {{ $myServices->total() }} đơn</div>
+        <div class="service-pagination">
+            {{-- First + Prev --}}
             @if(!$myServices->onFirstPage())
-                <a href="{{ $myServices->previousPageUrl() }}" class="btn btn-sm btn-outline-secondary">Truoc</a>
+                <a href="{{ $myServices->url(1) }}" class="spag-btn">«</a>
+                <a href="{{ $myServices->previousPageUrl() }}" class="spag-btn">‹</a>
             @endif
-            @foreach($myServices->getUrlRange(1, $myServices->lastPage()) as $page => $url)
-                <a href="{{ $url }}" class="btn btn-sm {{ $page === $myServices->currentPage() ? 'btn-primary' : 'btn-outline-primary' }}">{{ $page }}</a>
+
+            {{-- Leading ellipsis --}}
+            @if($pages[0] > 1)
+                <span class="spag-ellipsis">…</span>
+            @endif
+
+            {{-- Windowed pages --}}
+            @foreach($pages as $p)
+                <a href="{{ $myServices->url($p) }}"
+                   class="spag-btn {{ $p === $cur ? 'active' : '' }}">
+                    {{ $p }}
+                </a>
             @endforeach
-            @if($myServices->hasMorePages())
-                <a href="{{ $myServices->nextPageUrl() }}" class="btn btn-sm btn-outline-secondary">Sau</a>
+
+            {{-- Trailing ellipsis --}}
+            @if(end($pages) < $last)
+                <span class="spag-ellipsis">…</span>
             @endif
-            </div>
+
+            {{-- Next + Last --}}
+            @if($myServices->hasMorePages())
+                <a href="{{ $myServices->nextPageUrl() }}" class="spag-btn">›</a>
+                <a href="{{ $myServices->url($last) }}" class="spag-btn">»</a>
+            @endif
         </div>
     </div>
 @endif
@@ -150,9 +176,92 @@
     text-align: center;
 }
 
-@media (max-width: 575.98px) {
+/* ===== Compact smart pagination ===== */
+.service-pagination-wrap {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+}
+.spag-info {
+    font-size: .78rem;
+    color: #888;
+}
+.service-pagination {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+.spag-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    height: 34px;
+    padding: 0 6px;
+    border-radius: 8px;
+    font-size: .82rem;
+    font-weight: 500;
+    border: 1.5px solid #dee2e6;
+    background: #fff;
+    color: #333;
+    text-decoration: none;
+    transition: background .15s, border-color .15s, color .15s;
+}
+.spag-btn:hover {
+    background: #f0f0f0;
+    color: #333;
+}
+.spag-btn.active {
+    background: #ee4d2d;
+    border-color: #ee4d2d;
+    color: #fff;
+    font-weight: 700;
+}
+.spag-ellipsis {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 34px;
+    color: #aaa;
+    font-size: .85rem;
+    user-select: none;
+}
+
+/* Mobile-only: fix button row layout */
+@media (max-width: 767px) {
+    .order-btn-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 6px;
+    }
+    .order-btn-row .btn {
+        flex: 1;
+        min-width: 80px;
+        text-align: center;
+        font-size: .78rem !important;
+        padding: 6px 10px !important;
+        border-radius: 20px !important;
+        white-space: nowrap;
+    }
+    .order-price {
+        font-size: .9rem;
+        color: #ee4d2d;
+    }
     .order-image-stack {
         margin-bottom: 8px;
+    }
+}
+@media (min-width: 768px) {
+    .order-btn-row {
+        display: flex;
+        gap: 6px;
+        margin-top: 4px;
     }
 }
 </style>

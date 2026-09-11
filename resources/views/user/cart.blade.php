@@ -1,6 +1,25 @@
 @extends('layouts.app')
 @section('content')
 
+<style>
+.cart-product-img { width: 120px; height: 120px; object-fit: cover; border-radius: 8px; }
+.select-item { width:20px; height:20px; cursor:pointer; }
+@media (max-width: 576px) {
+    /* Layout hàng ngang compact: checkbox + ảnh nhỏ + thông tin */
+    .cart-item-row { flex-wrap: nowrap; align-items: flex-start !important; gap: 0; }
+    .cart-checkbox-col { flex: 0 0 auto; padding: 4px 4px 0 0; }
+    .cart-img-col { flex: 0 0 auto; }
+    .cart-product-img { width: 70px; height: 70px; object-fit: cover; border-radius: 6px; }
+    .cart-info-col { flex: 1 1 auto; padding-left: 8px !important; }
+    .cart-info-col h5 { font-size: 13px; margin-bottom: 2px; }
+    .cart-info-col .card-text { font-size: 12px; }
+    .quantity-control { display: flex; gap: 4px; }
+    .qty-btn { padding: 2px 7px; font-size: 12px; }
+    .item-total { font-size: 12px; }
+    /* Thu gọn card padding */
+    .cart-item .card-body { padding: 8px 10px; }
+}
+</style>
 <div class="container-fluid py-4">
     <div class="row mb-4">
         <div class="col-md-12">
@@ -34,19 +53,15 @@
                                  data-price="{{ $item['price'] }}" 
                                 >
                                 <div class="card-body">
-                                    <div class="row align-items-center">
-                                        <div class="col-auto">
-                                            <input type="checkbox"
-class="form-check-input select-item"
-name="selected_items[]"
-value="{{ $item['id'] }}"
-style="width:25px;height:25px;cursor:pointer;">
+                                    <div class="row align-items-center cart-item-row">
+                                        <div class="col-auto cart-checkbox-col">
+                                            <input type="checkbox" class="form-check-input select-item" name="selected_items[]" value="{{ $item['id'] }}">
                                         </div>
-                                        <div class="col-auto">
+                                        <div class="col-auto cart-img-col">
                                             <img src="{{ !empty($item['image']) ? asset('uploads/services/' . $item['image']) : asset('images/default.png') }}" 
-                                                 alt="{{ $item['name'] }}" style="width: 120px; height: 120px; object-fit: cover; border-radius: 8px;">
+                                                 alt="{{ $item['name'] }}" class="cart-product-img">
                                         </div>
-                                        <div class="col">
+                                        <div class="col cart-info-col">
                                             <h5 class="card-title">{{ $item['name'] }}</h5>
                                           <div class="card-text">
 @if(($item['discount_percent'] ?? 0) > 0)
@@ -67,7 +82,7 @@ style="width:25px;height:25px;cursor:pointer;">
 
 @endif
 </div>
-                                            <div class="quantity-control mb-2">
+                                            <div class="quantity-control mb-2 mt-2">
                                                 <button class="btn btn-sm btn-outline-secondary qty-btn decrease" 
                                                         data-item-id="{{ $item['id'] }}">-</button>
                                                 <span class="qty mx-2">{{ $item['quantity'] }}</span>
@@ -75,7 +90,7 @@ style="width:25px;height:25px;cursor:pointer;">
                                                         data-item-id="{{ $item['id'] }}">+</button>
                                             </div>
 
-                                            <p class="card-text">
+                                            <p class="card-text mb-2">
                                                 Tổng: <span class="item-total fw-bold text-primary">
                                                     {{ number_format($item['price'] * $item['quantity'], 0, ',', '.') }} VNĐ
                                                 </span>
@@ -204,13 +219,9 @@ style="width:25px;height:25px;cursor:pointer;">
 }
 
 @media (max-width: 768px) {
-    .cart-item .row {
-        flex-direction: column;
-    }
-
-    .cart-item .col-auto:last-child {
-        margin-left: 0 !important;
-    }
+    /* Trên tablet: giảm ảnh xuống 90px */
+    .cart-product-img { width: 90px; height: 90px; }
+    .cart-item .card-body { padding: 10px 12px; }
 }
 </style>
 

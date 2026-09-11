@@ -5,15 +5,14 @@
 <div style="max-width:1200px; margin:20px auto; padding:0 10px;">
 
     <!-- ===== HEADER SHOPEE STYLE ===== -->
-    <div style="display:flex; align-items:center; gap:15px; flex-wrap:nowrap;">
+    <div class="services-header-wrap">
 
         <!-- CART -->
         <div style="flex:0 0 auto; position:relative;">
-            <a href="{{ route('user.cart') }}"
-               style="display:flex; align-items:center; font-size:50px; text-decoration:none; color:#333; position:relative;">
+            <a href="{{ route('user.cart') }}" class="cart-icon-link">
                 <i class="bi bi-cart-fill"></i>
 
-             
+              
                    <span class="cart-count"
       style="position:absolute; top:-6px; right:-10px; background:#ff0000; color:#fff; font-size:12px; padding:2px 6px; border-radius:50%;">
     {{ $totalItems ?? 0 }}
@@ -24,10 +23,9 @@
 
         <!-- FLASH SALE -->
         @if($flashPercent > 0)
-        <div class="flash-sale-banner"
-             style="flex:1; min-width:0; text-align:center; background:linear-gradient(90deg,#ff4d4f,#ff0000); color:#fff; padding:10px 15px; border-radius:10px;">
+        <div class="flash-sale-banner">
 
-            <div style="display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:nowrap; white-space:nowrap;">
+            <div class="flash-sale-inner">
 
                 <div style="font-weight:bold;">
                     🔥 FLASH SALE
@@ -54,29 +52,27 @@
     </div>
 
     <!-- ===== SEARCH ===== -->
-    <form id="searchForm" style="display:flex; gap:10px; flex-wrap:wrap; margin-top:15px;">
+    <form id="searchForm" class="search-form-wrap">
 
         <input type="text" name="q" value="{{ request('q') }}"
                placeholder="Tìm theo tên..."
-               style="flex:1; padding:10px; border:1px solid #ddd; border-radius:6px;">
+               class="search-input">
 
-        <select id="serviceSort" name="sort"
-                style="padding:10px; border:1px solid #ddd; border-radius:6px;">
+        <select id="serviceSort" name="sort" class="search-select">
             <option value="name">Tên</option>
             <option value="priceAsc">Giá thấp → cao</option>
             <option value="priceDesc">Giá cao → thấp</option>
             <option value="rating">Đánh giá</option>
         </select>
 
-        <select name="category_id" style="padding:10px; border:1px solid #ddd; border-radius:6px;">
+        <select name="category_id" class="search-select">
             <option value="">Tất cả danh mục</option>
             @foreach($categories as $category)
                 <option value="{{ $category->id }}" @selected((string) request('category_id') === (string) $category->id)>{{ $category->name }}</option>
             @endforeach
         </select>
 
-        <button type="submit"
-                style="padding:10px 15px; background:#007bff; color:#fff; border:none; border-radius:6px;">
+        <button type="submit" class="search-btn">
             Tìm
         </button>
 
@@ -166,6 +162,34 @@
 </div>
 
 <style>
+.services-header-wrap {
+    display:flex; align-items:center; gap:15px; flex-wrap:wrap;
+}
+
+.cart-icon-link {
+    display:flex; align-items:center; font-size:45px; text-decoration:none; color:#333; position:relative;
+}
+
+.flash-sale-banner {
+    flex:1; min-width:0; text-align:center; background:linear-gradient(90deg,#ff4d4f,#ff0000); color:#fff; padding:10px 15px; border-radius:10px;
+}
+.flash-sale-inner {
+    display:flex; justify-content:center; align-items:center; gap:10px; flex-wrap:wrap;
+}
+
+.search-form-wrap {
+    display:flex; gap:10px; flex-wrap:wrap; margin-top:15px;
+}
+.search-input {
+    flex:1; min-width: 200px; padding:10px; border:1px solid #ddd; border-radius:6px;
+}
+.search-select {
+    padding:10px; border:1px solid #ddd; border-radius:6px;
+}
+.search-btn {
+    padding:10px 15px; background:#007bff; color:#fff; border:none; border-radius:6px; white-space:nowrap;
+}
+
 .product-grid{
     display:grid;
     grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
@@ -220,6 +244,71 @@
 .btn-add-cart:disabled{
     background:#adb5bd;
     cursor:not-allowed;
+}
+
+@media (max-width: 768px) {
+    .product-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (max-width: 576px) {
+    .product-grid { 
+        display: block; /* remove grid for masonry */
+        column-count: 2;
+        column-gap: 10px;
+    }
+    .product-card {
+        border-radius: 12px; /* bo tròn nhẹ */
+        margin-bottom: 10px;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        display: inline-block;
+        width: 100%;
+        overflow: hidden;
+    }
+    .product-card img {
+        height: auto !important;
+        aspect-ratio: auto; /* natural height for masonry */
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+    }
+    .product-card > div:nth-child(2) {
+        /* Title */
+        font-size: 13px;
+        white-space: normal !important;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        line-height: 1.3;
+        padding: 5px 8px !important;
+    }
+    .cart-icon-link { font-size: 35px; }
+    .flash-sale-inner { flex-direction: column; gap: 4px; }
+    .search-input { flex-basis: 100%; min-width: 100%; }
+    .search-select { flex: 1; }
+    .search-btn { width: 100%; }
+    .services-header-wrap { gap: 10px; }
+    .product-rating { flex-wrap: wrap; padding: 0 8px 4px !important; }
+    .product-card > div:nth-child(6) {
+        /* Price div */
+        padding: 0px 8px 5px !important;
+    }
+    .product-card > div:last-child {
+        /* add to cart button div */
+        padding: 0 8px 8px !important;
+    }
+    .btn-add-cart {
+        width: 30px;
+        height: 30px;
+        font-size: 14px;
+        line-height: 1;
+    }
+}
+
+@media (max-width: 360px) {
+    .product-grid { grid-template-columns: 1fr; }
+    .search-select { flex-basis: 100%; }
 }
 </style>
 <a href="{{route('user.fields')}}">

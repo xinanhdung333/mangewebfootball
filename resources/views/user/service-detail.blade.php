@@ -21,7 +21,23 @@
         </div>
     @endif
 
-    <div style="max-width: 1200px; margin: 30px auto; background: #fff; padding: 30px; border-radius: 16px; box-shadow: 0 4px 20px rgba(0,0,0,0.1);">
+<style>
+.service-detail-container {
+    max-width: 1200px; 
+    margin: 30px auto; 
+    background: #fff; 
+    padding: 30px; 
+    border-radius: 16px; 
+    box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+}
+@media (max-width: 576px) {
+    .service-detail-container {
+        margin: 15px auto;
+        padding: 15px;
+    }
+}
+</style>
+    <div class="service-detail-container">
 
         @if(request()->get('bought') === '1')
             <div class="alert alert-success alert-dismissible fade show" role="alert">

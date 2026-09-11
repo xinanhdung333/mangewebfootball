@@ -156,6 +156,36 @@ footer {
 .between-img:hover {
     filter: drop-shadow(-18px 16px 38px rgba(0,0,0,0.5));
 }
+/* Product Grid */
+.home-product-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px;
+    margin-top: 20px;
+}
+@media (min-width: 768px) {
+    .home-product-grid { grid-template-columns: repeat(4, 1fr); }
+}
+@media (min-width: 992px) {
+    .home-product-grid { grid-template-columns: repeat(5, 1fr); }
+}
+.home-product-card {
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    transition: transform 0.2s;
+    display: flex;
+    flex-direction: column;
+}
+.home-product-card:hover { transform: translateY(-4px); box-shadow: 0 8px 20px rgba(0,0,0,0.1); }
+.home-product-card img { width: 100%; aspect-ratio: 1/1; object-fit: cover; }
+.home-product-info { padding: 12px; display: flex; flex-direction: column; flex-grow: 1; }
+.home-product-title {
+    font-size: 14px; font-weight: 600; color: #333; margin-bottom: 8px;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+}
+.home-product-price { color: #e11d48; font-weight: 700; font-size: 15px; margin-top: auto; }
  </style>            
 
     <section class="hero-modern">
@@ -248,6 +278,27 @@ footer {
             </div>
 
             <div class="mt-4" style="width: 100%;">
+                <div class="section-block">
+                    <h3><i class="bi bi-box"></i> Sản phẩm & Dịch vụ nổi bật</h3>
+                    <div class="home-product-grid">
+                        @if(isset($products) && $products->count() > 0)
+                            @foreach($products as $product)
+                                <div class="home-product-card">
+                                    <a href="{{ route('user.serviceDetail', $product->id) }}" style="text-decoration: none; color: inherit; display:flex; flex-direction:column; height: 100%;">
+                                        <img src="{{ $product->image ? asset('storage/' . $product->image) : asset('assets/images/banner.jpg') }}" alt="{{ $product->name }}">
+                                        <div class="home-product-info">
+                                            <div class="home-product-title">{{ $product->name }}</div>
+                                            <div class="home-product-price">{{ number_format($product->price, 0, ',', '.') }}đ</div>
+                                        </div>
+                                    </a>
+                                </div>
+                            @endforeach
+                        @else
+                            <p class="text-center w-100">Chưa có sản phẩm nào.</p>
+                        @endif
+                    </div>
+                </div>
+            </div>
                 <div class="section-block">
                     <h3><i class="bi bi-newspaper"></i> Tin mới</h3>
                     <div class="news-grid">

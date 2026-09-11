@@ -17,7 +17,7 @@
                     </div>
                 </div>
 
-                <div class="col-md-3 mb-4">
+                <div class="col-md-3 col-6 mb-4">
                     <h6 class="mb-3">Các chức năng chính</h6>
                     <ul class="list-unstyled footer-links">
                         <div class="t">
@@ -30,7 +30,7 @@
                     </ul>
                 </div>
 
-                <div class="col-md-3 mb-4">
+                <div class="col-md-3 col-6 mb-4 d-none d-md-block">
                     <h6 class="mb-3">Nhân viên</h6>
                     <ul class="list-unstyled team-list">
                         <li>Phạm Ngọc Tiến — Giám Đốc</li>
@@ -41,7 +41,7 @@
                     </ul>
                 </div>
 
-                <div class="col-md-2 mb-4">
+                <div class="col-md-2 col-6 mb-4">
                     <h6 class="mb-3">Nhà tài trợ</h6>
                     <div class="d-flex flex-column footer-sponsors">
                         <a href="#" class="mb-2">
@@ -68,8 +68,6 @@
 
 
 
-</body>
-
 <style>
 .footer-links a {
     color: #fff;
@@ -92,7 +90,11 @@
 .footer-links a:hover::after {
     width: 100%;
 }
-</style>
 
-</html>
+@media (max-width: 768px) {
+    .site-footer { text-align: left; padding-top: 2rem !important; }
+    .site-footer .mb-4 { margin-bottom: 1rem !important; }
+    .footer-bottom .text-md-end { text-align: left !important; margin-top: 10px; }
+}
+</style>
 

@@ -5,21 +5,21 @@
     <div class="col-md-12">
         <h1><i class="bi bi-grid"></i> Danh sách sân bóng</h1>
 <!-- Thanh tìm kiếm + nút lịch đặt -->
-        <div class="d-flex align-items-center mt-3">
-            <input type="text" id="searchField" class="form-control me-2" placeholder="Tìm kiếm sân..." 
-                   style="background: rgba(255,255,255,0.8); border:1px solid #ccc;">
-<select id="priceSort" class="form-select ms-2" style="max-width:220px;">
+        <div class="d-flex align-items-center flex-wrap mt-3 gap-2">
+            <input type="text" id="searchField" class="form-control" placeholder="Tìm kiếm sân..." 
+                   style="background: rgba(255,255,255,0.8); border:1px solid #ccc; flex: 1 1 200px;">
+<select id="priceSort" class="form-select" style="flex: 1 1 150px; min-width:150px;">
     <option value="name">Sắp xếp theo tên</option>
     <option value="priceAsc">Giá thấp đến cao</option>
     <option value="priceDesc">Giá cao đến thấp</option>
     <option value="rating">Đánh giá cao nhất</option>
 </select>
 
-<select id="distanceSort" class="form-select ms-2" style="max-width:220px;">
+<select id="distanceSort" class="form-select" style="flex: 1 1 150px; min-width:150px;">
     <option value="nearest">Gần nhất</option>
     <option value="farthest">Xa nhất</option>
 </select>
-            <a href="{{  route('user.fieldSchedule') }}" class="btn btn-info">
+            <a href="{{  route('user.fieldSchedule') }}" class="btn btn-info w-100-sm" style="flex: 1 1 200px;">
                 <i class="bi bi-calendar-check"></i> KHUNG GIỜ ĐÃ ĐƯỢC ĐẶT
             </a>
         </div>
@@ -30,12 +30,12 @@
     
     @if($fields && count($fields) > 0)
         @foreach($fields as $field)
-            <div class="col-md-4 mb-4 field-item">
-                <div class="card h-100">
+            <div class="col-6 col-sm-6 col-lg-4 mb-3 px-1 field-item">
+                <div class="card field-card-mobile">
                     <img src="{{ !empty($field->image) ? asset('uploads/fields/' . $field->image) : asset('assets/images/banner.jpg') }}" 
                         class="fields" alt="{{ htmlspecialchars($field->name) }}">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ htmlspecialchars($field->name) }}</h5>
+                    <div class="card-body p-2 p-sm-3">
+                        <h5 class="card-title mobile-title">{{ htmlspecialchars($field->name) }}</h5>
                         
                         @php
                             $desc = htmlspecialchars($field->description);
@@ -186,6 +186,84 @@ if(sort){
     document.getElementById('sort').value = sort;
 }
 </script>
+
+<style>
+@media (max-width: 576px) {
+    /* Masonry layout (staggered) */
+    .row#fieldList {
+        display: block;
+        column-count: 2;
+        column-gap: 10px;
+        margin-left: 0;
+        margin-right: 0;
+    }
+    .field-item {
+        width: 100% !important;
+        max-width: 100%;
+        padding-left: 0;
+        padding-right: 0;
+        margin-bottom: 10px !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        display: inline-block;
+    }
+    .field-card-mobile {
+        margin-bottom: 0 !important;
+        border-radius: 12px; /* bo tròn nhẹ */
+        border: none;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        overflow: hidden;
+    }
+    .field-card-mobile .fields {
+        height: auto !important;
+        aspect-ratio: auto; /* Để ảnh cao thấp tự nhiên */
+        object-fit: cover;
+        border-top-left-radius: 12px;
+        border-top-right-radius: 12px;
+    }
+    .mobile-title {
+        font-size: 13px !important;
+        font-weight: normal;
+        margin-bottom: 4px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: normal;
+        line-height: 1.3;
+    }
+    .description-short, .show-more-btn {
+        display: none !important; /* Hide descriptions to save space */
+    }
+    .field-item .text-muted.mb-2 {
+        font-size: 11px;
+        margin-bottom: 4px !important;
+        display: block;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .field-item .text-success {
+        font-size: 14px;
+        color: #ee4d2d !important; /* Shopee orange for price */
+        margin-bottom: 4px !important;
+    }
+    .field-item .mb-2 span {
+        font-size: 10px !important; /* rating text */
+    }
+    .field-item .mb-2 span[style*="font-size"] {
+        font-size: 12px !important; /* rating stars */
+    }
+    .field-item .btn-primary {
+        font-size: 12px;
+        padding: 6px;
+        width: 100%;
+        margin-top: 5px;
+        border-radius: 6px;
+    }
+}
+</style>
  <a href ="{{route('user.fields')}}">
     <div id="toast-rule" class="toast-noti">
     <i class="bi bi-megaphone-fill"></i>

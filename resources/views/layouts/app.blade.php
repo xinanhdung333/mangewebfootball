@@ -4,20 +4,44 @@
 <html lang="vi">
 <head>
     <meta name="csrf-token" content="{{ csrf_token() }}">
-
-    <link rel="icon" type="image/png" sizes="256x256" href="{{ asset('assets/images/logo.jpg') }}">
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <link rel="icon" type="image/png" sizes="256x256" href="{{ asset('assets/images/logo.jpg') }}">
     <title>SportsHub</title>
 
+    {{-- DNS prefetch & preconnect for faster CDN resolution --}}
+    <link rel="dns-prefetch" href="//cdn.jsdelivr.net">
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin>
+
+    {{-- Critical CSS first --}}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
     <link rel="stylesheet" href="{{ asset('assets/css/sports-theme.css') }}">
 
+    {{-- Bootstrap Icons loaded async (non-render-blocking) --}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css"></noscript>
+
+    @stack('styles')
+
+    {{-- Page transition overlay --}}
     <style>
-    
+        .page-transition-overlay {
+            position: fixed; inset: 0; z-index: 99999;
+            background: #fff;
+            opacity: 0; pointer-events: none;
+            transition: opacity .18s ease;
+        }
+        .page-transition-overlay.active {
+            opacity: 1; pointer-events: all;
+        }
+        /* Fade-in on page load */
+        body { animation: fadeInPage .25s ease; }
+        @keyframes fadeInPage { from { opacity: 0; } to { opacity: 1; } }
+    </style>
+
+    <style>
+        /* ===== Admin Nav ===== */
         .admin-nav {
             display: flex;
             gap: 10px;
@@ -25,6 +49,7 @@
             padding: 0;
             list-style: none;
             align-items: center;
+            flex-wrap: wrap;
         }
         .admin-nav li a {
             color: #fff;
@@ -38,31 +63,40 @@
             background: rgba(255, 255, 255, 0.2);
         }
 
+        /* ===== Dark Dropdown hover ===== */
+        .dropdown-menu[style*="background:#1e1e1e"] .dropdown-item:hover,
+        .dropdown-menu[style*="background:#1e1e1e"] .dropdown-item:focus {
+            background: rgba(255,255,255,0.1);
+            color: #fff !important;
+        }
+
+        /* ===== Mascot / Chatbot ===== */
         #mascot {
             position: fixed;
             bottom: 20px;
             right: 20px;
-            width: 140px;
-            max-width: 90px;
-            height: auto;
+            width: 45px;
+            height: auto; /* Fix stretching distortion */
             cursor: grab;
             z-index: 9999;
         }
 
+        /* ===== Prevent horizontal scroll ===== */
         html,
         body {
             width: 100%;
             overflow-x: hidden;
         }
 
+        /* ===== Sticky Navbar Wrapper ===== */
         .desktop-layout {
             width: 100%;
             position: sticky;
             top: 0;
             z-index: 1050;
-            transform-origin: top center;
         }
 
+        /* ===== Site Content ===== */
         .site-content {
             width: 100%;
             max-width: none;
@@ -70,12 +104,11 @@
 
         .site-content-inner {
             width: 100%;
-            padding-left: clamp(12px, 2vw, 32px);
-            padding-right: clamp(12px, 2vw, 32px);
+            padding-left: clamp(10px, 3vw, 32px);
+            padding-right: clamp(10px, 3vw, 32px);
         }
 
-     
-
+        /* ===== TABLET (≤ 991px) ===== */
         @media (max-width: 991px) {
             .navbar-nav {
                 flex-direction: column;
@@ -88,13 +121,18 @@
             }
 
             .navbar-nav .nav-link {
-                padding-left: 0.75rem;
-                padding-right: 0.75rem;
+                padding: 0.6rem 0.75rem;
                 width: 100%;
+                font-size: 0.92rem;
             }
 
             .dropdown-menu {
                 width: 100%;
+                position: static !important;
+                transform: none !important;
+                box-shadow: none;
+                border: none;
+                background: rgba(255,255,255,0.05);
             }
 
             .container-fluid,
@@ -103,23 +141,13 @@
                 padding-right: 0.75rem;
             }
 
-     
-
-        .desktop-layout {
-            width: 100%;
-         
-            position: sticky;
-            top: 0;
-            z-index: 1050;
-            transform-origin: top center;
-        }
-
-        @media (max-width: 991px) {
-            .desktop-layout {
-                transform: scale(0.85);
+            .admin-nav {
+                flex-wrap: wrap;
+                gap: 6px;
             }
         }
 
+        /* ===== MOBILE (≤ 576px) ===== */
         @media (max-width: 576px) {
             .navbar-brand {
                 font-size: 1.1rem;
@@ -130,8 +158,8 @@
             }
 
             .navbar-nav .nav-link {
-                padding-left: 0.5rem;
-                padding-right: 0.5rem;
+                padding: 0.5rem 0.6rem;
+                font-size: 0.88rem;
             }
 
             .container-fluid,
@@ -143,11 +171,43 @@
             main.container {
                 padding-top: 0.5rem;
             }
+
+            .site-content-inner {
+                padding-left: 8px;
+                padding-right: 8px;
+            }
+
+            #mascot {
+                width: 70px !important;
+                height: 70px !important;
+                bottom: 14px !important;
+                right: 14px !important;
+            }
+
+            /* Offcanvas Mobile Menu Spacing */
+            .offcanvas-end {
+                width: 75vw !important;
+                max-width: 320px;
+            }
+            .offcanvas-body .nav-link {
+                padding: 14px 10px !important;
+                font-size: 16px;
+                border-bottom: 1px solid rgba(255,255,255,0.08);
+            }
+            .offcanvas-body .dropdown-menu {
+                background: transparent !important;
+                border: none;
+                padding-left: 15px;
+            }
+            .offcanvas-body .dropdown-item {
+                padding: 12px 10px;
+                color: #ccc;
+            }
+            .offcanvas-body .dropdown-item:hover {
+                background: rgba(255,255,255,0.1);
+                color: #fff;
+            }
         }
-
-
-
-}  
     </style>
 
 
@@ -160,8 +220,8 @@
     position: fixed;
     bottom: 24px;
     right: 24px;
-    width: 60px;
-    height: 60px;
+    width: 45px;
+    height: 45px;
     border-radius: 50%;
     box-shadow: 0 4px 12px rgba(0,0,0,0.25);
     cursor: pointer;
@@ -271,9 +331,10 @@
     }
 }
 </style>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" defer></script>
 </head>
 <body>
+<div class="page-transition-overlay" id="pageTransition"></div>
 <div class="desktop-layout">
 <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
     <div class="container-fluid">
@@ -291,25 +352,30 @@
 </a>
    @endif
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar">
             <span class="navbar-toggler-icon"></span>
         </button>
 
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ms-auto align-items-center">
+        <div class="offcanvas offcanvas-end text-bg-dark" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+            <div class="offcanvas-header border-bottom border-secondary">
+                <h5 class="offcanvas-title" id="offcanvasNavbarLabel"><i class="bi bi-dribbble"></i> SportsHub Menu</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+            </div>
+            <div class="offcanvas-body">
+                <ul class="navbar-nav ms-auto align-items-lg-center">
                 @auth
                     @if(auth()->user()->role === 'user')
                         <li class="nav-item"><a class="nav-link" href="{{ route('user.dashboard') }}"><i class="bi bi-house"></i> Trang chủ</a></li>
-                                                <li class="nav-item"><a class="nav-link" href="{{ route('user.services') }}"><i class="bi bi-bag"></i> Sản phẩm</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('user.services') }}"><i class="bi bi-bag"></i> Sản phẩm</a></li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="bi bi-bag-check"></i> Sản phẩm đã mua
                             </a>
-                            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                                <li><a class="dropdown-item" href="{{ route('user.myServices') }}"><i class="bi bi-receipt me-2"></i>Đơn hàng đã mua</a></li>
-                                <li><hr class="dropdown-divider"></li>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="background:#1e1e1e;">
+                                <li><a class="dropdown-item text-white" href="{{ route('user.myServices') }}"><i class="bi bi-receipt me-2"></i>Đơn hàng đã mua</a></li>
+                                <li><hr class="dropdown-divider border-secondary"></li>
                                 <li>
-                                    <a class="dropdown-item d-flex align-items-center justify-content-between" href="{{ route('user.wishlist') }}">
+                                    <a class="dropdown-item text-white d-flex align-items-center justify-content-between" href="{{ route('user.wishlist') }}">
                                         <span><i class="bi bi-heart me-2"></i>Danh sách yêu thích</span>
                                         <span class="badge bg-danger rounded-pill ms-2" id="navWishlistBadge" style="display:none;">0</span>
                                     </a>
@@ -320,12 +386,12 @@
                         <li class="nav-item"><a class="nav-link" href="{{ route('user.chat.index') }}"><i class="bi bi-chat-left-text"></i> Hỗ trợ</a></li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-grid-3x3-gap"></i> Dịch vụ khác</a>
-                            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
-                                <li><a class="dropdown-item" href="{{ route('user.fields') }}"><i class="bi bi-trophy me-2"></i>Đặt sân</a></li>
-                                <li><a class="dropdown-item" href="{{ route('user.myBookings') }}"><i class="bi bi-calendar-check me-2"></i>Sân đã đặt</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item" href="{{ route('user.feedback') }}"><i class="bi bi-chat-dots me-2"></i>Đánh giá</a></li>
-                                <li><a class="dropdown-item" href="{{ route('about') }}"><i class="bi bi-info-circle me-2"></i>Giới thiệu</a></li>
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0" style="background:#1e1e1e;">
+                                <li><a class="dropdown-item text-white" href="{{ route('user.fields') }}"><i class="bi bi-trophy me-2"></i>Đặt sân</a></li>
+                                <li><a class="dropdown-item text-white" href="{{ route('user.myBookings') }}"><i class="bi bi-calendar-check me-2"></i>Sân đã đặt</a></li>
+                                <li><hr class="dropdown-divider border-secondary"></li>
+                                <li><a class="dropdown-item text-white" href="{{ route('user.feedback') }}"><i class="bi bi-chat-dots me-2"></i>Đánh giá</a></li>
+                                <li><a class="dropdown-item text-white" href="{{ route('about') }}"><i class="bi bi-info-circle me-2"></i>Giới thiệu</a></li>
                             </ul>
                         </li>
                         
@@ -333,18 +399,18 @@
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
                             <i class="bi bi-person"></i> {{ auth()->user()->name }}
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{{ route('user.profile') }}">Hồ sơ</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><form method="POST" action="{{ route('logout') }}">@csrf<button type="submit" class="dropdown-item">Đăng xuất</button></form></li>
+                        <ul class="dropdown-menu dropdown-menu-end" style="background:#1e1e1e;">
+                            <li><a class="dropdown-item text-white" href="{{ route('user.profile') }}">Hồ sơ</a></li>
+                            <li><hr class="dropdown-divider border-secondary"></li>
+                            <li><form method="POST" action="{{ route('logout') }}">@csrf<button type="submit" class="dropdown-item text-white">Đăng xuất</button></form></li>
                         </ul>
                     </li> 
                     @endif
 
                     @if(auth()->user()->role === 'admin')
-                        <li class="nav-item dropdown">
+                        <li class="nav-item dropdown w-100">
                             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-boxes"></i> Quản lý dịch vụ</a>
-                            <ul class="dropdown-menu shadow border-0">
+                            <ul class="dropdown-menu shadow border-0 text-bg-dark text-lg-bg-light">
                                 <li><a class="dropdown-item" href="{{ route('admin.manage.services') }}"><i class="bi bi-bag me-2"></i>Sản phẩm</a></li>
                                 <li><a class="dropdown-item" href="{{ route('admin.manage.categories') }}"><i class="bi bi-tags me-2"></i>Danh mục</a></li>
                                 <li><hr class="dropdown-divider"></li>
@@ -352,21 +418,21 @@
                                 <li><a class="dropdown-item" href="{{ route('admin.manage.bookings') }}"><i class="bi bi-calendar-check me-2"></i>Đặt sân</a></li>
                             </ul>
                         </li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('admin.manage.orders') }}"><i class="bi bi-bag-check"></i> Chi tiết mua hàng</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('admin.manage.feedback') }}"><i class="bi bi-chat-dots"></i> Quản lý Feedback</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('admin.chat.index') }}"><i class="bi bi-chat-left-text"></i> Chat Admin</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('admin.invoices') }}"><i class="bi bi-file-earmark-pdf"></i> Quản lý hóa đơn</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('admin.chatbot.index') }}"><i class="bi bi-robot"></i> Quản lý Chatbot</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('admin.statistics') }}"><i class="bi bi-bar-chart"></i> Thống kê</a></li>
+                        <li class="nav-item w-100"><a class="nav-link" href="{{ route('admin.manage.orders') }}"><i class="bi bi-bag-check"></i> Chi tiết mua hàng</a></li>
+                        <li class="nav-item w-100"><a class="nav-link" href="{{ route('admin.manage.feedback') }}"><i class="bi bi-chat-dots"></i> Quản lý Feedback</a></li>
+                        <li class="nav-item w-100"><a class="nav-link" href="{{ route('admin.chat.index') }}"><i class="bi bi-chat-left-text"></i> Chat Admin</a></li>
+                        <li class="nav-item w-100"><a class="nav-link" href="{{ route('admin.invoices') }}"><i class="bi bi-file-earmark-pdf"></i> Quản lý hóa đơn</a></li>
+                        <li class="nav-item w-100"><a class="nav-link" href="{{ route('admin.chatbot.index') }}"><i class="bi bi-robot"></i> Quản lý Chatbot</a></li>
+                        <li class="nav-item w-100"><a class="nav-link" href="{{ route('admin.statistics') }}"><i class="bi bi-bar-chart"></i> Thống kê</a></li>
 
-                    <li class="nav-item dropdown">
+                    <li class="nav-item dropdown w-100">
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
                             <i class="bi bi-person"></i> {{ auth()->user()->name }}
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                          <li>  <a class="dropdown-item" href="{{ route('admin.settings') }}"></li>
-    ⚙️ Pricing Settings
-</a>
+                        <ul class="dropdown-menu dropdown-menu-end text-bg-dark text-lg-bg-light">
+                          <li>  <a class="dropdown-item" href="{{ route('admin.settings') }}">
+    <i class="bi bi-gear me-2"></i> Pricing Settings
+</a></li>
                             <li><a class="dropdown-item" href="{{ route('admin.profile') }}">Hồ sơ</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><form method="POST" action="{{ route('logout') }}">@csrf<button type="submit" class="dropdown-item">Đăng xuất</button></form></li>
@@ -375,9 +441,9 @@
                     @endif
 
                     @if(auth()->user()->role === 'boss')
-                        <li class="nav-item dropdown">
+                        <li class="nav-item dropdown w-100">
                             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-boxes"></i> Quản lý dịch vụ</a>
-                            <ul class="dropdown-menu shadow border-0">
+                            <ul class="dropdown-menu shadow border-0 text-bg-dark text-lg-bg-light">
                                 <li><a class="dropdown-item" href="{{ route('boss.manage.services') }}"><i class="bi bi-bag me-2"></i>Sản phẩm</a></li>
                                 <li><a class="dropdown-item" href="{{ route('boss.manage.categories') }}"><i class="bi bi-tags me-2"></i>Danh mục</a></li>
                                 <li><hr class="dropdown-divider"></li>
@@ -385,17 +451,17 @@
                                 <li><a class="dropdown-item" href="{{ route('boss.manage.bookings') }}"><i class="bi bi-calendar-check me-2"></i>Đặt sân</a></li>
                             </ul>
                         </li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.user.service.history') }}"><i class="bi bi-bag-check"></i> Chi tiết mua hàng</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.manage.feedback') }}"><i class="bi bi-chat-dots"></i> Quản lý Feedback</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.invoices') }}"><i class="bi bi-file-earmark-pdf"></i> Quản lý hóa đơn</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.manage.users') }}"><i class="bi bi-people"></i> Quản lý người dùng</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('boss.statistics') }}"><i class="bi bi-bar-chart"></i> Thống kê</a></li>
+                        <li class="nav-item w-100"><a class="nav-link" href="{{ route('boss.user.service.history') }}"><i class="bi bi-bag-check"></i> Chi tiết mua hàng</a></li>
+                        <li class="nav-item w-100"><a class="nav-link" href="{{ route('boss.manage.feedback') }}"><i class="bi bi-chat-dots"></i> Quản lý Feedback</a></li>
+                        <li class="nav-item w-100"><a class="nav-link" href="{{ route('boss.invoices') }}"><i class="bi bi-file-earmark-pdf"></i> Quản lý hóa đơn</a></li>
+                        <li class="nav-item w-100"><a class="nav-link" href="{{ route('boss.manage.users') }}"><i class="bi bi-people"></i> Quản lý người dùng</a></li>
+                        <li class="nav-item w-100"><a class="nav-link" href="{{ route('boss.statistics') }}"><i class="bi bi-bar-chart"></i> Thống kê</a></li>
                         
-                    <li class="nav-item dropdown">
+                    <li class="nav-item dropdown w-100">
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
                             <i class="bi bi-person"></i> {{ auth()->user()->name }}
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
+                        <ul class="dropdown-menu dropdown-menu-end text-bg-dark text-lg-bg-light">
                             <li><a class="dropdown-item" href="{{ route('boss.profile') }}">Hồ sơ</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><form method="POST" action="{{ route('logout') }}">@csrf<button type="submit" class="dropdown-item">Đăng xuất</button></form></li>
@@ -404,23 +470,23 @@
                     @endif
 
                 @else
-               <li class="nav-item"><a class="nav-link" href="{{ route('visitor.dashboard') }}"><i class="bi bi-house"></i> Trang chủ</a></li>
-                                       <li class="nav-item"><a class="nav-link" href="{{ route('myServices') }}"><i class="bi bi-bag"></i> Sản phẩm</a></li>
+                       <li class="nav-item w-100"><a class="nav-link" href="{{ route('visitor.dashboard') }}"><i class="bi bi-house"></i> Trang chủ</a></li>
+                       <li class="nav-item w-100"><a class="nav-link" href="{{ route('myServices') }}"><i class="bi bi-bag"></i> Sản phẩm</a></li>
 
-                        <li class="nav-item dropdown">
+                        <li class="nav-item dropdown w-100">
                             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-grid-3x3-gap"></i> Dịch vụ khác</a>
-                            <ul class="dropdown-menu dropdown-menu-end shadow border-0">
+                            <ul class="dropdown-menu dropdown-menu-end shadow border-0 text-bg-dark text-lg-bg-light">
                                 <li><a class="dropdown-item" href="{{ route('visitor.fields') }}"><i class="bi bi-trophy me-2"></i>Đặt sân</a></li>
                                 <li><a class="dropdown-item" href="{{ route('visitor.feedback') }}"><i class="bi bi-chat-dots me-2"></i>Đánh giá</a></li>
                                 <li><a class="dropdown-item" href="{{ route('about') }}"><i class="bi bi-info-circle me-2"></i>Giới thiệu</a></li>
                             </ul>
                         </li>
 
-                    <li class="nav-item"><a class="nav-link" href="{{ route('login') }}"><i class="bi bi-box-arrow-in-right"></i> Đăng nhập</a></li>
-                    <li class="nav-item"><a class="nav-link" href="{{ route('register') }}"><i class="bi bi-person-plus"></i> Đăng ký</a></li>
+                    <li class="nav-item w-100"><a class="nav-link" href="{{ route('login') }}"><i class="bi bi-box-arrow-in-right"></i> Đăng nhập</a></li>
+                    <li class="nav-item w-100"><a class="nav-link" href="{{ route('register') }}"><i class="bi bi-person-plus"></i> Đăng ký</a></li>
 
                 @endauth
-            </ul>
+            </div>
         </div>
     </div>
 </nav>
@@ -624,5 +690,53 @@ document.querySelectorAll('form[action="{{ route('logout') }}"]').forEach(form =
 });
 </script>
 @stack('scripts')
+
+{{-- Page transition & prefetch on hover --}}
+<script>
+(function(){
+    const overlay = document.getElementById('pageTransition');
+    const origin = location.origin;
+    const prefetched = new Set();
+
+    // Prefetch links on hover (load page into browser cache before click)
+    document.addEventListener('mouseover', function(e) {
+        const a = e.target.closest('a[href]');
+        if (!a) return;
+        const href = a.href;
+        if (!href || prefetched.has(href)) return;
+        if (!href.startsWith(origin)) return;
+        if (a.target === '_blank' || a.hasAttribute('download')) return;
+        if (href.includes('#') && href.split('#')[0] === location.href.split('#')[0]) return;
+
+        prefetched.add(href);
+        const link = document.createElement('link');
+        link.rel = 'prefetch';
+        link.href = href;
+        link.as = 'document';
+        document.head.appendChild(link);
+    }, {passive: true});
+
+    // Smooth fade-out on internal link click
+    document.addEventListener('click', function(e) {
+        const a = e.target.closest('a[href]');
+        if (!a) return;
+        const href = a.href;
+        if (!href || !href.startsWith(origin)) return;
+        if (a.target === '_blank' || a.hasAttribute('download')) return;
+        if (href.includes('#') && href.split('#')[0] === location.href.split('#')[0]) return;
+        if (e.ctrlKey || e.metaKey || e.shiftKey) return;
+
+        e.preventDefault();
+        overlay.classList.add('active');
+        setTimeout(function(){ window.location.href = href; }, 150);
+    });
+
+    // Handle back/forward navigation
+    window.addEventListener('pageshow', function(e) {
+        overlay.classList.remove('active');
+    });
+})();
+</script>
+
 </body>
 </html>
