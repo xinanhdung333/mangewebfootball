@@ -259,6 +259,7 @@ $rules = ServiceDiscount::where(function($q) use ($service) {
       ->orWhereNull('service_id');
 })
 ->orderByRaw('service_id IS NULL') // ưu tiên riêng
+->where('is_active', 1)
 ->get();
 foreach ($rules as $rule) {
 
@@ -347,6 +348,7 @@ public function checkoutSelected(Request $request)
                 $q->where('service_id', $service->id)
                   ->orWhereNull('service_id');
             })
+            ->where('is_active', 1)
             ->orderByRaw('service_id IS NULL')
             ->get();
 

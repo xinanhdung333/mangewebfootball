@@ -16,15 +16,7 @@ class VoucherController extends Controller
 
     public function store(Request $request)
     {
-        $data = $request->validate([
-            'code' => 'required|string|max:50|unique:vouchers,code',
-            'discount_amount' => 'required|numeric|min:0',
-            'min_order_amount' => 'required|numeric|min:0',
-            'expires_at' => 'nullable|date',
-            'is_active' => 'boolean'
-        ]);
-
-        $data['is_active'] = $request->has('is_active') ? 1 : 0;
+        $data = $this->validatedVoucherData($request, 'unique:vouchers,code');
 
         Voucher::create($data);
 
@@ -33,15 +25,7 @@ class VoucherController extends Controller
 
     public function update(Request $request, Voucher $voucher)
     {
-        $data = $request->validate([
-            'code' => 'required|string|max:50|unique:vouchers,code,'.$voucher->id,
-            'discount_amount' => 'required|numeric|min:0',
-            'min_order_amount' => 'required|numeric|min:0',
-            'expires_at' => 'nullable|date',
-            'is_active' => 'boolean'
-        ]);
-
-        $data['is_active'] = $request->has('is_active') ? 1 : 0;
+        $data = $this->validatedVoucherData($request, 'unique:vouchers,code,' . $voucher->id);
 
         $voucher->update($data);
 
@@ -52,5 +36,36 @@ class VoucherController extends Controller
     {
         $voucher->delete();
         return back()->with('success', 'Đã xoá Voucher!');
+    }
+
+    private function validatedVoucherData(Request $request, string $uniqueRule): array
+    {
+        $data = $request->validate([
+            'code' => ['required', 'string', 'max:50', $uniqueRule],
+            'discount_type' => 'required|in:fixed,percentage,free_shipping',
+            'discount_amount' => 'nullable|numeric|min:0',
+            'max_discount_amount' => 'nullable|numeric|min:0',
+            'min_order_amount' => 'required|numeric|min:0',
+            'expires_at' => 'nullable|date',
+            'is_active' => 'boolean',
+        ]);
+
+        if ($data['discount_type'] === 'free_shipping') {
+            $data['discount_amount'] = 0;
+            $data['max_discount_amount'] = null;
+        } elseif ($data['discount_type'] === 'percentage') {
+            $request->validate([
+                'discount_amount' => 'required|numeric|min:1|max:100',
+            ]);
+        } else {
+            $request->validate([
+                'discount_amount' => 'required|numeric|min:1',
+            ]);
+            $data['max_discount_amount'] = null;
+        }
+
+        $data['is_active'] = $request->has('is_active') ? 1 : 0;
+
+        return $data;
     }
 }

@@ -310,6 +310,12 @@ Quét mã VietQR
 {{-- ── Voucher ── --}}
 <div class="pay-card mb-3">
 <div class="pay-card-title mb-2"><i class="bi bi-ticket-perforated-fill pay-accent-icon me-2"></i>Mã giảm giá</div>
+@if($type === 'order')
+<button type="button" class="btn pay-voucher-picker-btn w-100 mb-2" data-bs-toggle="modal" data-bs-target="#checkoutVoucherModal">
+<span><i class="bi bi-ticket-perforated me-1"></i> Chọn voucher</span>
+<i class="bi bi-chevron-right"></i>
+</button>
+@endif
 <div class="d-flex gap-2">
 <input type="text" class="form-control pay-voucher-input" id="voucherInput" placeholder="Nhập mã giảm giá">
 <button type="button" class="btn pay-btn-outline" id="voucherApplyBtn">Áp dụng</button>
@@ -358,6 +364,71 @@ Quét mã VietQR
 </form>
 
 </div>
+
+@if($type === 'order')
+<div class="modal" id="checkoutVoucherModal" tabindex="-1" aria-hidden="true">
+<div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+<div class="modal-content pay-voucher-modal">
+<div class="modal-header">
+<div>
+<h5 class="modal-title fw-bold mb-1">Chọn voucher</h5>
+<div class="text-muted small">Chọn một mã phù hợp với đơn hàng của bạn.</div>
+</div>
+<button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+</div>
+<div class="modal-body">
+@if(isset($availableVouchers) && $availableVouchers->count())
+<div class="checkout-voucher-list">
+@foreach($availableVouchers as $voucher)
+@php
+    $voucherType = $voucher->discount_type ?? 'fixed';
+    $isEligible = (float)($item->total_amount ?? 0) >= (float)$voucher->min_order_amount;
+    $expiresAt = $voucher->expires_at ? \Carbon\Carbon::parse($voucher->expires_at) : null;
+@endphp
+<div class="checkout-voucher-item {{ $isEligible ? '' : 'is-disabled' }}">
+<div class="checkout-voucher-stamp">
+<i class="bi {{ $voucherType === 'free_shipping' ? 'bi-truck' : 'bi-ticket-perforated' }}"></i>
+<span>{{ $voucherType === 'free_shipping' ? 'Freeship' : 'Voucher' }}</span>
+</div>
+<div class="checkout-voucher-info">
+<div class="checkout-voucher-value">
+@if($voucherType === 'percentage')
+-{{ rtrim(rtrim(number_format($voucher->discount_amount, 2, ',', '.'), '0'), ',') }}%
+@elseif($voucherType === 'free_shipping')
+Miễn phí vận chuyển
+@else
+-{{ number_format($voucher->discount_amount, 0, ',', '.') }}đ
+@endif
+</div>
+<div class="small text-muted">
+Đơn từ {{ number_format($voucher->min_order_amount, 0, ',', '.') }}đ
+@if($voucherType === 'percentage' && $voucher->max_discount_amount)
+ · Giảm tối đa {{ number_format($voucher->max_discount_amount, 0, ',', '.') }}đ
+@endif
+</div>
+<div class="checkout-voucher-code">{{ $voucher->code }}</div>
+<div class="small text-muted">{{ $expiresAt ? 'HSD ' . $expiresAt->format('d/m/Y H:i') : 'Không giới hạn thời gian' }}</div>
+</div>
+<button type="button"
+        class="btn checkout-voucher-select"
+        data-code="{{ $voucher->code }}"
+        @disabled(!$isEligible)>
+{{ $isEligible ? 'Chọn' : 'Chưa đủ đơn' }}
+</button>
+</div>
+@endforeach
+</div>
+@else
+<div class="text-center text-muted py-4">
+<i class="bi bi-ticket-perforated fs-1 d-block mb-2"></i>
+Hiện chưa có voucher khả dụng.
+</div>
+@endif
+</div>
+</div>
+</div>
+</div>
+@endif
 
 
 <style>
@@ -518,6 +589,135 @@ input[type="radio"]:disabled + .pay-radio-row { opacity: .55; cursor: not-allowe
 }
 .pay-btn-outline:hover { background: #111827; }
 
+.pay-voucher-picker-btn {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border: 1px dashed var(--pay-accent);
+    background: var(--pay-accent-soft);
+    color: var(--pay-accent);
+    border-radius: 8px;
+    font-weight: 700;
+    font-size: .9rem;
+}
+.pay-voucher-picker-btn:hover {
+    border-color: var(--pay-accent);
+    background: #fff7f4;
+    color: var(--pay-accent);
+}
+.pay-voucher-modal {
+    border: 0;
+    border-radius: 10px;
+}
+.checkout-voucher-list {
+    display: grid;
+    gap: 10px;
+}
+.checkout-voucher-item {
+    display: grid;
+    grid-template-columns: 96px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 12px;
+    border: 1px solid var(--pay-border);
+    border-radius: 8px;
+    overflow: hidden;
+    background: #fff;
+}
+.checkout-voucher-item.is-disabled {
+    opacity: .55;
+}
+.checkout-voucher-stamp {
+    min-height: 112px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    color: #fff;
+    background: linear-gradient(160deg, #ee4d2d, #ff7337);
+    text-align: center;
+    padding: 10px;
+}
+.checkout-voucher-stamp i {
+    font-size: 1.6rem;
+}
+.checkout-voucher-stamp span {
+    font-size: .75rem;
+    font-weight: 800;
+    text-transform: uppercase;
+}
+.checkout-voucher-info {
+    min-width: 0;
+    padding: 12px 0;
+}
+.checkout-voucher-value {
+    color: var(--pay-accent);
+    font-size: 1.15rem;
+    font-weight: 900;
+}
+.checkout-voucher-code {
+    width: fit-content;
+    max-width: 100%;
+    margin: 7px 0;
+    padding: 5px 9px;
+    border: 1px dashed #ff8b66;
+    border-radius: 6px;
+    color: #0d47a1;
+    background: #fff8f5;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-weight: 800;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+.checkout-voucher-select {
+    margin-right: 12px;
+    color: #fff;
+    background: var(--pay-accent);
+    border-color: var(--pay-accent);
+    border-radius: 8px;
+    font-weight: 800;
+    white-space: nowrap;
+}
+.checkout-voucher-select:hover {
+    color: #fff;
+    background: #d8431f;
+    border-color: #d8431f;
+}
+.checkout-voucher-select:disabled {
+    background: #9ca3af;
+    border-color: #9ca3af;
+}
+
+@media (max-width: 576px) {
+    .checkout-voucher-item {
+        grid-template-columns: 76px minmax(0, 1fr);
+        gap: 10px;
+        position: relative;
+    }
+    .checkout-voucher-stamp {
+        min-height: 104px;
+        padding: 8px 6px;
+    }
+    .checkout-voucher-stamp i {
+        font-size: 1.25rem;
+    }
+    .checkout-voucher-stamp span {
+        font-size: .66rem;
+    }
+    .checkout-voucher-info {
+        padding: 10px 10px 48px 0;
+    }
+    .checkout-voucher-select {
+        position: absolute;
+        right: 10px;
+        bottom: 10px;
+        margin: 0;
+        padding: 5px 10px;
+        font-size: .82rem;
+    }
+}
+
 /* ── Summary (sticky right column) ── */
 .pay-summary-card {
     position: sticky;
@@ -535,6 +735,149 @@ input[type="radio"]:disabled + .pay-radio-row { opacity: .55; cursor: not-allowe
 
 @keyframes spin { to { transform: rotate(360deg); } }
 .spin { display: inline-block; animation: spin 1s linear infinite; }
+
+#checkoutVoucherModal .modal-content.pay-voucher-modal {
+    background: #f6f7fb !important;
+    color: #1f2937 !important;
+    border: 0 !important;
+    border-radius: 12px !important;
+    overflow: hidden !important;
+}
+#checkoutVoucherModal .modal-header {
+    background: #fff !important;
+    border-bottom: 1px solid #e5e7eb !important;
+    padding: 16px 18px !important;
+}
+#checkoutVoucherModal .modal-body {
+    background: #f6f7fb !important;
+    padding: 14px !important;
+}
+#checkoutVoucherModal .checkout-voucher-list {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 12px !important;
+}
+#checkoutVoucherModal .checkout-voucher-item {
+    display: grid !important;
+    grid-template-columns: 98px minmax(0, 1fr) auto !important;
+    align-items: stretch !important;
+    gap: 0 !important;
+    min-height: 122px !important;
+    background: #fff !important;
+    border: 1px solid #e5e7eb !important;
+    border-radius: 8px !important;
+    box-shadow: 0 8px 22px rgba(15, 23, 42, .07) !important;
+    overflow: hidden !important;
+}
+#checkoutVoucherModal .checkout-voucher-stamp {
+    min-height: 122px !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 6px !important;
+    color: #fff !important;
+    background: linear-gradient(160deg, #ee4d2d, #ff7337) !important;
+    text-align: center !important;
+    padding: 10px !important;
+}
+#checkoutVoucherModal .checkout-voucher-stamp i {
+    font-size: 1.65rem !important;
+}
+#checkoutVoucherModal .checkout-voucher-stamp span {
+    color: #fff !important;
+    font-size: .74rem !important;
+    font-weight: 800 !important;
+    text-transform: uppercase !important;
+}
+#checkoutVoucherModal .checkout-voucher-info {
+    min-width: 0 !important;
+    padding: 13px 14px !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+}
+#checkoutVoucherModal .checkout-voucher-value {
+    color: #ee4d2d !important;
+    font-size: 1.22rem !important;
+    line-height: 1.2 !important;
+    font-weight: 900 !important;
+    margin-bottom: 4px !important;
+}
+#checkoutVoucherModal .checkout-voucher-code {
+    width: fit-content !important;
+    max-width: 100% !important;
+    margin: 7px 0 !important;
+    padding: 5px 10px !important;
+    border: 1px dashed #ff8b66 !important;
+    border-radius: 6px !important;
+    color: #0d47a1 !important;
+    background: #fff8f5 !important;
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace !important;
+    font-weight: 800 !important;
+    overflow: hidden !important;
+    text-overflow: ellipsis !important;
+    white-space: nowrap !important;
+}
+#checkoutVoucherModal .checkout-voucher-select {
+    align-self: center !important;
+    margin: 0 14px 0 0 !important;
+    min-width: 86px !important;
+    color: #fff !important;
+    background: #ee4d2d !important;
+    border-color: #ee4d2d !important;
+    border-radius: 8px !important;
+    font-weight: 800 !important;
+    white-space: nowrap !important;
+}
+#checkoutVoucherModal .checkout-voucher-select:disabled {
+    color: #fff !important;
+    background: #9ca3af !important;
+    border-color: #9ca3af !important;
+}
+#checkoutVoucherModal .checkout-voucher-item.is-disabled {
+    opacity: .62 !important;
+}
+
+@media (max-width: 576px) {
+    #checkoutVoucherModal .modal-dialog {
+        margin: 10px !important;
+    }
+    #checkoutVoucherModal .modal-header {
+        padding: 14px !important;
+    }
+    #checkoutVoucherModal .modal-body {
+        padding: 10px !important;
+    }
+    #checkoutVoucherModal .checkout-voucher-item {
+        grid-template-columns: 76px minmax(0, 1fr) !important;
+        min-height: 112px !important;
+        position: relative !important;
+    }
+    #checkoutVoucherModal .checkout-voucher-stamp {
+        min-height: 112px !important;
+        padding: 8px 6px !important;
+    }
+    #checkoutVoucherModal .checkout-voucher-stamp i {
+        font-size: 1.3rem !important;
+    }
+    #checkoutVoucherModal .checkout-voucher-stamp span {
+        font-size: .66rem !important;
+    }
+    #checkoutVoucherModal .checkout-voucher-info {
+        padding: 10px 10px 48px 10px !important;
+    }
+    #checkoutVoucherModal .checkout-voucher-select {
+        position: absolute !important;
+        right: 10px !important;
+        bottom: 10px !important;
+        margin: 0 !important;
+        min-width: 74px !important;
+        padding: 5px 10px !important;
+        font-size: .82rem !important;
+    }
+}
 </style>
 
 <script>
@@ -723,6 +1066,7 @@ document.addEventListener('DOMContentLoaded', function () {
     const summaryVoucherRow = document.getElementById('summaryVoucherRow');
     const summaryVoucherAmount = document.getElementById('summaryVoucherAmount');
     let currentVoucherDiscount = 0;
+    let currentVoucherFreeShipping = false;
 
     if (voucherBtn && '{{ $type }}' === 'order') {
         voucherBtn.addEventListener('click', async function () {
@@ -752,17 +1096,23 @@ document.addEventListener('DOMContentLoaded', function () {
                     voucherMsg.innerHTML = `<span class="text-success"><i class="bi bi-check-circle"></i> ${data.message}</span>`;
                     hiddenVoucherCode.value = data.voucher_code;
                     currentVoucherDiscount = parseFloat(data.discount_amount);
+                    currentVoucherFreeShipping = !!data.is_free_shipping;
                     
                     if (summaryVoucherRow && summaryVoucherAmount) {
                         summaryVoucherRow.classList.remove('d-none');
                         summaryVoucherAmount.textContent = '-' + currentVoucherDiscount.toLocaleString('vi-VN') + 'đ';
                     }
                     
+                    if (currentVoucherFreeShipping && summaryVoucherAmount) {
+                        summaryVoucherAmount.textContent = 'Miễn phí vận chuyển';
+                    }
+
                     updateTotal();
                 } else {
                     voucherMsg.innerHTML = `<span class="text-danger"><i class="bi bi-x-circle"></i> ${data.message}</span>`;
                     hiddenVoucherCode.value = '';
                     currentVoucherDiscount = 0;
+                    currentVoucherFreeShipping = false;
                     if (summaryVoucherRow) summaryVoucherRow.classList.add('d-none');
                     updateTotal();
                 }
@@ -776,12 +1126,28 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     /* ── Update total with voucher ── */
+    document.querySelectorAll('.checkout-voucher-select').forEach((button) => {
+        button.addEventListener('click', () => {
+            if (!voucherInput || !voucherBtn) return;
+
+            voucherInput.value = button.dataset.code || '';
+
+            const modalEl = document.getElementById('checkoutVoucherModal');
+            if (modalEl && window.bootstrap) {
+                const modal = bootstrap.Modal.getInstance(modalEl) || new bootstrap.Modal(modalEl);
+                modal.hide();
+            }
+
+            voucherBtn.click();
+        });
+    });
+
     const bankTransferQrBaseUrl = {!! json_encode($bankTransfer['qr_url'] ?? '') !!};
     const bankTransferAmountEl = document.getElementById('bankTransferAmount');
     const bankTransferQrImageEl = document.getElementById('bankTransferQrImage');
 
     function updateBankTransferSummary() {
-        const ship = parseFloat(hiddenShippingFee ? hiddenShippingFee.value : 0) || 0;
+        const ship = currentVoucherFreeShipping ? 0 : (parseFloat(hiddenShippingFee ? hiddenShippingFee.value : 0) || 0);
         const total = Math.max(0, baseAmount + ship - currentVoucherDiscount);
 
         if (bankTransferAmountEl) {
@@ -801,7 +1167,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
     function updateTotal() {
         if (!summaryTotal || '{{ $type }}' !== 'order') return;
-        const ship = parseFloat(hiddenShippingFee ? hiddenShippingFee.value : 0) || 0;
+        const ship = currentVoucherFreeShipping ? 0 : (parseFloat(hiddenShippingFee ? hiddenShippingFee.value : 0) || 0);
         const total = Math.max(0, baseAmount + ship - currentVoucherDiscount);
         summaryTotal.textContent = total.toLocaleString('vi-VN') + 'đ';
         updateBankTransferSummary();

@@ -168,6 +168,7 @@ public function services(Request $request)
             $q->where('service_id', $service->id)
               ->orWhereNull('service_id');
         })
+        ->where('is_active', 1)
         ->orderByRaw('service_id IS NULL')
         ->get();
 

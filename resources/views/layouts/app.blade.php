@@ -201,10 +201,10 @@
             }
             .offcanvas-body .dropdown-item {
                 padding: 12px 10px;
-                color: #ccc;
+                color: #c1b6b6;
             }
             .offcanvas-body .dropdown-item:hover {
-                background: rgba(255,255,255,0.1);
+                background: rgb(239, 237, 237)!important;
                 color: #fff;
             }
         }
@@ -367,6 +367,7 @@
                     @if(auth()->user()->role === 'user')
                         <li class="nav-item"><a class="nav-link" href="{{ route('user.dashboard') }}"><i class="bi bi-house"></i> Trang chủ</a></li>
                         <li class="nav-item"><a class="nav-link" href="{{ route('user.services') }}"><i class="bi bi-bag"></i> Sản phẩm</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('user.vouchers') }}"><i class="bi bi-ticket-perforated"></i> Ưu đãi</a></li>
                         <li class="nav-item dropdown">
                             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">
                                 <i class="bi bi-bag-check"></i> Sản phẩm đã mua
