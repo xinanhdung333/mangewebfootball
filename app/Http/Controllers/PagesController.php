@@ -26,6 +26,8 @@ use App\Models\BookingPayment;
 use App\Models\Invoice;
 use App\Models\ServiceDiscount;
 use App\Models\Voucher;
+use App\Helpers\ServiceDiscountHelper;
+use Illuminate\Support\Facades\Cache;
 
 
 class PagesController extends Controller
@@ -133,29 +135,45 @@ class PagesController extends Controller
         $stats_revenue = $user ? $user->bookings()->sum('total_price') : 0;
             
         // Get recent bookings
-        $bookings = $user ? $user->bookings()->latest()->take(5)->get() : [];
-         $rule = PriceRule::first();
-        $ruleService = ServiceDiscount::first();
-        $homeVoucher = \App\Models\Voucher::query()
-            ->where('is_active', true)
-            ->where(function ($query) {
-                $query->whereNull('expires_at')
-                    ->orWhere('expires_at', '>', now());
-            })
-            ->orderByDesc('id')
-            ->first();
+        $bookings = $user ? $user->bookings()->with('field')->latest()->take(5)->get() : [];
+
+        // Cache static data for 5 minutes
+        $rule = Cache::remember('dashboard:price_rule', 300, fn() => PriceRule::first());
+        $ruleService = Cache::remember('dashboard:service_discount', 300, fn() => ServiceDiscount::first());
+
+        $homeVoucher = Cache::remember('dashboard:home_voucher', 300, function () {
+            return \App\Models\Voucher::query()
+                ->where('is_active', true)
+                ->where(function ($query) {
+                    $query->whereNull('expires_at')
+                        ->orWhere('expires_at', '>', now());
+                })
+                ->orderByDesc('id')
+                ->first();
+        });
+
         $freeShippingThreshold = (int) \App\Models\Setting::get(
             'free_shipping_threshold',
             config('services.ors.free_threshold', 200000)
         );
-        $categories = Category::withCount('services')
-            ->with(['services' => function ($query) {
-                $query->where('status', 'active')
-                    ->orderByDesc('created_at')
-                    ->limit(2);
-            }])
-            ->get();
-        $featuredServices = Service::where('status', 'active')->latest()->take(50)->get();
+
+        $categories = Cache::remember('dashboard:categories', 300, function () {
+            return Category::withCount('services')
+                ->with(['services' => function ($query) {
+                    $query->where('status', 'active')
+                        ->orderByDesc('created_at')
+                        ->limit(2);
+                }])
+                ->get();
+        });
+
+        $featuredServices = Cache::remember('dashboard:featured_services', 300, function () {
+            return Service::where('status', 'active')->latest()->take(50)->get();
+        });
+
+        // Apply discounts using cached helper
+        ServiceDiscountHelper::applyDiscountToCollection($featuredServices);
+
         return view('user.dashboard', [
             'user' => $user,
             'stats_total' => $stats_total,

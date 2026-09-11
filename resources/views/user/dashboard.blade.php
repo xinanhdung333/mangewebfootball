@@ -997,7 +997,7 @@
             @forelse($featuredServices as $service)
                 <a href="{{ route('user.serviceDetail', $service->id) }}" class="ec-product-card">
                     @if($service->image)
-                        <img src="{{ asset('uploads/services/' . $service->image) }}" alt="{{ $service->name }}" class="ec-product-img">
+                        <img loading="lazy" src="{{ asset('uploads/services/' . $service->image) }}" alt="{{ $service->name }}" class="ec-product-img">
                     @else
                         <div class="ec-product-img" style="display:flex;align-items:center;justify-content:center;color:#ccc;font-size:2rem;">
                             <i class="bi bi-image"></i>

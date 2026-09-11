@@ -32,7 +32,7 @@
         @foreach($fields as $field)
             <div class="col-6 col-sm-6 col-lg-4 mb-3 px-1 field-item">
                 <div class="card field-card-mobile">
-                    <img src="{{ !empty($field->image) ? asset('uploads/fields/' . $field->image) : asset('assets/images/banner.jpg') }}" 
+                    <img loading="lazy" src="{{ !empty($field->image) ? asset('uploads/fields/' . $field->image) : asset('assets/images/banner.jpg') }}" 
                         class="fields" alt="{{ htmlspecialchars($field->name) }}">
                     <div class="card-body p-2 p-sm-3">
                         <h5 class="card-title mobile-title">{{ htmlspecialchars($field->name) }}</h5>

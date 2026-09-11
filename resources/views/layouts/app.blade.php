@@ -15,8 +15,8 @@
 
     {{-- Critical CSS first --}}
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}">
-    <link rel="stylesheet" href="{{ asset('assets/css/sports-theme.css') }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/style.css') }}?v={{ filemtime(public_path('assets/css/style.css')) }}">
+    <link rel="stylesheet" href="{{ asset('assets/css/sports-theme.css') }}?v={{ filemtime(public_path('assets/css/sports-theme.css')) }}">
 
     {{-- Bootstrap Icons loaded async (non-render-blocking) --}}
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" media="print" onload="this.media='all'">
@@ -518,6 +518,7 @@
      </div>
  
 <main class="site-content container-fluid mt-4 px-0">
+    <!-- NOTE: Images in the main content body should use loading="lazy" -->
     <div class="site-content-inner">
 
     @yield('content')

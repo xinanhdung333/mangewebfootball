@@ -86,7 +86,7 @@
         <div class="product-card" data-price="{{ $service->price }}" data-rating="{{ $service->avg_rating ?? 0 }}">
 
             <a href="{{ route('user.serviceDetail', $service->id) }}">
-                <img src="{{ $service->image ? asset('uploads/services/'.$service->image) : asset('assets/images/default.png') }}"
+                <img loading="lazy" src="{{ $service->image ? asset('uploads/services/'.$service->image) : asset('assets/images/default.png') }}"
                      style="width:100%; height:160px; object-fit:cover;">
             </a>
 
