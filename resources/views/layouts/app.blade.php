@@ -348,7 +348,7 @@
 </a>
     @else
       <a class="navbar-brand" href="{{ route('user.home') }}">
-    <i class="bi bi-dribbble"></i> SportsHub123
+    <i class="bi bi-dribbble"></i> SportsHub
 </a>
    @endif
 
