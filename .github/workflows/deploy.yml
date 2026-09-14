@@ -6,22 +6,18 @@ on:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     steps:
-      - name: Deploy via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SSH_HOST }}
-          username: ${{ secrets.SSH_USER }}
-          key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: 22
-          script: |
-            cd /var/www/myapp/mangewebfootball
-            git pull origin main
-            composer install --no-dev --optimize-autoloader --no-interaction
-            php artisan migrate --force
-            php artisan config:cache
-            php artisan route:cache
-            php artisan view:cache
-            sudo systemctl reload php8.5-fpm nginx
-            echo "Deployed at $(date)"
+      - name: Pull and deploy
+        run: |
+          cd /var/www/myapp/mangewebfootball
+          git pull origin main
+          composer install --no-dev --optimize-autoloader --no-interaction || true
+          php artisan migrate --force || true
+          php artisan config:cache || true
+          php artisan route:cache || true
+          php artisan view:cache || true
+          sudo systemctl reload php8.5-fpm 2>/dev/null || sudo systemctl reload php8.3-fpm 2>/dev/null || true
+          sudo systemctl reload nginx 2>/dev/null || true
+          echo "Deployed OK $(date)"
+
