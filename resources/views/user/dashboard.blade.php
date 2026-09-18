@@ -983,9 +983,14 @@
         <div class="ec-flash">
             <span class="ec-flash-badge"><i class="bi bi-lightning-fill"></i> FLASH SALE</span>
             <div class="ec-flash-text">
-                Khung giờ vàng <strong>{{ optional($rule)->start_time }} — {{ optional($rule)->end_time }}</strong>
-                @if(optional($ruleService)->note)
-                    · {{ optional($ruleService)->note }}
+                @if(($flashSaleInfo['percent'] ?? 0) > 0)
+                    Giảm <strong>{{ round($flashSaleInfo['percent']) }}%</strong>
+                    <span>({{ $flashSaleInfo['start'] }} — {{ $flashSaleInfo['end'] }})</span>
+                    @if($flashSaleInfo['note'])
+                        · {{ $flashSaleInfo['note'] }}
+                    @endif
+                @else
+                    Khung giờ vàng đang tạm đóng
                 @endif
             </div>
             <a href="{{ route('user.services') }}" class="ec-btn ec-btn-primary">Mua ngay</a>
@@ -1005,7 +1010,17 @@
                     @endif
                     <div class="ec-product-info">
                         <p class="ec-product-name">{{ $service->name }}</p>
-                        <p class="ec-product-price">{{ formatCurrency($service->price) }}</p>
+                        @if(($service->discount_percent ?? 0) > 0)
+                            <p class="ec-product-price">
+                                {{ formatCurrency($service->final_price) }}
+                                <del style="display:block;color:#94a3b8;font-size:.78rem;font-weight:400;">
+                                    {{ formatCurrency($service->price) }}
+                                </del>
+                                <span style="display:inline-block;color:#dc2626;font-size:.72rem;">-{{ round($service->discount_percent) }}%</span>
+                            </p>
+                        @else
+                            <p class="ec-product-price">{{ formatCurrency($service->price) }}</p>
+                        @endif
                         @if($service->quantity > 0)
                             <p class="ec-product-meta">Còn {{ $service->quantity }} sản phẩm</p>
                         @else
@@ -1039,7 +1054,17 @@
                                 @endif
                                 <div class="ec-product-info">
                                     <p class="ec-product-name">{{ $service->name }}</p>
-                                    <p class="ec-product-price">{{ formatCurrency($service->price) }}</p>
+                                    @if(($service->discount_percent ?? 0) > 0)
+                                        <p class="ec-product-price">
+                                            {{ formatCurrency($service->final_price) }}
+                                            <del style="display:block;color:#94a3b8;font-size:.78rem;font-weight:400;">
+                                                {{ formatCurrency($service->price) }}
+                                            </del>
+                                            <span style="display:inline-block;color:#dc2626;font-size:.72rem;">-{{ round($service->discount_percent) }}%</span>
+                                        </p>
+                                    @else
+                                        <p class="ec-product-price">{{ formatCurrency($service->price) }}</p>
+                                    @endif
                                     @if($service->quantity > 0)
                                         <p class="ec-product-meta">Còn {{ $service->quantity }} sản phẩm</p>
                                     @else

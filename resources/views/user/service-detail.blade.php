@@ -212,8 +212,8 @@
                     {{ number_format((float) ($service->avg_rating ?? 0), 1, ',', '.') }}
                     <span class="review-stars">★★★★★</span>
                 </div>
-                <div class="text-muted">{{ $service->feedbacks->count() }} lượt đánh giá</div>
-            </div>F
+                <div class="text-muted">{{ $service->total_reviews ?? $service->feedbacks_count ?? $service->feedbacks->count() }} lượt đánh giá</div>
+            </div>
         </div>
 
         @auth
@@ -238,7 +238,7 @@
         @endauth
 
         <div class="review-list">
-            @forelse($service->feedbacks->sortByDesc('created_at') as $feedback)
+            @forelse($service->feedbacks as $feedback)
                 <article class="review-item">
                     <strong>{{ $feedback->user?->name ?? 'Khách hàng' }}</strong>
                     <div class="review-stars small">{{ str_repeat('★', (int) $feedback->rating) }}{{ str_repeat('☆', 5 - (int) $feedback->rating) }}</div>

@@ -10,8 +10,7 @@ use App\Models\Payment;
 use App\Models\Service;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
-use App\Models\ServiceDiscount;
-use Carbon\Carbon;
+use App\Helpers\ServiceDiscountHelper;
 class CartController extends Controller
 {
     public function index(Request $request)
@@ -93,11 +92,16 @@ class CartController extends Controller
                     'cart_id' => $cart->id,
                     'service_id' => $service->id,
                     'quantity' => 1,
-                    'price' => $service->price,
+                    'price' => ServiceDiscountHelper::applyDiscount($service)['final_price'],
                 ]);
             }
 
-            return response()->json(['success' => true]);
+            $totalItems = CartItem::where('cart_id', $cart->id)->sum('quantity');
+
+            return response()->json([
+                'success' => true,
+                'totalItems' => $totalItems,
+            ]);
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
@@ -209,38 +213,9 @@ class CartController extends Controller
 
 private function getDiscountedPrice(Service $service): array
 {
-    $originalPrice = (float) $service->price;
-    $now = Carbon::now();
-    $currentMin = $now->hour * 60 + $now->minute;
+    $discount = ServiceDiscountHelper::applyDiscount($service);
 
-    $rules = ServiceDiscount::where('is_active', true)
-        ->where(function ($query) use ($service) {
-            $query->where('service_id', $service->id)
-                ->orWhereNull('service_id');
-        })
-        ->orderByRaw('service_id IS NULL')
-        ->get();
-
-    foreach ($rules as $rule) {
-        [$startHour, $startMinute] = array_map('intval', explode(':', substr((string) $rule->start_time, 0, 5)));
-        [$endHour, $endMinute] = array_map('intval', explode(':', substr((string) $rule->end_time, 0, 5)));
-        $startMin = $startHour * 60 + $startMinute;
-        $endMin = $endHour * 60 + $endMinute;
-
-        $inTime = $startMin <= $endMin
-            ? $currentMin >= $startMin && $currentMin < $endMin
-            : $currentMin >= $startMin || $currentMin < $endMin;
-
-        if ($inTime) {
-            $multiplier = max(0, min(1, (float) $rule->multiplier));
-            $discountedPrice = round($originalPrice * $multiplier);
-            $discountPercent = round((1 - $multiplier) * 100);
-
-            return [$discountedPrice, $discountPercent];
-        }
-    }
-
-    return [$originalPrice, 0];
+    return [$discount['final_price'], $discount['discount_percent']];
 }
     private function createPendingPayment(Order $order): Payment
     {
@@ -273,42 +248,7 @@ private function getDiscountedPrice(Service $service): array
             $item->quantity = $request->quantity;
 
 
-$now = Carbon::now();
-$currentMin = $now->hour * 60 + $now->minute;
-
-$finalPrice = $service->price;
-
-// lấy rule
-$rules = ServiceDiscount::where(function($q) use ($service) {
-    $q->where('service_id', $service->id)
-      ->orWhereNull('service_id');
-})
-->orderByRaw('service_id IS NULL') // ưu tiên riêng
-->where('is_active', 1)
-->get();
-foreach ($rules as $rule) {
-
-    $start = explode(':', $rule->start_time);
-    $end   = explode(':', $rule->end_time);
-
-    $startMin = $start[0] * 60 + $start[1];
-    $endMin   = $end[0] * 60 + $end[1];
-
-    $matchService =
-        $rule->service_id == null || $rule->service_id == $service->id;
-
-    $inTime =
-        ($startMin <= $endMin && $currentMin >= $startMin && $currentMin < $endMin)
-        ||
-        ($startMin > $endMin && ($currentMin >= $startMin || $currentMin < $endMin));
-
-    if ($matchService && $inTime) {
-        $finalPrice = $service->price * $rule->multiplier;
-        break;
-    }
-}
-
-$item->price = $finalPrice;
+$item->price = ServiceDiscountHelper::applyDiscount($service)['final_price'];
 
             DB::beginTransaction();
 
@@ -346,9 +286,6 @@ public function checkoutSelected(Request $request)
         return back()->with('error', 'Vui lòng chọn sản phẩm');
     }
 
-    $now = Carbon::now();
-    $currentMin = $now->hour * 60 + $now->minute;
-
     $items = CartItem::whereIn('id', $ids)
         ->whereHas('cart', function ($q) use ($user) {
             $q->where('user_id', $user->id);
@@ -364,40 +301,7 @@ public function checkoutSelected(Request $request)
     try {
 
         foreach ($items as $item) {
-
-            $service = $item->service;
-
-            $finalPrice = $service->price;
-
-            $rules = ServiceDiscount::where(function ($q) use ($service) {
-                $q->where('service_id', $service->id)
-                  ->orWhereNull('service_id');
-            })
-            ->where('is_active', 1)
-            ->orderByRaw('service_id IS NULL')
-            ->get();
-
-            foreach ($rules as $rule) {
-
-                [$sh, $sm] = explode(':', $rule->start_time);
-                [$eh, $em] = explode(':', $rule->end_time);
-
-                $startMin = $sh * 60 + $sm;
-                $endMin   = $eh * 60 + $em;
-
-                $inTime =
-                    ($startMin <= $endMin && $currentMin >= $startMin && $currentMin < $endMin)
-                    ||
-                    ($startMin > $endMin && ($currentMin >= $startMin || $currentMin < $endMin));
-
-                if ($inTime) {
-                    $finalPrice = $service->price * $rule->multiplier;
-                    break;
-                }
-            }
-
-            // ✔ FIX QUAN TRỌNG
-            $item->price = $finalPrice;
+            $item->price = ServiceDiscountHelper::applyDiscount($item->service)['final_price'];
             $item->quantity = $item->quantity ?? 1;
         }
 
@@ -445,6 +349,9 @@ public function updateItem(Request $request)
     }
 
     $item->quantity = $request->quantity;
+    if ($item->service) {
+        $item->price = ServiceDiscountHelper::applyDiscount($item->service)['final_price'];
+    }
     $item->save();
 
     // lấy price đã lưu sẵn

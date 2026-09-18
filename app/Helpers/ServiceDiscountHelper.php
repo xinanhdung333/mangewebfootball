@@ -74,7 +74,8 @@ class ServiceDiscountHelper
         $rules = $rules ?? self::getCachedRules();
         $currentMin = self::currentMinutes();
 
-        $finalPrice = $service->price;
+        $originalPrice = (float) $service->price;
+        $finalPrice = $originalPrice;
         $discountPercent = 0;
 
         // Filter rules relevant to this service (specific rules first, then global)
@@ -84,15 +85,16 @@ class ServiceDiscountHelper
 
         foreach ($relevantRules as $rule) {
             if (self::isInTimeRange($rule->start_time, $rule->end_time, $currentMin)) {
-                $finalPrice = $service->price * $rule->multiplier;
-                $discountPercent = (1 - $rule->multiplier) * 100;
+                $multiplier = max(0, min(1, (float) $rule->multiplier));
+                $finalPrice = round($originalPrice * $multiplier);
+                $discountPercent = round((1 - $multiplier) * 100);
                 break;
             }
         }
 
         return [
             'final_price' => $finalPrice,
-            'original_price' => $service->price,
+            'original_price' => $originalPrice,
             'discount_percent' => $discountPercent,
         ];
     }
@@ -106,8 +108,6 @@ class ServiceDiscountHelper
     public static function applyDiscountToCollection(Collection $services): Collection
     {
         $rules = self::getCachedRules();
-        $currentMin = self::currentMinutes();
-
         foreach ($services as $service) {
             $discount = self::applyDiscount($service, $rules);
             $service->final_price = $discount['final_price'];
@@ -125,8 +125,11 @@ class ServiceDiscountHelper
     public static function getFlashSaleInfo(): array
     {
         $rules = self::getCachedRules();
+        $currentMin = self::currentMinutes();
 
-        $flashSale = $rules->whereNull('service_id')->first();
+        $flashSale = $rules
+            ->whereNull('service_id')
+            ->first(fn($rule) => self::isInTimeRange($rule->start_time, $rule->end_time, $currentMin));
 
         if (!$flashSale) {
             return [

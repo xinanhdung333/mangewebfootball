@@ -59,6 +59,8 @@ class PagesController extends Controller
     {
         $cart = $this->getOrCreateUserCart($user);
         $service = Service::findOrFail($serviceId);
+        $discount = ServiceDiscountHelper::applyDiscount($service);
+        $finalPrice = $discount['final_price'];
 
         $item = CartItem::where('cart_id', $cart->id)
             ->where('service_id', $service->id)
@@ -70,7 +72,7 @@ class PagesController extends Controller
             }
 
             $item->quantity += $quantity;
-            $item->price = $service->price;
+            $item->price = $finalPrice;
             $item->save();
             return;
         }
@@ -83,7 +85,7 @@ class PagesController extends Controller
             'cart_id' => $cart->id,
             'service_id' => $service->id,
             'quantity' => $quantity,
-            'price' => $service->price,
+            'price' => $finalPrice,
         ]);
     }
 
@@ -171,8 +173,12 @@ class PagesController extends Controller
             return Service::where('status', 'active')->latest()->take(50)->get();
         });
 
-        // Apply discounts using cached helper
+        // Use one discount calculation for every product shown on the homepage.
         ServiceDiscountHelper::applyDiscountToCollection($featuredServices);
+        foreach ($categories as $category) {
+            ServiceDiscountHelper::applyDiscountToCollection($category->services);
+        }
+        $flashSaleInfo = ServiceDiscountHelper::getFlashSaleInfo();
 
         return view('user.dashboard', [
             'user' => $user,
@@ -186,6 +192,7 @@ class PagesController extends Controller
             'freeShippingThreshold' => $freeShippingThreshold,
             'categories' => $categories,
             'featuredServices' => $featuredServices,
+            'flashSaleInfo' => $flashSaleInfo,
         ]);  
     }
   public function myBookings()
@@ -1325,46 +1332,12 @@ public function services(Request $request)
 
     $services = $query->paginate(12)->withQueryString();
 
-    // ===== THÊM LOGIC GIẢM GIÁ =====
-    $now = Carbon::now();
-    $currentMin = $now->hour * 60 + $now->minute;
+    $discountRules = ServiceDiscountHelper::getCachedRules();
 
     foreach ($services as $service) {
-
-        $finalPrice = $service->price;
-        $discountPercent = 0;
-
-        $rules = ServiceDiscount::where(function($q) use ($service) {
-            $q->where('service_id', $service->id)
-              ->orWhereNull('service_id');
-        })
-        ->where('is_active', 1)
-        ->orderByRaw('service_id IS NULL')
-        ->get();
-
-        foreach ($rules as $rule) {
-
-            $start = explode(':', $rule->start_time);
-            $end   = explode(':', $rule->end_time);
-
-            $startMin = $start[0] * 60 + $start[1];
-            $endMin   = $end[0] * 60 + $end[1];
-
-            $inTime =
-                ($startMin <= $endMin && $currentMin >= $startMin && $currentMin < $endMin)
-                ||
-                ($startMin > $endMin && ($currentMin >= $startMin || $currentMin < $endMin));
-
-            if ($inTime) {
-                $finalPrice = $service->price * $rule->multiplier;
-                $discountPercent = (1 - $rule->multiplier) * 100;
-                break;
-            }
-        }
-
-        // gắn thêm vào object
-        $service->final_price = $finalPrice;
-        $service->discount_percent = $discountPercent;
+        $discount = ServiceDiscountHelper::applyDiscount($service, $discountRules);
+        $service->final_price = $discount['final_price'];
+        $service->discount_percent = $discount['discount_percent'];
     }
 
     // ===== CART COUNT =====
@@ -1373,22 +1346,11 @@ public function services(Request $request)
         $totalItems = (int) $this->getCartItemsForUser(Auth::user())
             ->sum('cart_items.quantity');
     }
-$flashSale = ServiceDiscount::where('is_active', 1)
-    ->whereNull('service_id') // áp dụng toàn bộ
-    ->first();
-
-$flashStart = null;
-$flashEnd = null;
-$flashnote = null;
-
-$flashPercent = 0;
-
-if ($flashSale) {
-    $flashStart = substr($flashSale->start_time, 0, 5); // 01:00
-    $flashEnd = substr($flashSale->end_time, 0, 5);     // 12:00
-    $flashPercent = (1 - $flashSale->multiplier) * 100;
-    $flashnote = $flashSale->note;
-}
+$flashSaleInfo = ServiceDiscountHelper::getFlashSaleInfo();
+$flashStart = $flashSaleInfo['start'];
+$flashEnd = $flashSaleInfo['end'];
+$flashPercent = $flashSaleInfo['percent'];
+$flashnote = $flashSaleInfo['note'];
 $rule = PriceRule::first();
 $categories = Category::orderBy('name')->get();
 return view('user.services', compact(
@@ -1411,45 +1373,14 @@ public function cart()
     $cartItems = [];
     $totalPrice = 0;
 
-    $now = Carbon::now();
-    $currentMin = $now->hour * 60 + $now->minute;
-
     foreach ($cartItemsRaw as $item) {
 
         $service = $item->service;
         if (!$service) continue;
 
-        $finalPrice = $service->price;
-        $discountPercent = 0;
-
-        // ===== DISCOUNT RULE =====
-        $rules = ServiceDiscount::where(function ($q) use ($service) {
-                $q->where('service_id', $service->id)
-                  ->orWhereNull('service_id');
-            })
-            ->where('is_active', 1)
-            ->orderByRaw('service_id IS NULL')
-            ->get();
-
-        foreach ($rules as $rule) {
-
-            [$sh, $sm] = explode(':', $rule->start_time);
-            [$eh, $em] = explode(':', $rule->end_time);
-
-            $startMin = $sh * 60 + $sm;
-            $endMin   = $eh * 60 + $em;
-
-            $inTime =
-                ($startMin <= $endMin && $currentMin >= $startMin && $currentMin < $endMin)
-                ||
-                ($startMin > $endMin && ($currentMin >= $startMin || $currentMin < $endMin));
-
-            if ($inTime) {
-                $finalPrice = $service->price * $rule->multiplier;
-                $discountPercent = (1 - $rule->multiplier) * 100;
-                break;
-            }
-        }
+        $discount = ServiceDiscountHelper::applyDiscount($service);
+        $finalPrice = $discount['final_price'];
+        $discountPercent = $discount['discount_percent'];
 
         $cartItems[] = [
             'id' => $item->id,
@@ -1599,6 +1530,9 @@ public function removeFromCart(Request $request)
                 }
 
                 $cartItem->quantity = max(1, $qty);
+                if ($cartItem->service) {
+                    $cartItem->price = ServiceDiscountHelper::applyDiscount($cartItem->service)['final_price'];
+                }
                 $cartItem->save();
             }
         }
@@ -1636,55 +1570,35 @@ public function fieldSchedule(Request $request)
 
 public function serviceDetail($id)
 {
-    $service = Service::with(['category', 'feedbacks.user'])->findOrFail($id);
+    $service = Service::with([
+            'category',
+            'feedbacks' => fn($query) => $query
+                ->with('user:id,name')
+                ->latest()
+                ->limit(20),
+        ])
+        ->withCount('feedbacks')
+        ->withAvg('feedbacks', 'rating')
+        ->findOrFail($id);
+
+    $service->avg_rating = $service->feedbacks_avg_rating ?? $service->avg_rating ?? 0;
+    $service->total_reviews = $service->feedbacks_count ?? $service->total_reviews ?? 0;
     $reviewOrderItemId = Auth::check()
-        ? OrderItem::where('service_id', $service->id)
-            ->whereHas('order', function ($query) {
-                $query->where('user_id', Auth::id())
-                    ->where('status', '!=', 'cancelled');
-            })
-            ->latest('id')
-            ->value('id')
+        ? OrderItem::query()
+            ->join('orders', 'orders.id', '=', 'order_items.order_id')
+            ->where('order_items.service_id', $service->id)
+            ->where('orders.user_id', Auth::id())
+            ->where('orders.status', '!=', 'cancelled')
+            ->latest('order_items.id')
+            ->value('order_items.id')
         : null;
 
     // ===== TÍNH GIẢM GIÁ =====
-    $now = Carbon::now();
-    $currentMin = $now->hour * 60 + $now->minute;
+    $discount = ServiceDiscountHelper::applyDiscount($service);
+    $finalPrice = $discount['final_price'];
+    $originalPrice = $discount['original_price'];
+    $discountPercent = $discount['discount_percent'];
 
-    $finalPrice = $service->price;
-    $originalPrice = $service->price;
-    $discountPercent = 0;
-
-   $rules = ServiceDiscount::where(function($q) use ($service) {
-        $q->where('service_id', $service->id)
-          ->orWhereNull('service_id');
-    })
-    ->where('is_active', 1)
-    ->orderByRaw('service_id IS NULL')
-    ->get(); 
-
-  foreach ($rules as $rule) {
-
-    $start = explode(':', $rule->start_time);
-    $end   = explode(':', $rule->end_time);
-
-    $startMin = $start[0] * 60 + $start[1];
-    $endMin   = $end[0] * 60 + $end[1];
-
-    $matchService =
-        $rule->service_id == null || $rule->service_id == $service->id;
-
-    $inTime =
-        ($startMin <= $endMin && $currentMin >= $startMin && $currentMin < $endMin)
-        ||
-        ($startMin > $endMin && ($currentMin >= $startMin || $currentMin < $endMin));
-
-    if ($matchService && $inTime) {
-        $finalPrice = $service->price * $rule->multiplier;
-        $discountPercent = (1 - $rule->multiplier) * 100;
-        break;
-    }
-}
    return view('user.service-detail', compact(
         'service',
         'finalPrice',

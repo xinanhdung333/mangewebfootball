@@ -9,6 +9,7 @@ use App\Models\PriceRule;
 use App\Models\ServiceDiscount;
 use App\Models\Field;
 use App\Models\Service;
+use App\Helpers\ServiceDiscountHelper;
 
 class SettingController extends Controller
 {
@@ -226,6 +227,7 @@ class SettingController extends Controller
             'note' => $request->note,
             'is_active'  => 1
         ]);
+        ServiceDiscountHelper::clearCache();
 
         return back()->with('success', 'Thêm giảm giá dịch vụ thành công');
     }
@@ -233,12 +235,14 @@ class SettingController extends Controller
     public function deleteServiceDiscount($id)
     {
         ServiceDiscount::findOrFail($id)->delete();
+        ServiceDiscountHelper::clearCache();
         return back()->with('success', 'Đã xoá giảm giá dịch vụ');
     }
     public function toggleServiceDiscount($id)
     {
         $discount = ServiceDiscount::findOrFail($id);
         $discount->update(['is_active' => !$discount->is_active]);
+        ServiceDiscountHelper::clearCache();
 
         return back()->with('success', $discount->is_active ? 'Đã bật lại giảm giá dịch vụ' : 'Đã tạm dừng giảm giá dịch vụ');
     }
