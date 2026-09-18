@@ -124,6 +124,32 @@
             border-color: #e5e7eb !important;
         }
 
+        /* Keep the account menu inside the viewport when the desktop nav is full. */
+        @media (min-width: 992px) {
+            .navbar > .container-fluid {
+                gap: 12px;
+            }
+
+            .navbar .offcanvas-body > .navbar-nav {
+                gap: 0;
+            }
+
+            .navbar .offcanvas-body > .navbar-nav .nav-link {
+                padding-left: 6px;
+                padding-right: 6px;
+                font-size: .8rem;
+            }
+
+            .navbar .admin-account-menu {
+                right: 0 !important;
+                left: auto !important;
+                transform: none !important;
+                min-width: 190px;
+                max-width: calc(100vw - 24px);
+                margin-top: 4px;
+            }
+        }
+
         /* ===== Mascot / Chatbot ===== */
         #mascot {
             position: fixed;
@@ -303,6 +329,8 @@
     right: 24px;
     width: 360px;
     height: 480px;
+    flex-direction: column;
+    box-sizing: border-box;
     background: #fff;
     border-radius: 18px;
     overflow: hidden;
@@ -330,7 +358,8 @@
 
 /* Chat body */
 .chat-body {
-    height: calc(100% - 120px);
+    flex: 1 1 auto;
+    min-height: 0;
     overflow-y: auto;
     padding: 14px;
     background: #f6f6f6;
@@ -357,9 +386,9 @@
 
 /* Footer */
 .chat-footer {
-    position: absolute;
-    bottom: 0;
+    flex: 0 0 auto;
     width: 100%;
+    box-sizing: border-box;
     padding: 12px;
     border-top: 1px solid #eee;
     background: white;
@@ -489,16 +518,24 @@
                         </li>
                         <li class="nav-item w-100"><a class="nav-link" href="{{ route('admin.manage.orders') }}"><i class="bi bi-bag-check"></i> Chi tiết mua hàng</a></li>
                         <li class="nav-item w-100"><a class="nav-link" href="{{ route('admin.manage.feedback') }}"><i class="bi bi-chat-dots"></i> Quản lý Feedback</a></li>
-                        <li class="nav-item w-100"><a class="nav-link" href="{{ route('admin.chat.index') }}"><i class="bi bi-chat-left-text"></i> Chat Admin</a></li>
+                        <li class="nav-item dropdown w-100">
+                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false">
+                                <i class="bi bi-chat-left-text"></i> Chat Admin
+                            </a>
+                            <ul class="dropdown-menu admin-nav-dropdown shadow border-0">
+                                <li><a class="dropdown-item" href="{{ route('admin.chat.index') }}"><i class="bi bi-chat-left-text me-2"></i>Chat với người dùng</a></li>
+                                <li><a class="dropdown-item" href="{{ route('admin.chatbot.index') }}"><i class="bi bi-robot me-2"></i>Quản lý Chatbot</a></li>
+                            </ul>
+                        </li>
                         <li class="nav-item w-100"><a class="nav-link" href="{{ route('admin.invoices') }}"><i class="bi bi-file-earmark-pdf"></i> Quản lý hóa đơn</a></li>
-                        <li class="nav-item w-100"><a class="nav-link" href="{{ route('admin.chatbot.index') }}"><i class="bi bi-robot"></i> Quản lý Chatbot</a></li>
+                        <li class="nav-item w-100"><a class="nav-link" href="{{ route('admin.manage.users') }}"><i class="bi bi-people"></i> Quản lý người dùng</a></li>
                         <li class="nav-item w-100"><a class="nav-link" href="{{ route('admin.statistics') }}"><i class="bi bi-bar-chart"></i> Thống kê</a></li>
 
                     <li class="nav-item dropdown w-100">
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
                             <i class="bi bi-person"></i> {{ auth()->user()->name }}
                         </a>
-                        <ul class="dropdown-menu admin-nav-dropdown dropdown-menu-end">
+                        <ul class="dropdown-menu admin-nav-dropdown dropdown-menu-end admin-account-menu">
                           <li>  <a class="dropdown-item" href="{{ route('admin.settings') }}">
     <i class="bi bi-gear me-2"></i> Pricing Settings
 </a></li>
@@ -619,6 +656,14 @@ async function sendMessage() {
     chatBody.appendChild(botMessage);
 
     try {
+        const history = Array.from(chatBody.querySelectorAll('.message-user, .message-bot'))
+            .slice(-10)
+            .filter(message => message !== botMessage && message.textContent.trim() !== 'Đang xử lý...')
+            .map(message => ({
+                role: message.classList.contains('message-user') ? 'user' : 'model',
+                text: message.textContent.trim()
+            }));
+
         let response = await fetch("{{ route('chatbot.message') }}", {
             method: "POST",
             headers: {
@@ -626,7 +671,7 @@ async function sendMessage() {
                 "Accept": "application/json",
                 "X-CSRF-TOKEN": document.querySelector('meta[name="csrf-token"]').content
             },
-            body: JSON.stringify({ message: text })
+            body: JSON.stringify({ message: text, history })
         });
 
         let data = await response.json();
@@ -673,7 +718,7 @@ let offsetX = 0, offsetY = 0;
 
 // click mở chat
 mascot.addEventListener('click', () => {
-    chatBox.style.display = 'block';
+    chatBox.style.display = 'flex';
 });
 
 // kéo mascot

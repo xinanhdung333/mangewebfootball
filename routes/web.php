@@ -61,6 +61,8 @@ Route::post('/login', [AuthController::class, 'login'])->name('login.post');
 Route::get('/register', [AuthController::class, 'showRegister'])->name('register');
 Route::post('/register', [AuthController::class, 'register'])->name('register.post');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
+Route::get('/auth/{provider}/redirect', [AuthController::class, 'redirectToProvider'])->name('social.redirect');
+Route::get('/auth/{provider}/callback', [AuthController::class, 'handleProviderCallback'])->name('social.callback');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [\App\Http\Controllers\ProfileController::class, 'edit'])->name('profile.edit');
@@ -155,6 +157,10 @@ Route::get('/edit-status-order/{id}', [AdminController::class, 'editStatusOrder'
     Route::post('/store-service', [AdminController::class, 'storeService'])->name('store.service');
     Route::post('/update-service', [AdminController::class, 'updateService'])->name('update.service');
     Route::post('/delete-service', [AdminController::class, 'deleteService'])->name('delete.service');
+    Route::get('/manage-users', [AdminController::class, 'manageUsers'])->name('manage.users');
+    Route::post('/store-user', [AdminController::class, 'storeUser'])->name('store.user');
+    Route::post('/update-user', [AdminController::class, 'updateUser'])->name('update.user');
+    Route::post('/delete-user', [AdminController::class, 'deleteUser'])->name('delete.user');
     Route::get('/manage-categories', [AdminController::class, 'manageCategories'])->name('manage.categories');
     Route::post('/store-category', [AdminController::class, 'storeCategory'])->name('store.category');
     Route::post('/update-category', [AdminController::class, 'updateCategory'])->name('update.category');

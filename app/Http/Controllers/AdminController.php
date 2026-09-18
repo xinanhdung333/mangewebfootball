@@ -541,6 +541,65 @@ public function updateProfile(Request $request)
         return view('admin.manage-services', compact('services', 'categories'));
     }
 
+    public function manageUsers()
+    {
+        $users = User::orderByDesc('created_at')->get();
+
+        return view('admin.manage-users', compact('users'));
+    }
+
+    public function storeUser(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email',
+            'phone' => 'nullable|string|max:20',
+            'role' => 'required|in:user,admin',
+        ]);
+
+        User::create([
+            ...$validated,
+            'password' => bcrypt('123456'),
+        ]);
+
+        return back()->with('success', 'Thêm người dùng thành công!');
+    }
+
+    public function updateUser(Request $request)
+    {
+        $validated = $request->validate([
+            'id' => 'required|integer|exists:users,id',
+            'name' => 'required|string|max:255',
+            'email' => 'required|email|unique:users,email,' . $request->input('id'),
+            'phone' => 'nullable|string|max:20',
+            'role' => 'required|in:user,admin',
+        ]);
+
+        User::findOrFail($validated['id'])->update([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'phone' => $validated['phone'],
+            'role' => $validated['role'],
+        ]);
+
+        return back()->with('success', 'Cập nhật người dùng thành công!');
+    }
+
+    public function deleteUser(Request $request)
+    {
+        $validated = $request->validate([
+            'id' => 'required|integer|exists:users,id',
+        ]);
+
+        if ((int) $validated['id'] === (int) auth()->id()) {
+            return back()->with('error', 'Không thể xóa tài khoản đang đăng nhập!');
+        }
+
+        User::findOrFail($validated['id'])->delete();
+
+        return back()->with('success', 'Xóa người dùng thành công!');
+    }
+
     /**
      * Store new service
      */
@@ -549,8 +608,8 @@ public function storeService(Request $request)
 {
     $validated = $request->validate([
         'category_id' => 'required|integer|exists:categories,id',
-        'name' => 'required|string',
-        'price' => 'required|numeric|min:0|max:9999999999999',
+        'name' => 'required|string|max:100',
+        'price' => 'required|numeric|integer|min:0|max:999999999999999',
         'quantity' => 'required|integer|min:0',
         'status' => 'required|in:active,inactive',
         'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,avif|max:4096'
@@ -589,8 +648,8 @@ public function updateService(Request $request)
 
     $validated = $request->validate([
         'category_id' => 'required|integer|exists:categories,id',
-        'name' => 'required|string',
-        'price' => 'required|numeric|min:0',
+        'name' => 'required|string|max:100',
+        'price' => 'required|numeric|integer|min:0|max:999999999999999',
         'quantity' => 'required|integer|min:0',
         'status' => 'required|in:active,inactive',
         'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,avif|max:4096'
@@ -944,9 +1003,10 @@ public function invoices()
                 'booking' => $booking,
                 'services' => $services
             ]);
-            Invoice::create([
-                'booking_id'   => $booking->id,
-                'invoice_code' => 'INV-' . time(),
+            Invoice::firstOrCreate([
+                'booking_id' => $booking->id,
+            ], [
+                'invoice_code' => $this->invoiceCode('B', $booking->id),
                 'total_amount' => $booking->total_price,
                 'issued_at'    => now()
             ]);
@@ -977,15 +1037,29 @@ public function invoices()
                 'items' => $items
             ]);
             
-            Invoice::create([
-                'order_id'     => $order->id,
-                'invoice_code' => 'INV-' . time(),
+            Invoice::firstOrCreate([
+                'order_id' => $order->id,
+            ], [
+                'invoice_code' => $this->invoiceCode('O', $order->id),
                 'total_amount' => $order->total_amount,
                 'issued_at'    => now()
             ]);
 
             return $pdf->download('hoa-don-dich-vu-' . $id . '.pdf');
         }
+    }
+
+    private function invoiceCode(string $type, int $id): string
+    {
+        $base = 'INV-' . $type . '-' . $id;
+        $code = $base;
+        $suffix = 1;
+
+        while (Invoice::where('invoice_code', $code)->exists()) {
+            $code = $base . '-' . $suffix++;
+        }
+
+        return $code;
     }
 
     

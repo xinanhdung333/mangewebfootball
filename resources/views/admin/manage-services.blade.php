@@ -130,12 +130,12 @@
                     </div>
                     <div class="mb-3">
                         <label>Tên dịch vụ</label>
-                        <input type="text" class="form-control" name="name" required>
+                        <input type="text" class="form-control" name="name" maxlength="100" required>
                     </div>
 
                     <div class="mb-3">
                         <label>Giá</label>
-                        <input type="number" class="form-control" name="price" step="1000" required>
+                        <input type="number" class="form-control" name="price" min="0" max="999999999999999" step="1" required>
                     </div>
 
                     <div class="mb-3">
@@ -145,7 +145,7 @@
 
                     <div class="mb-3">
                         <label>Trạng thái</label>
-                        <select name="status" class="form-control">
+                        <select name="status" class="form-control" required>
                             <option value="active">Đang hoạt động</option>
                             <option value="inactive">Ngưng hoạt động</option>
                         </select>
@@ -153,7 +153,7 @@
 
                     <div class="mb-3">
                         <label>Ảnh</label>
-                        <input type="file" class="form-control" name="image" accept="image/*">
+                        <input type="file" class="form-control" name="image" accept=".jpg,.jpeg,.png,.gif,.webp,.avif">
                     </div>
                 </div>
 

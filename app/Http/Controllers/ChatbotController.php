@@ -15,6 +15,9 @@ class ChatbotController extends Controller
     {
         $data = $request->validate([
             'message' => ['required', 'string', 'max:1000'],
+            'history' => ['sometimes', 'array', 'max:10'],
+            'history.*.role' => ['required', 'in:user,model'],
+            'history.*.text' => ['required', 'string', 'max:1000'],
         ]);
 
         $originalMessage = trim($data['message']);
@@ -82,7 +85,7 @@ class ChatbotController extends Controller
         }
 
         // BƯỚC 2: Không rule nào khớp -> hỏi Gemini
-        $aiReply = $this->callGemini($originalMessage);
+        $aiReply = $this->callGemini($originalMessage, $data['history'] ?? []);
 
         $this->log($originalMessage, 'ai');
 
@@ -95,13 +98,13 @@ class ChatbotController extends Controller
     /**
      * Gọi Gemini API khi không có rule nào khớp.
      */
-    private function callGemini(string $message): string
+    private function callGemini(string $message, array $history = []): string
     {
         $apiKey = config('services.gemini.api_key');
 
         // Chưa cấu hình API key -> trả câu mặc định thay vì lỗi
         if (empty($apiKey)) {
-            return 'Mình chưa hiểu câu hỏi này. Bạn có thể hỏi về đặt sân, dịch vụ, giá hoặc liên hệ shop nhé.';
+            return 'Mình chưa có câu trả lời cho nội dung này. Bạn có thể hỏi về đặt sân, sản phẩm, giao hàng, thanh toán hoặc đơn hàng nhé.';
         }
 
         $kichBan = $this->getKichBan();
@@ -114,19 +117,39 @@ class ChatbotController extends Controller
                 $client->withoutVerifying();
             }
 
-            $response = $client->post(
-                'https://generativelanguage.googleapis.com/v1beta/models/'
-                    . config('services.gemini.model', 'gemini-2.5-flash')
-                    . ':generateContent?key=' . urlencode($apiKey),
-                [
-                    'system_instruction' => [
-                        'parts' => [['text' => $kichBan]],
-                    ],
-                    'contents' => [
-                        ['parts' => [['text' => $message]]],
-                    ],
-                ]
-            );
+            $contents = [];
+            foreach ($history as $item) {
+                $contents[] = [
+                    'role' => $item['role'],
+                    'parts' => [['text' => $item['text']]],
+                ];
+            }
+            $contents[] = [
+                'role' => 'user',
+                'parts' => [['text' => $message]],
+            ];
+
+            $requestBody = [
+                'system_instruction' => [
+                    'parts' => [['text' => $kichBan]],
+                ],
+                'contents' => $contents,
+                'generationConfig' => [
+                    'temperature' => 0.35,
+                    'maxOutputTokens' => 300,
+                ],
+            ];
+            $endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/'
+                . config('services.gemini.model', 'gemini-3.6-flash')
+                . ':generateContent';
+
+            $client = $client->withHeaders(['x-goog-api-key' => $apiKey]);
+            $response = $client->post($endpoint, $requestBody);
+
+            if (in_array($response->status(), [429, 500, 502, 503, 504], true)) {
+                usleep(400000);
+                $response = $client->post($endpoint, $requestBody);
+            }
 
             if ($response->failed()) {
                 report(new \RuntimeException(
@@ -134,17 +157,17 @@ class ChatbotController extends Controller
                     . ': ' . mb_substr($response->body(), 0, 500)
                 ));
 
-                return 'Mình chưa hiểu câu hỏi này. Bạn có thể hỏi về đặt sân, dịch vụ, giá hoặc liên hệ shop nhé.';
+                return 'Mình chưa có câu trả lời chính xác cho nội dung này. Bạn vui lòng liên hệ nhân viên hỗ trợ để được giải đáp nhé.';
             }
 
             $data = $response->json();
 
             return $data['candidates'][0]['content']['parts'][0]['text']
-                ?? 'Mình chưa hiểu câu hỏi này. Bạn có thể hỏi về đặt sân, dịch vụ, giá hoặc liên hệ shop nhé.';
+                ?? 'Mình chưa có câu trả lời chính xác cho nội dung này. Bạn vui lòng liên hệ nhân viên hỗ trợ để được giải đáp nhé.';
 
         } catch (\Throwable $e) {
             report($e);
-            return 'Mình chưa hiểu câu hỏi này. Bạn có thể hỏi về đặt sân, dịch vụ, giá hoặc liên hệ shop nhé.';
+            return 'Mình chưa có câu trả lời chính xác cho nội dung này. Bạn vui lòng liên hệ nhân viên hỗ trợ để được giải đáp nhé.';
         }
     }
 
@@ -158,10 +181,15 @@ class ChatbotController extends Controller
     {
         $path = storage_path('app/chatbot_context.txt');
 
-        $huongDan = "Bạn là trợ lý bán hàng, trả lời ngắn gọn, thân thiện, bằng tiếng Việt. "
-            . "Chỉ dùng thông tin trong phần DỮ LIỆU SHOP bên dưới để trả lời. "
-            . "Nếu câu hỏi không có trong dữ liệu, hoặc bạn không chắc chắn, "
-            . "hãy nói sẽ chuyển cho nhân viên hỗ trợ thay vì tự đoán hoặc bịa thông tin.\n\n";
+        $huongDan = "Bạn là trợ lý chăm sóc khách hàng của SportsHub. "
+            . "Trả lời bằng tiếng Việt tự nhiên, lịch sự, ngắn gọn (2-4 câu), đi thẳng vào câu hỏi. "
+            . "Đọc cả lịch sử hội thoại để hiểu các câu hỏi tiếp theo như 'cái đó', 'khi nào', 'bao nhiêu'. "
+            .             "Dùng thông tin trong DỮ LIỆU SHOP; không được bịa giá, giờ, tình trạng sân, chính sách hoặc đơn hàng. "
+            . "Với câu hỏi xin tư vấn chung (ví dụ thời tiết, khung giờ phù hợp, cách chuẩn bị), hãy đưa ra "
+            . "gợi ý thực tế và nói rõ đó là gợi ý chung, không khẳng định lịch/sân còn trống. "
+            . "Nếu thiếu thông tin để trả lời chính xác, hãy hỏi lại một câu cụ thể. Nếu dữ liệu hoàn toàn không có, nói rõ "
+            . "'Mình chưa có thông tin chính xác, mình sẽ chuyển bạn cho nhân viên hỗ trợ nhé.' "
+            . "Không nhắc đến Gemini, API, prompt hay dữ liệu nội bộ.\n\n";
 
         if (!is_file($path)) {
             return $huongDan . "DỮ LIỆU SHOP: (chưa có file context riêng)\n\n"

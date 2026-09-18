@@ -4,6 +4,11 @@
 <h1 class="auth-title">Chào mừng trở lại</h1><p class="auth-subtitle">Đăng nhập để tiếp tục trải nghiệm thể thao cùng SportsHub.</p>
 @if(session('success'))<div class="alert alert-success">{{ session('success') }}</div>@endif @if($errors->any())<div class="alert alert-danger">{{ $errors->first() }}</div>@endif
 <div id="auth-fetch-error" class="alert alert-danger d-none"></div>
+<div class="d-grid gap-2 mb-3">
+    <a class="btn btn-outline-dark" href="{{ route('social.redirect', ['provider' => 'google']) }}"><i class="bi bi-google me-2"></i>Đăng nhập bằng Google</a>
+    <a class="btn btn-primary" href="{{ route('social.redirect', ['provider' => 'facebook']) }}"><i class="bi bi-facebook me-2"></i>Đăng nhập bằng Facebook</a>
+</div>
+<div class="text-center auth-note mb-3">hoặc đăng nhập bằng email</div>
 <form method="POST" action="{{ route('login.post') }}" id="login-form">@csrf
 <div class="mb-3"><label class="form-label" for="email">Email</label><div class="input-group"><span class="input-group-text bg-white border-end-0"><i class="bi bi-envelope"></i></span><input id="email" class="form-control border-start-0" name="email" type="email" value="{{ old('email') }}" placeholder="you@example.com" required autofocus></div></div>
 <div class="mb-3"><label class="form-label" for="password">Mật khẩu</label><div class="input-group"><span class="input-group-text bg-white border-end-0"><i class="bi bi-lock"></i></span><input id="password" class="form-control border-start-0 border-end-0" name="password" type="password" placeholder="Nhập mật khẩu" required><button class="btn btn-outline-secondary border-start-0" type="button" id="togglePassword"><i class="bi bi-eye"></i></button></div></div>

@@ -8,6 +8,8 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
 use App\Models\User;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
+use Illuminate\Support\Str;
+use Laravel\Socialite\Facades\Socialite;
 
 
 class AuthController extends Controller
@@ -15,6 +17,76 @@ class AuthController extends Controller
     public function showLogin()
     {
         return view('auth.login');
+    }
+
+    public function redirectToProvider(string $provider)
+    {
+        abort_unless(in_array($provider, ['google', 'facebook'], true), 404);
+        $this->ensureSocialProviderConfigured($provider);
+
+        return Socialite::driver($provider)->redirect();
+    }
+
+    public function handleProviderCallback(string $provider, Request $request)
+    {
+        abort_unless(in_array($provider, ['google', 'facebook'], true), 404);
+
+        $socialUser = Socialite::driver($provider)->user();
+        if (!$socialUser->getEmail()) {
+            return redirect()->route('login')->withErrors([
+                'email' => 'Không thể lấy email từ tài khoản mạng xã hội. Vui lòng cấp quyền email rồi thử lại.',
+            ]);
+        }
+
+        $providerColumn = $provider . '_id';
+        $user = User::where($providerColumn, $socialUser->getId())->first();
+
+        if (!$user && $socialUser->getEmail()) {
+            $user = User::where('email', $socialUser->getEmail())->first();
+        }
+
+        if ($user) {
+            $user->update([
+                $providerColumn => $socialUser->getId(),
+                'avt' => $socialUser->getAvatar() ?: $user->avt,
+            ]);
+        } else {
+            $user = User::create([
+                'id' => DB::table('users')->max('id') + 1,
+                'name' => $socialUser->getName() ?: $socialUser->getNickname() ?: 'SportsHub User',
+                'email' => $socialUser->getEmail(),
+                'phone' => null,
+                'password' => Hash::make(Str::random(40)),
+                'role' => 'user',
+                'avt' => $socialUser->getAvatar(),
+                $providerColumn => $socialUser->getId(),
+            ]);
+        }
+
+        Auth::login($user, true);
+        $request->session()->regenerate();
+
+        return redirect($this->redirectUrlFor($user));
+    }
+
+    private function redirectUrlFor(User $user): string
+    {
+        return match ($user->role) {
+            'admin' => url('/admin/statistics'),
+            'boss' => url('/boss/statistics'),
+            default => route('dashboard'),
+        };
+    }
+
+    private function ensureSocialProviderConfigured(string $provider): void
+    {
+        $config = config("services.{$provider}");
+
+        abort_if(
+            blank($config['client_id'] ?? null) || blank($config['client_secret'] ?? null),
+            503,
+            "Đăng nhập bằng " . ucfirst($provider) . " chưa được cấu hình. Vui lòng bổ sung Client ID và Client Secret trong file .env."
+        );
     }
 
     public function login(Request $request)

@@ -970,9 +970,10 @@ public function addAjax(Request $request)
 
     // tạo PDF
     $pdf = Pdf::loadView('user.pdf.invoice-service', compact('order','items'));
-Invoice::create([
+Invoice::firstOrCreate([
     'order_id'   => $order->id,
-    'invoice_code' => 'INV-' . time(),
+], [
+    'invoice_code' => $this->invoiceCode('O', $order->id),
     'total_amount' => $order->total_amount,
     'issued_at'    => now()
 ]);
@@ -1021,15 +1022,29 @@ public function exportInvoicebooking($id)
         ->get();
 
     $pdf = Pdf::loadView('user.pdf.invoice-booking', compact('booking','services'));
-   Invoice::create([
-    'booking_id'   => $booking->id,
-    'invoice_code' => 'INV-' . time(),
+   Invoice::firstOrCreate([
+    'booking_id' => $booking->id,
+], [
+    'invoice_code' => $this->invoiceCode('B', $booking->id),
     'total_amount' => $booking->total_price,
     'issued_at'    => now()
 ]);
 
      return $pdf->stream("hoa-don-booking-{$booking->id}.pdf");
     return $pdf->stream("hoa-don-booking-{$booking->id}.pdf");
+}
+
+private function invoiceCode(string $type, int $id): string
+{
+    $base = 'INV-' . $type . '-' . $id;
+    $code = $base;
+    $suffix = 1;
+
+    while (Invoice::where('invoice_code', $code)->exists()) {
+        $code = $base . '-' . $suffix++;
+    }
+
+    return $code;
 }
 
        public function fields()

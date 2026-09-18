@@ -82,7 +82,7 @@
                                             <i class="bi bi-pencil"></i>
                                         </button>
 
-                                        <form method="POST" action="{{ route('boss.delete.user') }}" style="display:inline;">
+                                        <form method="POST" action="{{ route('admin.delete.user') }}" style="display:inline;">
                                             @csrf
                                             <input type="hidden" name="id" value="{{ $user->id }}">
                                             <button type="submit" class="btn btn-sm btn-danger"
@@ -91,7 +91,7 @@
                                             </button>
                                         </form>
                                     @else
-                                        <span class="badge bg-info">Boss (Bạn)</span>
+                                        <span class="badge bg-info">Admin (Bạn)</span>
                                     @endif
                                 </td>
                             </tr>
@@ -111,7 +111,7 @@
 <div class="modal fade" id="addUserModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST" action="{{ route('boss.store.user') }}">
+            <form method="POST" action="{{ route('admin.store.user') }}">
                 @csrf
                 <div class="modal-header">
                     <h5 class="modal-title">Thêm người dùng</h5>
@@ -139,7 +139,6 @@
                         <select name="role" class="form-control" required>
                             <option value="user">User</option>
                             <option value="admin">Admin</option>
-                            <option value="boss">Boss</option>
                         </select>
                     </div>
 
@@ -159,7 +158,7 @@
 <div class="modal fade" id="editUserModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form method="POST" action="{{ route('boss.update.user') }}">
+            <form method="POST" action="{{ route('admin.update.user') }}">
                 @csrf
                 <div class="modal-header">
                     <h5 class="modal-title">Sửa người dùng</h5>
@@ -189,7 +188,6 @@
                         <select id="edit_role" name="role" class="form-control" required>
                             <option value="user">User</option>
                             <option value="admin">Admin</option>
-                            <option value="boss">Boss</option>
                         </select>
                     </div>
                 </div>

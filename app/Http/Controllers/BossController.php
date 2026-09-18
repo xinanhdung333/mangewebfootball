@@ -515,8 +515,8 @@ class BossController extends Controller
     {
         $validated = $request->validate([
             'category_id' => 'required|integer|exists:categories,id',
-            'name' => 'required|string|max:255',
-            'price' => 'required|numeric|min:0',
+            'name' => 'required|string|max:100',
+            'price' => 'required|numeric|integer|min:0|max:999999999999999',
             'quantity' => 'required|integer|min:0',
             'status' => 'required|in:active,inactive',
             'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,avif|max:4096',
@@ -546,8 +546,8 @@ class BossController extends Controller
         $validated = $request->validate([
             'id' => 'required|integer|exists:services,id',
             'category_id' => 'required|integer|exists:categories,id',
-            'name' => 'required|string|max:255',
-            'price' => 'required|numeric|min:0',
+            'name' => 'required|string|max:100',
+            'price' => 'required|numeric|integer|min:0|max:999999999999999',
             'quantity' => 'required|integer|min:0',
             'status' => 'required|in:active,inactive',
             'image' => 'nullable|file|mimes:jpeg,png,jpg,gif,webp,avif|max:4096',
