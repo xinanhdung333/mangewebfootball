@@ -165,15 +165,13 @@ class CartController extends Controller
     }
 
   private function createOrderFromItems($items, $user): Order
-{
-    $total = 0;
+  {
+      $total = 0;
 
-    foreach ($items as $item) {
-
-        $service = Service::findOrFail($item->service_id);
-
-        // 🔥 dùng giá đã giảm
-        $total += $item->price * $item->quantity;
+      foreach ($items as $item) {
+          $service = Service::findOrFail($item->service_id);
+          [$finalPrice] = $this->getDiscountedPrice($service);
+          $total += $finalPrice * $item->quantity;
     }
 
     $order = Order::create([
@@ -190,23 +188,14 @@ class CartController extends Controller
             throw new \RuntimeException("Dich vu {$service->name} chi con {$service->quantity} san pham");
         }
 
-        $originalPrice = $service->price;
-
-        $discountPercent = 0;
-
-        if ($item->price < $originalPrice) {
-            $discountPercent = round((1 - ($item->price / $originalPrice)) * 100);
-        }
+        [$discountedPrice, $discountPercent] = $this->getDiscountedPrice($service);
 
         OrderItem::create([
             'order_id' => $order->id,
             'service_id' => $item->service_id,
 
-            // 🔥 giá sau giảm
-            'price' => $item->price,
-
-            // 🔥 lưu thêm
-            'original_price' => $originalPrice,
+            'price' => $discountedPrice,
+            'original_price' => $service->price,
             'discount_percent' => $discountPercent,
 
             'quantity' => $item->quantity,
@@ -216,6 +205,42 @@ class CartController extends Controller
     }
 
     return $order;
+}
+
+private function getDiscountedPrice(Service $service): array
+{
+    $originalPrice = (float) $service->price;
+    $now = Carbon::now();
+    $currentMin = $now->hour * 60 + $now->minute;
+
+    $rules = ServiceDiscount::where('is_active', true)
+        ->where(function ($query) use ($service) {
+            $query->where('service_id', $service->id)
+                ->orWhereNull('service_id');
+        })
+        ->orderByRaw('service_id IS NULL')
+        ->get();
+
+    foreach ($rules as $rule) {
+        [$startHour, $startMinute] = array_map('intval', explode(':', substr((string) $rule->start_time, 0, 5)));
+        [$endHour, $endMinute] = array_map('intval', explode(':', substr((string) $rule->end_time, 0, 5)));
+        $startMin = $startHour * 60 + $startMinute;
+        $endMin = $endHour * 60 + $endMinute;
+
+        $inTime = $startMin <= $endMin
+            ? $currentMin >= $startMin && $currentMin < $endMin
+            : $currentMin >= $startMin || $currentMin < $endMin;
+
+        if ($inTime) {
+            $multiplier = max(0, min(1, (float) $rule->multiplier));
+            $discountedPrice = round($originalPrice * $multiplier);
+            $discountPercent = round((1 - $multiplier) * 100);
+
+            return [$discountedPrice, $discountPercent];
+        }
+    }
+
+    return [$originalPrice, 0];
 }
     private function createPendingPayment(Order $order): Payment
     {
