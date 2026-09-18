@@ -84,9 +84,9 @@ class AdminController extends Controller
 
             // Bookings by month (Last 12 months)
             $bookings_by_month = Booking::where('status', 'confirmed')
-                ->selectRaw("DATE_FORMAT(booking_date, '%m/%Y') as month, COUNT(*) as count, SUM(total_price) as revenue")
-                ->groupByRaw("DATE_FORMAT(booking_date, '%m/%Y')")
-                ->orderByRaw("STR_TO_DATE(CONCAT('01/', DATE_FORMAT(booking_date, '%m/%Y')), '%d/%m/%Y') DESC")
+                ->selectRaw("DATE_FORMAT(booking_date, '%m/%Y') as month, DATE_FORMAT(booking_date, '%Y-%m') as sort_month, COUNT(*) as count, SUM(total_price) as revenue")
+                ->groupByRaw("DATE_FORMAT(booking_date, '%m/%Y'), DATE_FORMAT(booking_date, '%Y-%m')")
+                ->orderByDesc('sort_month')
                 ->limit(12)
                 ->get();
 

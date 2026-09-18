@@ -63,7 +63,9 @@ class AuthController extends Controller
             ]);
         }
 
-        Auth::login($user, true);
+        // OAuth login uses the current session only; do not require remember_token
+        // on legacy production databases that may not have that column yet.
+        Auth::login($user, false);
         $request->session()->regenerate();
 
         return redirect($this->redirectUrlFor($user));
