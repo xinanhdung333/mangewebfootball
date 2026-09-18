@@ -9,8 +9,12 @@
     .messenger-shell {
         display: grid;
         grid-template-columns: 270px minmax(0, 1fr);
-        height: min(720px, calc(100vh - 180px));
-        min-height: 560px;
+        /*
+         * Keep the composer inside the first viewport. The shared layout has
+         * a navbar and footer, so using the full viewport height clips it.
+         */
+        height: min(720px, calc(100vh - 250px));
+        min-height: 420px;
         overflow: hidden;
         background: #fff;
         border: 1px solid #e5eaf1;
@@ -89,7 +93,14 @@
         font-size: 10px;
         line-height: 1.5;
     }
-    .messenger-main { display: flex; min-width: 0; flex-direction: column; background: #fbfcfe; }
+    .messenger-main {
+        display: flex;
+        min-width: 0;
+        min-height: 0;
+        height: 100%;
+        flex-direction: column;
+        background: #fbfcfe;
+    }
     .messenger-header {
         display: flex;
         align-items: center;
@@ -105,10 +116,13 @@
     .messenger-actions { margin-left: auto; display: flex; gap: 16px; color: #8b98aa; }
     .messenger-body {
         flex: 1;
+        flex-basis: 0;
         min-height: 0 !important;
         max-height: none !important;
         padding: 24px 8% !important;
         overflow-y: auto;
+        overscroll-behavior: contain;
+        -webkit-overflow-scrolling: touch;
         background: linear-gradient(145deg, #fff 0%, #f6f8fc 100%);
     }
     .messenger-body .mb-3 { margin-bottom: 18px !important; }
@@ -121,7 +135,7 @@
     .messenger-body .p-3 { padding: 10px 13px !important; font-size: 12px; }
     .messenger-body img.rounded-circle { width: 32px !important; height: 32px !important; }
     .messenger-body .text-xs { color: #a0abba !important; font-size: 9px; }
-    .messenger-compose { padding: 10px 9%; background: #fff; border-top: 1px solid #e7ebf1; }
+    .messenger-compose { flex: 0 0 auto; padding: 10px 9%; background: #fff; border-top: 1px solid #e7ebf1; }
     .messenger-compose .input-group { gap: 8px; }
     .messenger-compose .input-group > * { border-radius: 8px !important; }
     .messenger-compose .form-control { border-color: #dbe2eb; font-size: 12px; }
@@ -131,6 +145,7 @@
         .messenger-page { min-height: calc(100vh - 90px); padding: 0; }
         .messenger-shell { display: block; height: calc(100vh - 115px); min-height: 500px; border-radius: 10px; }
         .messenger-sidebar { display: none; }
+        .messenger-main { height: 100%; }
         .messenger-header { padding: 10px 13px; }
         .messenger-body { padding: 18px 12px !important; }
         .messenger-body .bg-primary, .messenger-body .bg-light { max-width: 86% !important; }
