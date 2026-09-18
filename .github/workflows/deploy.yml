@@ -13,11 +13,13 @@ jobs:
           cd /var/www/myapp/mangewebfootball
           git pull origin main
           composer install --no-dev --optimize-autoloader --no-interaction || true
+          npm install --omit=dev --no-audit --no-fund
           php artisan migrate --force || true
           php artisan config:cache || true
           php artisan route:cache || true
           php artisan view:cache || true
+          sudo systemctl restart football-websocket
+          curl --fail --silent http://127.0.0.1:6001/health
           sudo systemctl reload php8.5-fpm 2>/dev/null || sudo systemctl reload php8.3-fpm 2>/dev/null || true
           sudo systemctl reload nginx 2>/dev/null || true
           echo "Deployed OK $(date)"
-

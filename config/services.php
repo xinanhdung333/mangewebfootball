@@ -80,5 +80,9 @@ return [
         'free_threshold' => (int) env('SHIPPING_FREE_THRESHOLD', 200000),
     ],
 
-];
+    'websocket' => [
+        'server_url' => env('WS_SERVER_URL', 'http://127.0.0.1:6001'),
+        'endpoint' => env('WS_ENDPOINT', 'ws://127.0.0.1:6001'),
+    ],
 
+];

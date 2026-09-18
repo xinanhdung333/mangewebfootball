@@ -279,11 +279,13 @@
 
                     @endif
 
-                    <a href="{{ route('user.order.tracking', $order->id) }}"
-                       class="btn btn-success w-100">
-                        <i class="bi bi-truck"></i>
-                        Theo dõi vận chuyển
-                    </a>
+                    @if(in_array($order->status, ['confirmed', 'completed'], true))
+                        <a href="{{ route('user.order.tracking', $order->id) }}"
+                           class="btn btn-success w-100">
+                            <i class="bi bi-truck"></i>
+                            Theo dõi vận chuyển
+                        </a>
+                    @endif
 
                 </div>
 

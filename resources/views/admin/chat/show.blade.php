@@ -87,7 +87,7 @@
     const adminFileButton = document.getElementById('admin-chat-file-button');
     const adminFilePreview = document.getElementById('admin-chat-file-preview');
     const adminCsrfToken = adminChatForm.querySelector('[name="_token"]').value;
-    const adminWs = new WebSocket('{{ env('WS_ENDPOINT', 'ws://127.0.0.1:6001') }}');
+    const adminWs = new WebSocket(@json(config('services.websocket.endpoint')));
     const adminPendingMessages = [];
     const adminDefaultAvatar = '{{ asset('assets/images/default.png') }}';
 

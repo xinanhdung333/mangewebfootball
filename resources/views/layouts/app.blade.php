@@ -63,6 +63,42 @@
             background: rgba(255, 255, 255, 0.2);
         }
 
+        /* Keep the desktop navigation on one clean horizontal line. */
+        .navbar > .container-fluid {
+            gap: 24px;
+            min-height: 64px;
+        }
+        .navbar .navbar-brand {
+            flex: 0 0 auto;
+            white-space: nowrap;
+        }
+        .navbar .offcanvas-body {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            min-width: 0;
+            padding: 0;
+        }
+        .navbar .offcanvas-body > .navbar-nav {
+            flex-wrap: nowrap;
+            gap: 3px;
+            min-width: 0;
+        }
+        .navbar .offcanvas-body > .navbar-nav > .nav-item {
+            flex: 0 0 auto;
+        }
+        .navbar .offcanvas-body > .navbar-nav > .nav-item.w-100 {
+            width: auto !important;
+        }
+        .navbar .offcanvas-body > .navbar-nav .nav-link {
+            padding: 8px 9px;
+            font-size: .86rem;
+            white-space: nowrap;
+        }
+        .navbar .offcanvas-body > .navbar-nav .dropdown-toggle::after {
+            margin-left: 4px;
+        }
+
         /* ===== Dark Dropdown hover ===== */
         .dropdown-menu[style*="background:#1e1e1e"] .dropdown-item:hover,
         .dropdown-menu[style*="background:#1e1e1e"] .dropdown-item:focus {
@@ -110,6 +146,10 @@
 
         /* ===== TABLET (≤ 991px) ===== */
         @media (max-width: 991px) {
+            .navbar > .container-fluid {
+                min-height: 56px;
+            }
+
             .navbar-nav {
                 flex-direction: column;
                 width: 100%;
@@ -144,6 +184,16 @@
             .admin-nav {
                 flex-wrap: wrap;
                 gap: 6px;
+            }
+
+            .navbar .offcanvas-body {
+                display: block;
+                padding: 1rem;
+            }
+
+            .navbar .offcanvas-body > .navbar-nav {
+                align-items: stretch !important;
+                gap: 0;
             }
         }
 

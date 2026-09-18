@@ -129,7 +129,7 @@
     const userChatBody = document.getElementById('user-chat-body'); const chatForm = document.getElementById('chat-form');
     const messageInput = chatForm.querySelector('[name="message"]'); const attachmentInput = document.getElementById('chat-attachment');
     const fileButton = document.getElementById('chat-file-button'); const filePreview = document.getElementById('chat-file-preview');
-    const csrfToken = chatForm.querySelector('[name="_token"]').value; const wsEndpoint = '{{ env('WS_ENDPOINT', 'ws://127.0.0.1:6001') }}';
+    const csrfToken = chatForm.querySelector('[name="_token"]').value; const wsEndpoint = @json(config('services.websocket.endpoint'));
     const currentUserAvatar = '{{ auth()->user()->avt? asset('uploads/avatars/'.auth()->user()->avt) : asset('assets/images/default.png') }}';
     const defaultAvatar = '{{ asset('assets/images/default.png') }}'; const pendingMessages = []; messageInput.required=false;
     const userWs = new WebSocket(wsEndpoint);

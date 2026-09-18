@@ -1,10 +1,16 @@
 import { createServer } from 'http';
 import { WebSocketServer } from 'ws';
 
+const host = process.env.WS_HOST || '127.0.0.1';
 const port = process.env.WS_PORT ? Number(process.env.WS_PORT) : 6001;
 const subscriptions = new Map();
 
 const httpServer = createServer((req, res) => {
+    if (req.method === 'GET' && req.url === '/health') {
+        res.writeHead(200, { 'Content-Type': 'application/json' });
+        return res.end(JSON.stringify({ status: 'ok' }));
+    }
+
     if (req.method === 'POST' && req.url === '/broadcast') {
         let body = '';
 
@@ -82,6 +88,6 @@ wss.on('connection', (socket) => {
     });
 });
 
-httpServer.listen(port, () => {
-    console.log(`WebSocket server is listening on ws://127.0.0.1:${port}`);
+httpServer.listen(port, host, () => {
+    console.log(`WebSocket server is listening on ws://${host}:${port}`);
 });

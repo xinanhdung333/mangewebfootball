@@ -2,6 +2,13 @@
 
 @php
     $shippingMethods = \App\Models\ShippingMethod::query()->where('is_active', true)->orderBy('id')->get();
+    $freeShippingThreshold = (int) \App\Models\Setting::get(
+        'free_shipping_threshold',
+        config('services.ors.free_threshold', 200000)
+    );
+    $orderHasFreeShipping = $type === 'order'
+        && $freeShippingThreshold > 0
+        && (float) ($item->total_amount ?? 0) >= $freeShippingThreshold;
 @endphp
  
 @section('content')
@@ -190,6 +197,7 @@ class="pay-item-thumb"
                 name="shipping_service"
                 value="{{ $shippingMethod->code }}"
                 data-extra-fee="{{ (float) $shippingMethod->extra_fee }}"
+                data-is-standard="{{ strtolower((string) $shippingMethod->code) === 'standard' || str_contains(strtolower((string) $shippingMethod->name), 'standard') ? '1' : '0' }}"
                 class="d-none"
                 {{ $loop->first ? 'checked' : '' }}
                 {{ $shippingMethod->is_active ? '' : 'disabled' }}
@@ -935,10 +943,30 @@ document.addEventListener('DOMContentLoaded', function () {
     let selectedShippingExtraFee = Number(document.querySelector('input[name="shipping_service"]:checked')?.dataset.extraFee || 0);
     let currentCalculatedShippingFee = 0;
     let currentShippingFreeFlag = false;
+    const orderHasFreeShipping = {{ $orderHasFreeShipping ? 'true' : 'false' }};
     let lastDistanceKm = null;
+
+    function setFreeShippingMode(isFree) {
+        const standardShipping = document.querySelector('input[name="shipping_service"][data-is-standard="1"]');
+        document.querySelectorAll('input[name="shipping_service"]').forEach(function (radio) {
+            radio.disabled = isFree && radio !== standardShipping;
+            const row = radio.nextElementSibling;
+            if (row) row.classList.toggle('pay-radio-row-disabled', radio.disabled);
+        });
+
+        if (isFree && standardShipping) {
+            standardShipping.checked = true;
+            selectedShippingExtraFee = Number(standardShipping.dataset.extraFee || 0);
+        }
+    }
+
+    setFreeShippingMode(orderHasFreeShipping);
 
     document.querySelectorAll('input[name="shipping_service"]').forEach(function (radio) {
         radio.addEventListener('change', function () {
+            if (currentShippingFreeFlag && this.dataset.isStandard !== '1') {
+                return;
+            }
             selectedShippingExtraFee = Number(this.dataset.extraFee || 0);
             updateSummary(currentCalculatedShippingFee, null, lastDistanceKm, currentShippingFreeFlag);
             updateTotal();
@@ -993,8 +1021,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (isSelected) updateSummary(null, data.error);
                 return;
             }
-            showFeeOnCard(addrId, data.fee, data.distance_km, data.reason, data.is_free);
-            if (isSelected) updateSummary(data.is_free ? 0 : data.fee, null, data.distance_km, data.is_free);
+            const isFreeShipping = !!data.is_free || orderHasFreeShipping || currentVoucherFreeShipping;
+            showFeeOnCard(addrId, data.fee, data.distance_km, data.reason, isFreeShipping);
+            setFreeShippingMode(isFreeShipping);
+            if (isSelected) updateSummary(isFreeShipping ? 0 : data.fee, null, data.distance_km, isFreeShipping);
         })
         .catch(() => {
             showFeeOnCard(addrId, null, null, 'Không tính được phí ship');
@@ -1097,6 +1127,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     hiddenVoucherCode.value = data.voucher_code;
                     currentVoucherDiscount = parseFloat(data.discount_amount);
                     currentVoucherFreeShipping = !!data.is_free_shipping;
+                    setFreeShippingMode(currentVoucherFreeShipping || orderHasFreeShipping);
                     
                     if (summaryVoucherRow && summaryVoucherAmount) {
                         summaryVoucherRow.classList.remove('d-none');
@@ -1113,6 +1144,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     hiddenVoucherCode.value = '';
                     currentVoucherDiscount = 0;
                     currentVoucherFreeShipping = false;
+                    setFreeShippingMode(orderHasFreeShipping);
                     if (summaryVoucherRow) summaryVoucherRow.classList.add('d-none');
                     updateTotal();
                 }

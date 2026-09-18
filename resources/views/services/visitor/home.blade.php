@@ -191,79 +191,21 @@
         </div>
     </div>
 
-    <!-- Sản phẩm nổi bật -->
+    <!-- Giới thiệu ngắn gọn giống trang user, không lặp nhiều ảnh sản phẩm -->
     <div class="container mt-5 mb-5">
-        <h2 class="mb-4 text-center">Sản phẩm & Dịch vụ nổi bật</h2>
-        <div class="home-product-grid">
-            <!-- Sản phẩm 1 -->
-            <div class="home-product-card">
-                <img src="{{ asset('assets/images/banner.jpg') }}" alt="Product">
-                <div class="home-product-info">
-                    <div class="home-product-title">Giày đá bóng chính hãng siêu nhẹ đinh TF cao cấp (Mẫu mới)</div>
-                    <div class="home-product-price">1.500.000đ</div>
+        <div class="row g-4">
+            <div class="col-md-6">
+                <div class="feature-box h-100">
+                    <div class="feature-icon bg-blue"><i class="bi bi-calendar2-check"></i></div>
+                    <h3 class="feature-title">Đặt sân nhanh chóng</h3>
+                    <p class="feature-text">Tìm sân phù hợp, xem lịch trống và đặt sân trực tuyến dễ dàng chỉ với vài thao tác.</p>
                 </div>
             </div>
-            
-            <!-- Sản phẩm 2 (Ngắn hơn) -->
-            <div class="home-product-card">
-                <img src="{{ asset('assets/images/2340596.jpg') }}" alt="Product">
-                <div class="home-product-info">
-                    <div class="home-product-title">Tất chống trơn</div>
-                    <div class="home-product-price">50.000đ</div>
-                </div>
-            </div>
-
-            <!-- Sản phẩm 3 -->
-            <div class="home-product-card">
-                <img src="{{ asset('assets/images/banner.jpg') }}" alt="Product">
-                <div class="home-product-info">
-                    <div class="home-product-title">Áo bóng đá câu lạc bộ Real Madrid mùa giải mới chất vải thun lạnh co giãn 4 chiều</div>
-                    <div class="home-product-price">250.000đ</div>
-                </div>
-            </div>
-
-            <!-- Sản phẩm 4 -->
-            <div class="home-product-card">
-                <img src="{{ asset('assets/images/2340596.jpg') }}" alt="Product">
-                <div class="home-product-info">
-                    <div class="home-product-title">Băng quấn cổ chân bảo vệ</div>
-                    <div class="home-product-price">120.000đ</div>
-                </div>
-            </div>
-
-            <!-- Sản phẩm 5 -->
-            <div class="home-product-card">
-                <img src="{{ asset('assets/images/banner.jpg') }}" alt="Product">
-                <div class="home-product-info">
-                    <div class="home-product-title">Găng tay thủ môn có xương chống lật ngón cực xịn</div>
-                    <div class="home-product-price">450.000đ</div>
-                </div>
-            </div>
-
-            <!-- Sản phẩm 6 -->
-            <div class="home-product-card">
-                <img src="{{ asset('assets/images/2340596.jpg') }}" alt="Product">
-                <div class="home-product-info">
-                    <div class="home-product-title">Quả bóng đá số 5 tiêu chuẩn FIFA</div>
-                    <div class="home-product-price">350.000đ</div>
-                </div>
-            </div>
-            
-            <!-- Sản phẩm 7 -->
-            <div class="home-product-card">
-                <img src="{{ asset('assets/images/banner.jpg') }}" alt="Product">
-                <div class="home-product-info">
-                    <div class="home-product-title">Bình nước thể thao 1L nhựa Tritan</div>
-                    <div class="home-product-price">80.000đ</div>
-                </div>
-            </div>
-
-            <!-- Sản phẩm 8 -->
-            <div class="home-product-card">
-                <img src="{{ asset('assets/images/2340596.jpg') }}" alt="Product">
-                <div class="home-product-info">
-                    <div class="home-product-title">Túi đựng giày 2 ngăn chống nước, tiện lợi mang theo đồ đi tập</div>
-                    <div class="home-product-price">180.000đ</div>
+            <div class="col-md-6">
+                <div class="feature-box h-100">
+                    <div class="feature-icon bg-yellow"><i class="bi bi-shield-check"></i></div>
+                    <h3 class="feature-title">An toàn và tiện lợi</h3>
+                    <p class="feature-text">Thông tin sân, dịch vụ và lịch đặt được quản lý rõ ràng, giúp bạn yên tâm trước mỗi trận đấu.</p>
                 </div>
             </div>
         </div>

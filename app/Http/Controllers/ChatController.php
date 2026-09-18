@@ -62,7 +62,7 @@ class ChatController extends Controller
     private function broadcastMessage(Conversation $conversation, array $payload): void
     {
         try {
-            Http::timeout(1)->post(env('WS_SERVER_URL', 'http://127.0.0.1:6001').'/broadcast', [
+            Http::timeout(1)->post(config('services.websocket.server_url').'/broadcast', [
                 'conversation_id' => $conversation->id,
                 'message' => $payload,
             ]);
