@@ -148,7 +148,19 @@ document.addEventListener('DOMContentLoaded', function() {
     const allStatuses = @json(\App\Models\OrderShipment::STATUSES);
 
     const map = L.map('map');
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {attribution:'© OpenStreetMap'}).addTo(map);
+    const mapTiles = L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+        {
+            attribution: 'Tiles &copy; Esri',
+            maxZoom: 19,
+            crossOrigin: true,
+        }
+    ).addTo(map);
+    mapTiles.on('tileerror', function () {
+        mapTiles.setUrl('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png');
+        mapTiles.options.attribution = '&copy; OpenStreetMap contributors &copy; CARTO';
+        mapTiles.options.subdomains = 'abcd';
+    });
 
     function makeIcon(color, emoji) {
         return L.divIcon({

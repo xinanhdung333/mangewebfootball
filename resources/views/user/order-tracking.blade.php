@@ -374,10 +374,19 @@ document.addEventListener('DOMContentLoaded', function () {
 
     /* ── Map init ── */
     const map = L.map('map', { zoomControl: true });
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors',
-        maxZoom: 18,
-    }).addTo(map);
+    const mapTiles = L.tileLayer(
+        'https://server.arcgisonline.com/ArcGIS/rest/services/World_Street_Map/MapServer/tile/{z}/{y}/{x}',
+        {
+            attribution: 'Tiles &copy; Esri',
+            maxZoom: 19,
+            crossOrigin: true,
+        }
+    ).addTo(map);
+    mapTiles.on('tileerror', function () {
+        mapTiles.setUrl('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png');
+        mapTiles.options.attribution = '&copy; OpenStreetMap contributors &copy; CARTO';
+        mapTiles.options.subdomains = 'abcd';
+    });
 
     /* ── Custom icons ── */
     function makeIcon(color, emoji) {
