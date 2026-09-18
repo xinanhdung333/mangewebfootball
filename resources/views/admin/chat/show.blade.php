@@ -1,21 +1,36 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid py-4">
-    <div class="row mb-4">
-        <div class="col-md-12 d-flex justify-content-between align-items-center">
-            <div>
-                <h1><i class="bi bi-chat-dots"></i> Chat với {{ $conversation->user->name ?? 'Người dùng' }}</h1>
-                <p class="text-muted">Conversation ID: {{ $conversation->id }}</p>
+@include('chat._messenger-styles')
+<div class="messenger-page">
+    <div class="messenger-shell">
+        <aside class="messenger-sidebar">
+            <div class="messenger-sidebar-header">
+                <p class="messenger-sidebar-title">Tin nhắn khách hàng</p>
+                <div class="messenger-search"><i class="bi bi-search"></i><span>Tìm người dùng...</span></div>
             </div>
-            <a href="{{ route('admin.chat.index') }}" class="btn btn-secondary">Quay lại danh sách</a>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="card">
-                <div id="admin-chat-body" class="card-body" style="min-height: 400px; max-height: 600px; overflow-y: auto;">
+            <div class="messenger-conversations">
+                @foreach($conversations as $item)
+                    <a class="messenger-conversation {{ $item->id === $conversation->id ? 'active' : '' }}" href="{{ route('admin.chat.show', $item) }}">
+                        <span class="messenger-avatar">{{ strtoupper(substr($item->user->name ?? 'U', 0, 1)) }}</span>
+                        <span class="messenger-conversation-copy">
+                            <span class="messenger-conversation-name">{{ $item->user->name ?? 'Người dùng' }}</span>
+                            <span class="messenger-conversation-preview">{{ $item->admin_id ? 'Đã được tiếp nhận' : 'Đang chờ hỗ trợ' }}</span>
+                        </span>
+                    </a>
+                @endforeach
+            </div>
+        </aside>
+        <section class="messenger-main">
+            <header class="messenger-header">
+                <span class="messenger-avatar">{{ strtoupper(substr($conversation->user->name ?? 'U', 0, 1)) }}</span>
+                <div>
+                    <h1>Chat với {{ $conversation->user->name ?? 'Người dùng' }}</h1>
+                    <small><i class="bi bi-circle-fill messenger-status"></i> Conversation #{{ $conversation->id }} · Đang hoạt động</small>
+                </div>
+                <div class="messenger-actions"><a href="{{ route('admin.chat.index') }}" class="text-reset" title="Danh sách"><i class="bi bi-list"></i></a><i class="bi bi-info-circle"></i></div>
+            </header>
+            <div id="admin-chat-body" class="messenger-body">
                     @if($conversation->messages->isEmpty())
                         <div class="text-muted">Chưa có tin nhắn nào.</div>
                     @endif
@@ -43,7 +58,7 @@
                         @endif
                     @endforeach
                 </div>
-                <div class="card-footer">
+                <div class="messenger-compose">
                     <form id="admin-chat-form" action="{{ route('admin.chat.reply', $conversation) }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <input type="file" name="attachment" id="admin-chat-attachment" class="d-none">
@@ -57,8 +72,7 @@
                         <div id="admin-chat-file-preview" class="small text-muted mt-2 d-none"></div>
                     </form>
                 </div>
-            </div>
-        </div>
+        </section>
     </div>
 </div>
 

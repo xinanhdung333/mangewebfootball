@@ -130,8 +130,11 @@ class ChatController extends Controller
         }
 
         $conversation->load(['user', 'messages.sender', 'admin']);
+        $conversations = Conversation::with(['user', 'admin'])
+            ->orderByDesc('updated_at')
+            ->get();
 
-        return view('admin.chat.show', compact('conversation'));
+        return view('admin.chat.show', compact('conversation', 'conversations'));
     }
 
     public function adminReply(Request $request, Conversation $conversation)

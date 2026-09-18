@@ -1,60 +1,32 @@
 @extends('layouts.app')
 
 @section('content')
-<div class="container-fluid py-4">
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <h1><i class="bi bi-people"></i> Danh sách chat</h1>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-12">
-            <div class="card">
-                <div class="card-body table-responsive">
-                    @include('partials.admin-table-search', ['tableId' => 'admin-conversations-table', 'placeholder' => 'Tìm người dùng hoặc tin nhắn...'])
-                    <table id="admin-conversations-table" class="table table-hover">
-                        <thead>
-                            <tr>
-                                <th>#</th>
-                                <th>Người dùng</th>
-                                <th>Tin nhắn mới nhất</th>
-                                <th>Cập nhật</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach($conversations as $conversation)
-                                <tr>
-                                    <td>{{ $conversation->id }}</td>
-                                    <td>{{ $conversation->user->name ?? 'Người dùng' }}</td>
-                                    @php($latestMessage = $conversation->messages()->latest()->first())
-                                    <td>
-                                        @if(!$latestMessage)
-                                            Chưa có tin nhắn
-                                        @elseif($latestMessage->message !== '')
-                                            {{ $latestMessage->message }}
-                                        @elseif($latestMessage->hasAttachment())
-                                            <i class="bi bi-paperclip"></i> {{ $latestMessage->attachment_original_name }}
-                                        @else
-                                            Chưa có tin nhắn
-                                        @endif
-                                    </td>
-                                    <td>{{ $conversation->updated_at->format('H:i d/m/Y') }}</td>
-                                    <td>
-                                        @if($conversation->admin_id && $conversation->admin_id !== auth()->id())
-                                            <span class="badge bg-secondary">Đã xử lý bởi {{ $conversation->admin->name ?? 'admin khác' }}</span>
-                                        @else
-                                            <a href="{{ route('admin.chat.show', $conversation) }}" class="btn btn-sm btn-outline-primary">Mở chat</a>
-                                        @endif
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+@include('chat._messenger-styles')
+<div class="messenger-page">
+    <div class="messenger-shell">
+        <aside class="messenger-sidebar">
+            <div class="messenger-sidebar-header">
+                <p class="messenger-sidebar-title">Tin nhắn khách hàng</p>
+                <div class="messenger-search"><i class="bi bi-search"></i><span>Tìm người dùng...</span></div>
             </div>
-        </div>
+            <div class="messenger-conversations">
+                @foreach($conversations as $conversation)
+                    <a class="messenger-conversation" href="{{ route('admin.chat.show', $conversation) }}">
+                        <span class="messenger-avatar">{{ strtoupper(substr($conversation->user->name ?? 'U', 0, 1)) }}</span>
+                        <span class="messenger-conversation-copy">
+                            <span class="messenger-conversation-name">{{ $conversation->user->name ?? 'Người dùng' }}</span>
+                            <span class="messenger-conversation-preview">{{ $conversation->admin_id ? 'Đã được tiếp nhận' : 'Đang chờ hỗ trợ' }}</span>
+                        </span>
+                        <i class="bi bi-chevron-right small"></i>
+                    </a>
+                @endforeach
+            </div>
+        </aside>
+        <section class="messenger-main justify-content-center align-items-center text-center p-4">
+            <i class="bi bi-chat-square-text display-4 text-primary mb-3"></i>
+            <h1 class="h5 fw-bold">Chọn một cuộc trò chuyện</h1>
+            <p class="text-muted small">Chọn khách hàng ở danh sách bên trái để bắt đầu hỗ trợ.</p>
+        </section>
     </div>
 </div>
 @endsection

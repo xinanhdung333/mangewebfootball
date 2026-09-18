@@ -1,54 +1,46 @@
 @extends('layouts.app')
 
 @section('content')
-<style>
-@media (max-width: 576px) {
-    /* Header chat gọn */
-    #user-chat-admin-info img { width: 36px !important; height: 36px !important; }
-    #user-chat-admin-info h5 { font-size: 14px; }
-    #user-chat-admin-info small { font-size: 11px; }
-    .card-header.py-3 { padding: 8px 12px !important; }
-
-    /* Khung tin nhắn */
-    #user-chat-body { min-height: 280px !important; max-height: 380px !important; padding: 8px !important; }
-
-    /* Bubble tin nhắn */
-    #user-chat-body .mb-3 [style*="max-width"],
-    #user-chat-body [style*="max-width: 80%"] { max-width: 88% !important; }
-    #user-chat-body .p-3 { padding: 8px 10px !important; font-size: 13px; }
-    #user-chat-body img.rounded-circle { width: 28px !important; height: 28px !important; }
-    #user-chat-body .text-xs { font-size: 10px; }
-
-    /* Footer gửi tin */
-    .card-footer { padding: 8px 10px !important; }
-    .card-footer .btn { padding: 5px 10px; font-size: 13px; }
-    .card-footer .form-control { font-size: 13px; }
-}
-</style>
-<div class="container-fluid py-4">
-    <div class="row mb-4">
-        <div class="col-md-12">
-            <h1><i class="bi bi-chat-dots"></i> Chat với Admin</h1>
-        </div>
-    </div>
-
-    <div class="row">
-        <div class="col-lg-8">
-            <div class="card">
-                <div class="card-header bg-white border-bottom py-3">
-                    <div id="user-chat-admin-info" class="d-flex align-items-center gap-3">
-                        @if($conversation->admin)
-                            <img id="assigned-admin-avatar" src="{{ $conversation->admin->avt ? asset('uploads/avatars/'.$conversation->admin->avt) : asset('assets/images/default.png') }}" alt="Avatar" class="rounded-circle" style="width:48px;height:48px;object-fit:cover;">
-                            <div>
-                                <h5 id="assigned-admin-name" class="mb-0">Chat với {{ $conversation->admin->name }}</h5>
-                                <small id="assigned-admin-status" class="text-muted">Đã được gán cho admin này</small>
-                            </div>
-                        @else
-                            <div id="assigned-admin-placeholder" class="text-muted">Chờ admin bất kỳ trả lời. Sau khi admin trả lời, cuộc trò chuyện sẽ chính thức thuộc về admin đó.</div>
-                        @endif
-                    </div>
+@include('chat._messenger-styles')
+<div class="messenger-page">
+    <div class="messenger-shell">
+        <aside class="messenger-sidebar">
+            <div class="messenger-sidebar-header">
+                <p class="messenger-sidebar-title">Tin nhắn</p>
+                <div class="messenger-search"><i class="bi bi-search"></i><span>Tìm kiếm cuộc trò chuyện...</span></div>
+            </div>
+            <div class="messenger-conversations">
+                <a class="messenger-conversation active" href="{{ route('user.chat.index') }}">
+                    <span class="messenger-avatar"><i class="bi bi-headset"></i></span>
+                    <span class="messenger-conversation-copy">
+                        <span class="messenger-conversation-name">{{ $conversation->admin->name ?? 'Hỗ trợ SportsHub' }}</span>
+                        <span class="messenger-conversation-preview">Hỗ trợ khách hàng</span>
+                    </span>
+                    <i class="bi bi-chevron-right small"></i>
+                </a>
+            </div>
+            <div class="messenger-sidebar-note"><strong><i class="bi bi-stars"></i> Gợi ý hỗ trợ</strong><br>Đặt câu hỏi về sân, đơn hàng hoặc dịch vụ. Đội ngũ hỗ trợ sẽ phản hồi sớm.</div>
+        </aside>
+        <section class="messenger-main">
+            <header class="messenger-header">
+                <span class="messenger-avatar">
+                    @if($conversation->admin && $conversation->admin->avt)
+                        <img src="{{ asset('uploads/avatars/'.$conversation->admin->avt) }}" alt="Avatar">
+                    @else
+                        <i class="bi bi-headset"></i>
+                    @endif
+                </span>
+                <div id="user-chat-admin-info">
+                    @if($conversation->admin)
+                        <h1 id="assigned-admin-name">Chat với {{ $conversation->admin->name }}</h1>
+                        <small id="assigned-admin-status"><i class="bi bi-circle-fill messenger-status"></i> Đang trực tuyến</small>
+                    @else
+                        <div id="assigned-admin-placeholder"><h1>Hỗ trợ SportsHub</h1><small>Thường phản hồi trong vài phút</small></div>
+                    @endif
                 </div>
-                <div id="user-chat-body" class="card-body" style="min-height: 400px; max-height: 600px; overflow-y: auto;">
+                <div class="messenger-actions"><i class="bi bi-telephone"></i><i class="bi bi-camera-video"></i><i class="bi bi-info-circle"></i></div>
+            </header>
+            <div id="user-chat-body" class="messenger-body">
                     @if($messages->isEmpty())
                         <div class="text-muted">Chưa có tin nhắn nào. Hãy gửi tin nhắn để bắt đầu.</div>
                     @endif
@@ -87,7 +79,7 @@
                         @endif
                     @endforeach
                 </div>
-                <div class="card-footer">
+                <div class="messenger-compose">
                     <form id="chat-form" action="{{ route('user.chat.send') }}" method="POST" enctype="multipart/form-data">
                         @csrf
                         <input type="file" name="attachment" id="chat-attachment" class="d-none">
@@ -101,8 +93,7 @@
                         <div id="chat-file-preview" class="small text-muted mt-2 d-none"></div>
                     </form>
                 </div>
-            </div>
-        </div>
+        </section>
     </div>
 </div>
 
@@ -201,13 +192,8 @@
 
     function updateAssignedAdminInfo(adminName, adminAvatar) {
         const adminInfo = document.getElementById('user-chat-admin-info');
-        adminInfo.innerHTML = `
-            <img id="assigned-admin-avatar" src="${adminAvatar || defaultAvatar}" alt="Avatar" class="rounded-circle me-3" style="width:48px;height:48px;object-fit:cover;">
-            <div>
-                <h5 id="assigned-admin-name" class="mb-0">Chat với ${adminName || 'Admin'}</h5>
-                <small id="assigned-admin-status" class="text-muted">Đã được gán cho admin này</small>
-            </div>
-        `;
+        adminInfo.innerHTML = `<h1 id="assigned-admin-name">Chat với ${escapeHtml(adminName || 'Admin')}</h1>
+            <small id="assigned-admin-status"><i class="bi bi-circle-fill messenger-status"></i> Đang trực tuyến</small>`;
     }
 
     function resolvePendingMessage(message) {
