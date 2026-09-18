@@ -85,4 +85,9 @@ return [
         'endpoint' => env('WS_ENDPOINT', 'ws://127.0.0.1:6001'),
     ],
 
+    'gemini' => [
+        'api_key' => env('GEMINI_API_KEY'),
+        'model' => env('GEMINI_MODEL', 'gemini-2.5-flash'),
+    ],
+
 ];

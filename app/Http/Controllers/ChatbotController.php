@@ -6,6 +6,7 @@ use Illuminate\Support\Facades\Http;
 use App\Models\Category;
 use App\Models\Field;
 use App\Models\ChatbotLog;
+use App\Models\ChatbotIntent;
 use App\Models\Service;
 
 class ChatbotController extends Controller
@@ -26,14 +27,27 @@ class ChatbotController extends Controller
 
         $message = mb_strtolower($originalMessage, 'UTF-8');
 
-        $rulesPath = storage_path('app/chatbot_rules.json');
-        $rules = is_file($rulesPath)
-            ? json_decode((string) file_get_contents($rulesPath), true)
-            : [];
-
-        if (!is_array($rules)) {
-            $rules = [];
-        }
+        $rules = ChatbotIntent::query()
+            ->where('is_active', true)
+            ->orderByDesc('priority')
+            ->with(['keywords', 'responses'])
+            ->get()
+            ->map(static function (ChatbotIntent $intent): array {
+                return [
+                    'intent' => $intent->name,
+                    'keywords' => $intent->keywords
+                        ->pluck('keyword')
+                        ->filter(static fn ($keyword): bool => trim((string) $keyword) !== '')
+                        ->values()
+                        ->all(),
+                    'responses' => $intent->responses
+                        ->pluck('response_text')
+                        ->filter(static fn ($response): bool => trim((string) $response) !== '')
+                        ->values()
+                        ->all(),
+                ];
+            })
+            ->all();
 
         // BƯỚC 1: Thử khớp rule-based trước (giữ nguyên logic cũ)
         foreach ($rules as $rule) {
@@ -83,7 +97,7 @@ class ChatbotController extends Controller
      */
     private function callGemini(string $message): string
     {
-        $apiKey = env('GEMINI_API_KEY');
+        $apiKey = config('services.gemini.api_key');
 
         // Chưa cấu hình API key -> trả câu mặc định thay vì lỗi
         if (empty($apiKey)) {
@@ -102,7 +116,7 @@ class ChatbotController extends Controller
 
             $response = $client->post(
                 'https://generativelanguage.googleapis.com/v1beta/models/'
-                    . env('GEMINI_MODEL', 'gemini-3.6-flash')
+                    . config('services.gemini.model', 'gemini-2.5-flash')
                     . ':generateContent?key=' . urlencode($apiKey),
                 [
                     'system_instruction' => [
@@ -115,6 +129,11 @@ class ChatbotController extends Controller
             );
 
             if ($response->failed()) {
+                report(new \RuntimeException(
+                    'Gemini API request failed with HTTP status ' . $response->status()
+                    . ': ' . mb_substr($response->body(), 0, 500)
+                ));
+
                 return 'Mình chưa hiểu câu hỏi này. Bạn có thể hỏi về đặt sân, dịch vụ, giá hoặc liên hệ shop nhé.';
             }
 

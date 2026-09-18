@@ -106,6 +106,24 @@
             color: #fff !important;
         }
 
+        /* Admin menus use a light surface so their dark labels remain readable. */
+        .navbar .admin-nav-dropdown {
+            background: #fff !important;
+            color: #303740;
+            border: 1px solid #e5e7eb !important;
+        }
+        .navbar .admin-nav-dropdown .dropdown-item {
+            color: #303740 !important;
+        }
+        .navbar .admin-nav-dropdown .dropdown-item:hover,
+        .navbar .admin-nav-dropdown .dropdown-item:focus {
+            color: #d94108 !important;
+            background: #fff1e9 !important;
+        }
+        .navbar .admin-nav-dropdown .dropdown-divider {
+            border-color: #e5e7eb !important;
+        }
+
         /* ===== Mascot / Chatbot ===== */
         #mascot {
             position: fixed;
@@ -461,7 +479,7 @@
                     @if(auth()->user()->role === 'admin')
                         <li class="nav-item dropdown w-100">
                             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-boxes"></i> Quản lý dịch vụ</a>
-                            <ul class="dropdown-menu shadow border-0 text-bg-dark text-lg-bg-light">
+                            <ul class="dropdown-menu admin-nav-dropdown shadow border-0">
                                 <li><a class="dropdown-item" href="{{ route('admin.manage.services') }}"><i class="bi bi-bag me-2"></i>Sản phẩm</a></li>
                                 <li><a class="dropdown-item" href="{{ route('admin.manage.categories') }}"><i class="bi bi-tags me-2"></i>Danh mục</a></li>
                                 <li><hr class="dropdown-divider"></li>
@@ -480,7 +498,7 @@
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
                             <i class="bi bi-person"></i> {{ auth()->user()->name }}
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end text-bg-dark text-lg-bg-light">
+                        <ul class="dropdown-menu admin-nav-dropdown dropdown-menu-end">
                           <li>  <a class="dropdown-item" href="{{ route('admin.settings') }}">
     <i class="bi bi-gear me-2"></i> Pricing Settings
 </a></li>
@@ -494,7 +512,7 @@
                     @if(auth()->user()->role === 'boss')
                         <li class="nav-item dropdown w-100">
                             <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-boxes"></i> Quản lý dịch vụ</a>
-                            <ul class="dropdown-menu shadow border-0 text-bg-dark text-lg-bg-light">
+                            <ul class="dropdown-menu admin-nav-dropdown shadow border-0">
                                 <li><a class="dropdown-item" href="{{ route('boss.manage.services') }}"><i class="bi bi-bag me-2"></i>Sản phẩm</a></li>
                                 <li><a class="dropdown-item" href="{{ route('boss.manage.categories') }}"><i class="bi bi-tags me-2"></i>Danh mục</a></li>
                                 <li><hr class="dropdown-divider"></li>
@@ -512,7 +530,7 @@
                         <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
                             <i class="bi bi-person"></i> {{ auth()->user()->name }}
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end text-bg-dark text-lg-bg-light">
+                        <ul class="dropdown-menu admin-nav-dropdown dropdown-menu-end">
                             <li><a class="dropdown-item" href="{{ route('boss.profile') }}">Hồ sơ</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><form method="POST" action="{{ route('logout') }}">@csrf<button type="submit" class="dropdown-item">Đăng xuất</button></form></li>

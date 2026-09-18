@@ -3,7 +3,7 @@
         --messenger-blue: #2563eb;
         --messenger-ink: #172033;
         --messenger-muted: #8b96a8;
-        min-height: calc(100vh - 150px);
+        min-height: 0;
         padding: 0 0 24px;
     }
     .messenger-shell {
@@ -13,8 +13,10 @@
          * Keep the composer inside the first viewport. The shared layout has
          * a navbar and footer, so using the full viewport height clips it.
          */
-        height: min(720px, calc(100vh - 250px));
-        min-height: 420px;
+        width: 100%;
+        height: min(820px, calc(100vh - 220px));
+        min-height: 480px;
+        margin-bottom: 24px;
         overflow: hidden;
         background: #fff;
         border: 1px solid #e5eaf1;
@@ -142,8 +144,8 @@
     .messenger-compose .btn-primary { border: 0; padding-inline: 17px; }
     .messenger-compose .btn-outline-secondary { border-color: #dbe2eb; color: #8390a1; }
     @media (max-width: 767px) {
-        .messenger-page { min-height: calc(100vh - 90px); padding: 0; }
-        .messenger-shell { display: block; height: calc(100vh - 115px); min-height: 500px; border-radius: 10px; }
+        .messenger-page { min-height: 0; padding: 0; }
+        .messenger-shell { display: block; width: 100%; height: calc(100vh - 115px); min-height: 500px; border-radius: 10px; }
         .messenger-sidebar { display: none; }
         .messenger-main { height: 100%; }
         .messenger-header { padding: 10px 13px; }
