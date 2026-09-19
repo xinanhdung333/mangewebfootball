@@ -30,6 +30,16 @@ class ChatbotController extends Controller
 
         $message = mb_strtolower($originalMessage, 'UTF-8');
 
+        $productReply = $this->answerProductQuestion($message);
+        if ($productReply !== null) {
+            $this->log($originalMessage, 'product_database');
+
+            return response()->json([
+                'reply' => $productReply,
+                'source' => 'database',
+            ]);
+        }
+
         $rules = ChatbotIntent::query()
             ->where('is_active', true)
             ->orderByDesc('priority')
@@ -93,6 +103,87 @@ class ChatbotController extends Controller
             'reply' => $aiReply,
             'source' => 'ai',
         ]);
+    }
+
+    /**
+     * Trả lời các câu hỏi sản phẩm cần dữ liệu chính xác từ database.
+     */
+    private function answerProductQuestion(string $message): ?string
+    {
+        $query = Service::query()
+            ->where('status', 'active')
+            ->where('quantity', '>', 0);
+
+        $isProductQuestion = str_contains($message, 'sản phẩm')
+            || str_contains($message, 'san pham')
+            || str_contains($message, 'mặt hàng')
+            || str_contains($message, 'mat hang');
+
+        if (!$isProductQuestion) {
+            return null;
+        }
+
+        if (
+            str_contains($message, 'đắt nhất')
+            || str_contains($message, 'dat nhat')
+            || str_contains($message, 'cao nhất')
+            || str_contains($message, 'cao nhat')
+        ) {
+            $service = $query->orderByDesc('price')->first(['name', 'price']);
+
+            if (!$service) {
+                return 'Hiện chưa có sản phẩm còn hàng để tư vấn.';
+            }
+
+            return sprintf(
+                'Sản phẩm đang có giá cao nhất là "%s", giá %s VND.',
+                $service->name,
+                number_format((float) $service->price, 0, ',', '.')
+            );
+        }
+
+        if (
+            str_contains($message, 'rẻ nhất')
+            || str_contains($message, 're nhat')
+            || str_contains($message, 'thấp nhất')
+            || str_contains($message, 'thap nhat')
+        ) {
+            $service = $query->orderBy('price')->first(['name', 'price']);
+
+            if (!$service) {
+                return 'Hiện chưa có sản phẩm còn hàng để tư vấn.';
+            }
+
+            return sprintf(
+                'Sản phẩm đang có giá thấp nhất là "%s", giá %s VND.',
+                $service->name,
+                number_format((float) $service->price, 0, ',', '.')
+            );
+        }
+
+        if (
+            str_contains($message, 'còn hàng')
+            || str_contains($message, 'con hang')
+            || str_contains($message, 'tồn kho')
+            || str_contains($message, 'ton kho')
+        ) {
+            $services = $query
+                ->orderBy('name')
+                ->limit(10)
+                ->get(['name', 'quantity']);
+
+            if ($services->isEmpty()) {
+                return 'Hiện chưa có sản phẩm còn hàng.';
+            }
+
+            $items = $services->map(
+                fn (Service $service): string => $service->name . ' (còn ' . $service->quantity . ')'
+            )->implode(', ');
+
+            return 'Một số sản phẩm đang còn hàng: ' . $items . '.';
+        }
+
+        return null;
     }
 
     /**

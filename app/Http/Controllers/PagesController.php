@@ -160,15 +160,11 @@ class PagesController extends Controller
             config('services.ors.free_threshold', 200000)
         );
 
-        $categories = Cache::remember('dashboard:categories:v2', 300, function () {
-            return Category::whereHas('services', function ($query) {
-                    $query->where('status', 'active');
-                }, '>=', 2)
-                ->withCount('services')
+        $categories = Cache::remember('dashboard:categories:v3', 300, function () {
+            return Category::withCount('services')
                 ->with(['services' => function ($query) {
                     $query->where('status', 'active')
-                        ->orderByDesc('created_at')
-                        ->limit(2);
+                        ->orderByDesc('created_at');
                 }])
                 ->get();
         });
