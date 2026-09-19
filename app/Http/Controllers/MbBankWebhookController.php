@@ -11,6 +11,7 @@ use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Services\ServiceStockService;
 
 class MbBankWebhookController extends Controller
 {
@@ -610,6 +611,8 @@ class MbBankWebhookController extends Controller
             $order,
             $transactionId
         ) {
+            (new ServiceStockService())->decreaseForOrder($order);
+
             $payment->update([
                 'status' => 'paid',
                 'paid_at' => now(),

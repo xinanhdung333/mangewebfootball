@@ -9,6 +9,7 @@ use App\Models\Payment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use App\Services\ServiceStockService;
 
 class MomoController extends Controller
 {
@@ -98,6 +99,10 @@ class MomoController extends Controller
     private function markPaymentSuccess(Payment $payment, Request $request): void
     {
         DB::transaction(function () use ($payment, $request) {
+            (new ServiceStockService())->decreaseForOrder(
+                Order::findOrFail($payment->order_id)
+            );
+
             $payment->update([
                 'momo_trans_id' => $request->input('transId'),
                 'amount' => $request->input('amount'),

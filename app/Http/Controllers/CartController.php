@@ -205,7 +205,6 @@ class CartController extends Controller
             'quantity' => $item->quantity,
         ]);
 
-        $service->decrement('quantity', $item->quantity);
     }
 
     return $order;

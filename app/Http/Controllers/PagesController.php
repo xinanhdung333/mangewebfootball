@@ -28,6 +28,7 @@ use App\Models\ServiceDiscount;
 use App\Models\Voucher;
 use App\Helpers\ServiceDiscountHelper;
 use Illuminate\Support\Facades\Cache;
+use App\Services\ServiceStockService;
 
 
 class PagesController extends Controller
@@ -159,8 +160,11 @@ class PagesController extends Controller
             config('services.ors.free_threshold', 200000)
         );
 
-        $categories = Cache::remember('dashboard:categories', 300, function () {
-            return Category::withCount('services')
+        $categories = Cache::remember('dashboard:categories:v2', 300, function () {
+            return Category::whereHas('services', function ($query) {
+                    $query->where('status', 'active');
+                }, '>=', 2)
+                ->withCount('services')
                 ->with(['services' => function ($query) {
                     $query->where('status', 'active')
                         ->orderByDesc('created_at')
@@ -763,6 +767,7 @@ private function calculateVoucherDiscount(Voucher $voucher, float $orderTotal): 
     */
 
     DB::transaction(function () use ($order, $payment) {
+        (new ServiceStockService())->decreaseForOrder($order);
 
         $payment->update([
             'status' => 'success',
