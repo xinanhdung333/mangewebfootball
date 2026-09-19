@@ -179,6 +179,7 @@ class ChatbotController extends Controller
      */
     private function getKichBan(): string
     {
+        $jsonPath = database_path('seeders/chatbot_context.json');
         $path = storage_path('app/chatbot_context.txt');
 
         $huongDan = "Bạn là trợ lý chăm sóc khách hàng của SportsHub. "
@@ -190,6 +191,21 @@ class ChatbotController extends Controller
             . "Nếu thiếu thông tin để trả lời chính xác, hãy hỏi lại một câu cụ thể. Nếu dữ liệu hoàn toàn không có, nói rõ "
             . "'Mình chưa có thông tin chính xác, mình sẽ chuyển bạn cho nhân viên hỗ trợ nhé.' "
             . "Không nhắc đến Gemini, API, prompt hay dữ liệu nội bộ.\n\n";
+
+        if (is_file($jsonPath)) {
+            $jsonData = json_decode(
+                (string) file_get_contents($jsonPath),
+                true,
+                512,
+                JSON_THROW_ON_ERROR
+            );
+
+            return $huongDan
+                . "DỮ LIỆU SHOP (JSON):\n"
+                . json_encode($jsonData, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT)
+                . "\n\n"
+                . $this->getDatabaseContext();
+        }
 
         if (!is_file($path)) {
             return $huongDan . "DỮ LIỆU SHOP: (chưa có file context riêng)\n\n"
