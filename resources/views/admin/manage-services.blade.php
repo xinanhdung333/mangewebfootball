@@ -109,6 +109,12 @@
     </div>
 </div>
 
+@if ($services->hasPages())
+    <div class="d-flex justify-content-center mt-3">
+        {{ $services->links('pagination::bootstrap-5') }}
+    </div>
+@endif
+
 <!-- MODAL THÊM DỊCH VỤ -->
 <div class="modal fade" id="addServiceModal" tabindex="-1">
     <div class="modal-dialog">
