@@ -87,7 +87,7 @@
 
             <a href="{{ route('user.serviceDetail', $service->id) }}">
                 <img loading="lazy" src="{{ $service->image ? asset('uploads/services/'.$service->image) : asset('assets/images/default.png') }}"
-                     style="width:100%; height:160px; object-fit:cover;">
+                     class="service-product-image">
             </a>
 
             <div style="padding:8px; font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
@@ -192,8 +192,15 @@
 
 .product-grid{
     display:grid;
-    grid-template-columns:repeat(auto-fill,minmax(180px,1fr));
+    grid-template-columns:repeat(5,minmax(0,1fr));
     gap:15px;
+}
+
+.service-product-image {
+    display:block;
+    width:100%;
+    height:210px;
+    object-fit:cover;
 }
 
 .product-card{

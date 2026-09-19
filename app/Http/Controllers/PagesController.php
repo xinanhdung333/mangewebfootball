@@ -1330,7 +1330,7 @@ public function services(Request $request)
     if ($request->sort == 'rating') $query->orderByDesc('avg_rating');
     if ($request->sort == 'name') $query->orderBy('name', 'asc');
 
-    $services = $query->paginate(12)->withQueryString();
+    $services = $query->paginate(18)->withQueryString();
 
     $discountRules = ServiceDiscountHelper::getCachedRules();
 
