@@ -212,7 +212,8 @@
                         <h5 class="modal-title">Chỉnh sửa địa chỉ</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
-                    <form method="POST" action="{{ route('user.address.update', $address->id) }}">
+                    <form method="POST" action="{{ route('user.address.update', $address->id) }}" class="ghn-address-form"
+                          data-address-province="{{ $address->ghn_province_id ?? '' }}">
                         @csrf
                         @method('PUT')
                         <div class="modal-body">
@@ -230,18 +231,21 @@
                             </div>
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Phường/Xã</label>
-                                    <input type="text" name="ward" class="form-control" value="{{ $address->ward }}">
+                                    <label class="form-label">Phường/Xã GHN *</label>
+                                        <select name="ghn_ward_code" class="form-select ghn-ward" data-value="{{ $address->ghn_ward_code ?? '' }}" required><option value="">Chọn quận trước</option></select>
+                                        <input type="hidden" name="ward" class="ghn-ward-name" value="{{ $address->ward }}">
                                 </div>
                                 <div class="col-md-6 mb-3">
-                                    <label class="form-label">Quận/Huyện</label>
-                                    <input type="text" name="district" class="form-control" value="{{ $address->district }}">
+                                    <label class="form-label">Quận/Huyện GHN *</label>
+                                    <select name="ghn_district_id" class="form-select ghn-district" data-value="{{ $address->ghn_district_id ?? '' }}" required><option value="">Chọn tỉnh trước</option></select>
+                                    <input type="hidden" name="district" class="ghn-district-name" value="{{ $address->district }}">
                                 </div>
                             </div>
                             <div class="row">
                                 <div class="col-md-8 mb-3">
-                                    <label class="form-label">Tỉnh/Thành phố *</label>
-                                    <input type="text" name="city" class="form-control" value="{{ $address->city }}" required>
+                                    <label class="form-label">Tỉnh/Thành phố GHN *</label>
+                                    <select name="ghn_province_id" class="form-select ghn-province" required><option value="">Đang tải...</option></select>
+                                    <input type="hidden" name="city" class="ghn-province-name" value="{{ $address->city }}">
                                 </div>
                                 <div class="col-md-4 mb-3">
                                     <label class="form-label">Mã bưu điện</label>
@@ -280,7 +284,7 @@
                 <h5 class="modal-title">Thêm địa chỉ mới</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" action="{{ route('user.address.store') }}">
+            <form method="POST" action="{{ route('user.address.store') }}" class="ghn-address-form">
                 @csrf
                 <div class="modal-body">
                     <div class="mb-3">
@@ -297,18 +301,21 @@
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Phường/Xã</label>
-                            <input type="text" name="ward" class="form-control">
+                            <label class="form-label">Phường/Xã GHN *</label>
+                            <select name="ghn_ward_code" class="form-select ghn-ward" required><option value="">Chọn quận trước</option></select>
+                            <input type="hidden" name="ward" class="ghn-ward-name">
                         </div>
                         <div class="col-md-6 mb-3">
-                            <label class="form-label">Quận/Huyện</label>
-                            <input type="text" name="district" class="form-control">
+                            <label class="form-label">Quận/Huyện GHN *</label>
+                            <select name="ghn_district_id" class="form-select ghn-district" required><option value="">Chọn tỉnh trước</option></select>
+                            <input type="hidden" name="district" class="ghn-district-name">
                         </div>
                     </div>
                     <div class="row">
                         <div class="col-md-8 mb-3">
-                            <label class="form-label">Tỉnh/Thành phố *</label>
-                            <input type="text" name="city" class="form-control" placeholder="TP. Hồ Chí Minh" required>
+                            <label class="form-label">Tỉnh/Thành phố GHN *</label>
+                            <select name="ghn_province_id" class="form-select ghn-province" required><option value="">Đang tải...</option></select>
+                            <input type="hidden" name="city" class="ghn-province-name">
                         </div>
                         <div class="col-md-4 mb-3">
                             <label class="form-label">Mã bưu điện</label>
@@ -340,12 +347,83 @@
 </div>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    const ghnRoutes = {
+        provinces: @json(route('user.ghn.provinces')),
+        districts: @json(route('user.ghn.districts')),
+        wards: @json(route('user.ghn.wards'))
+    };
+    const loadGhn = url => fetch(url, {headers: {'Accept': 'application/json'}})
+        .then(response => {
+            if (!response.ok) throw new Error('Không tải được dữ liệu địa chỉ GHN.');
+            return response.json();
+        });
+    const fillGhn = (select, items, valueKey, labelKey, placeholder) => {
+        select.innerHTML = `<option value="">${placeholder}</option>`;
+        items.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item[valueKey];
+            option.textContent = item[labelKey];
+            select.appendChild(option);
+        });
+        select.disabled = false;
+    };
+    const setGhnLabel = (select, input) => {
+        input.value = select.options[select.selectedIndex]?.text || '';
+    };
+
+    document.querySelectorAll('.ghn-address-form').forEach(async form => {
+        const province = form.querySelector('.ghn-province');
+        const district = form.querySelector('.ghn-district');
+        const ward = form.querySelector('.ghn-ward');
+        const provinceName = form.querySelector('.ghn-province-name');
+        const districtName = form.querySelector('.ghn-district-name');
+        const wardName = form.querySelector('.ghn-ward-name');
+        const savedProvince = @json(optional($addresses->first())->ghn_province_id);
+        try {
+            const provinces = await loadGhn(ghnRoutes.provinces);
+            fillGhn(province, provinces, 'ProvinceID', 'ProvinceName', 'Chọn tỉnh/thành');
+            const initialProvince = form.dataset.addressProvince || province.dataset.value || '';
+            if (initialProvince) {
+                province.value = initialProvince;
+                const districts = await loadGhn(`${ghnRoutes.districts}?province_id=${initialProvince}`);
+                fillGhn(district, districts, 'DistrictID', 'DistrictName', 'Chọn quận/huyện');
+                if (district.dataset.value) {
+                    district.value = district.dataset.value;
+                    const wards = await loadGhn(`${ghnRoutes.wards}?district_id=${district.value}`);
+                    fillGhn(ward, wards, 'WardCode', 'WardName', 'Chọn phường/xã');
+                    ward.value = ward.dataset.value || '';
+                }
+            }
+            setGhnLabel(province, provinceName);
+            setGhnLabel(district, districtName);
+            setGhnLabel(ward, wardName);
+        } catch (error) {
+            form.querySelector('.geocode-msg').textContent = error.message;
+        }
+        province.addEventListener('change', async () => {
+            setGhnLabel(province, provinceName);
+            district.disabled = true; ward.disabled = true;
+            const districts = await loadGhn(`${ghnRoutes.districts}?province_id=${province.value}`);
+            fillGhn(district, districts, 'DistrictID', 'DistrictName', 'Chọn quận/huyện');
+            ward.innerHTML = '<option value="">Chọn quận/huyện trước</option>';
+            districtName.value = ''; wardName.value = '';
+        });
+        district.addEventListener('change', async () => {
+            setGhnLabel(district, districtName);
+            ward.disabled = true;
+            const wards = await loadGhn(`${ghnRoutes.wards}?district_id=${district.value}`);
+            fillGhn(ward, wards, 'WardCode', 'WardName', 'Chọn phường/xã');
+            wardName.value = '';
+        });
+        ward.addEventListener('change', () => setGhnLabel(ward, wardName));
+    });
+
     document.querySelectorAll('.btn-geocode').forEach(btn => {
         btn.addEventListener('click', function() {
             const form = this.closest('form');
-            const ward    = form.querySelector('[name="ward"]')?.value.trim() || '';
-            const district= form.querySelector('[name="district"]')?.value.trim() || '';
-            const city    = form.querySelector('[name="city"]').value.trim();
+            const ward    = form.querySelector('.ghn-ward-name')?.value.trim() || '';
+            const district= form.querySelector('.ghn-district-name')?.value.trim() || '';
+            const city    = form.querySelector('.ghn-province-name').value.trim();
             const msg     = form.querySelector('.geocode-msg');
             const latInput= form.querySelector('.lat-input');
             const lngInput= form.querySelector('.lng-input');

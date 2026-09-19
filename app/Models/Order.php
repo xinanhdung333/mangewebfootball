@@ -15,6 +15,12 @@ class Order extends Model
         'user_id',
         'cart_id',
         'user_address_id',
+        'to_province_id',
+        'to_district_id',
+        'to_ward_code',
+        'detail_address',
+        'ghn_code',
+        'ghn_status',
         'total_amount',
         'shipping_fee',
         'shipping_distance_km',
@@ -32,6 +38,16 @@ class Order extends Model
         'created_at' => 'datetime',
         'updated_at' => 'datetime',
     ];
+
+    public function getPayableAmountAttribute(): float
+    {
+        return max(
+            0,
+            (float) $this->total_amount
+                + (float) ($this->shipping_fee ?? 0)
+                - (float) ($this->voucher_discount ?? 0)
+        );
+    }
 
     public function user()
     {
@@ -70,5 +86,12 @@ class Order extends Model
     public function shipment()
     {
         return $this->hasOne(OrderShipment::class);
+    }
+
+    public function shippingStatusHistory()
+    {
+        return $this->hasMany(OrderShippingStatusHistory::class)
+            ->with('status')
+            ->latest();
     }
 }

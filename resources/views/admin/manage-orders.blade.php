@@ -142,10 +142,26 @@ $statusMap = [
                             @else
                                 <span class="text-muted" style="font-size:.78rem">Chưa tạo</span>
                             @endif
+                            @if($order->ghn_code)
+                                <div class="small text-success mt-1">GHN: {{ $order->ghn_code }}</div>
+                                <div class="small text-muted">
+                                    @php
+                                        $ghnLabels = \App\Services\GHNService::demoStatusLabels();
+                                    @endphp
+                                    {{ $ghnLabels[$order->ghn_status] ?? $order->ghn_status }}
+                                </div>
+                            @endif
                         </td>
 
                         <td>
-                            <strong>{{ number_format($order->total_amount) }} đ</strong>
+                            <strong>{{ number_format($order->payable_amount) }} đ</strong>
+                            @if((float) $order->shipping_fee > 0 || (float) $order->voucher_discount > 0)
+                                <div class="small text-muted">
+                                    Gốc {{ number_format($order->total_amount) }} đ
+                                    · ship {{ number_format($order->shipping_fee ?? 0) }} đ
+                                    · giảm {{ number_format($order->voucher_discount ?? 0) }} đ
+                                </div>
+                            @endif
                         </td>
 
                         <td>
@@ -162,6 +178,18 @@ $statusMap = [
                                class="btn btn-sm btn-primary mb-1" title="Theo dõi vận chuyển">
                                 <i class="bi bi-truck"></i>
                             </a>
+
+                            @if(!$order->ghn_code)
+                                <form method="POST" action="{{ route('admin.orders.ghn-demo', $order->id) }}" class="d-inline">
+                                    @csrf
+                                    <button class="btn btn-sm btn-success mb-1">Tạo đơn GHN DEMO</button>
+                                </form>
+                            @elseif($order->ghn_code)
+                                <form method="POST" action="{{ route('admin.orders.ghn-fake-status', $order->id) }}" class="d-inline">
+                                    @csrf
+                                    <button class="btn btn-sm btn-outline-success mb-1">Fake trạng thái</button>
+                                </form>
+                            @endif
 
                             <button class="btn btn-sm btn-info mb-1"
                                     data-bs-toggle="modal"
@@ -234,7 +262,7 @@ $statusMap = [
                 </table>
 
                 <h5 class="text-end">
-                    Tổng: {{ number_format($order->total_amount) }} đ
+                    Tổng thanh toán: {{ number_format($order->payable_amount) }} đ
                 </h5>
 
             </div>

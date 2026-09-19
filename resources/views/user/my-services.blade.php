@@ -283,5 +283,24 @@ document.addEventListener('click', function(e) {
 
 document.getElementById('search-input').addEventListener('keyup', () => loadServices());
 document.getElementById('status-filter').addEventListener('change', () => loadServices());
+
+setInterval(() => {
+    document.querySelectorAll('.order-card[data-order-id]').forEach(card => {
+        const badge = card.querySelector('.shipping-status-badge');
+        if (!badge) return;
+        fetch(`{{ url('/user/order') }}/${card.dataset.orderId}/shipping-status`, {
+            headers: {'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest'}
+        })
+        .then(response => response.ok ? response.json() : null)
+        .then(data => {
+            if (!data) return;
+            const label = data.ghn_status_label || data.shipment_status_label;
+            if (label) {
+                badge.innerHTML = `<i class="bi bi-truck me-1"></i>${data.ghn_code ? 'GHN: ' : ''}${label}`;
+            }
+        })
+        .catch(() => {});
+    });
+}, 10000);
 </script>
 @endsection

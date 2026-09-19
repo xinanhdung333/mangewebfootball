@@ -443,6 +443,10 @@
       <a class="navbar-brand" href="{{ route('admin.home') }}">
     <i class="bi bi-dribbble"></i> SportsHub
 </a>
+    @elseif(auth()->check() && auth()->user()->role === 'shipper')
+      <a class="navbar-brand" href="{{ route('shipper.dashboard') }}">
+    <i class="bi bi-dribbble"></i> SportsHub
+</a>
     @else
       <a class="navbar-brand" href="{{ route('user.home') }}">
     <i class="bi bi-dribbble"></i> SportsHub
@@ -544,6 +548,18 @@
                             <li><form method="POST" action="{{ route('logout') }}">@csrf<button type="submit" class="dropdown-item">Đăng xuất</button></form></li>
                         </ul>
                     </li> 
+                    @endif
+
+                    @if(auth()->user()->role === 'shipper')
+                        <li class="nav-item"><a class="nav-link" href="{{ route('shipper.dashboard') }}"><i class="bi bi-truck"></i> Đơn giao hàng</a></li>
+                        <li class="nav-item dropdown">
+                            <a class="nav-link dropdown-toggle" href="#" data-bs-toggle="dropdown">
+                                <i class="bi bi-person"></i> {{ auth()->user()->name }}
+                            </a>
+                            <ul class="dropdown-menu dropdown-menu-end admin-nav-dropdown">
+                                <li><form method="POST" action="{{ route('logout') }}">@csrf<button type="submit" class="dropdown-item">Đăng xuất</button></form></li>
+                            </ul>
+                        </li>
                     @endif
 
                     @if(auth()->user()->role === 'boss')

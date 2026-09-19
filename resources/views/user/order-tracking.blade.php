@@ -226,7 +226,7 @@ body { background: var(--track-bg); }
                 <div id="status-badge-wrap">
                     <span class="status-badge {{ $shipment->status }}" id="status-badge">
                         <i class="bi bi-circle-fill" style="font-size:.5rem"></i>
-                        <span id="status-text">{{ $shipment->statusLabel() }}</span>
+                        <span id="status-text">{{ $tracking['ghn_status_label'] ?? $shipment->statusLabel() }}</span>
                     </span>
                 </div>
                 <div class="mt-1">
@@ -291,15 +291,23 @@ body { background: var(--track-bg); }
                 <div class="track-card-body">
                     <ul class="timeline" id="timeline">
                         @php
-                            $statuses = \App\Models\OrderShipment::STATUSES;
-                            $labels   = \App\Models\OrderShipment::labels();
-                            $currentIndex = array_search($shipment->status, $statuses);
+                            $isGhn = (bool) $order->ghn_code;
+                            $statuses = $isGhn ? \App\Services\GHNService::demoStatuses() : \App\Models\OrderShipment::STATUSES;
+                            $labels   = $isGhn ? \App\Services\GHNService::demoStatusLabels() : \App\Models\OrderShipment::labels();
+                            $currentStatus = $isGhn ? ($order->ghn_status ?: 'ready_to_pick') : $shipment->status;
+                            $currentIndex = array_search($currentStatus, $statuses);
                             $icons = [
-                                'created'      => 'bi-box',
+                                'ready_to_pick' => 'bi-box',
+                                'picking'      => 'bi-box-arrow-in-down',
+                                'storing'      => 'bi-box-seam',
+                                'sorting'      => 'bi-diagram-3',
                                 'picked_up'    => 'bi-bag-check',
                                 'transporting' => 'bi-truck',
                                 'delivering'   => 'bi-house-door',
                                 'delivered'    => 'bi-check2-circle',
+                                'returning'    => 'bi-arrow-return-left',
+                                'returned'     => 'bi-arrow-counterclockwise',
+                                'cancelled'    => 'bi-x-circle',
                             ];
                         @endphp
                         @foreach($statuses as $i => $sv)
@@ -369,8 +377,9 @@ document.addEventListener('DOMContentLoaded', function () {
     const dataUrl    = '{{ route('user.order.tracking.data', $order->id) }}';
     const statusUrl  = '{{ route('user.order.tracking.status', $order->id) }}';
     const csrfToken  = '{{ csrf_token() }}';
-    const allStatuses = @json(\App\Models\OrderShipment::STATUSES);
-    const allLabels   = @json(\App\Models\OrderShipment::labels());
+    const isGhn = @json((bool) $order->ghn_code);
+    const allStatuses = @json($order->ghn_code ? \App\Services\GHNService::demoStatuses() : \App\Models\OrderShipment::STATUSES);
+    const allLabels   = @json($order->ghn_code ? \App\Services\GHNService::demoStatusLabels() : \App\Models\OrderShipment::labels());
 
     /* ── Map init ── */
     const map = L.map('map', { zoomControl: true });
@@ -470,11 +479,11 @@ document.addEventListener('DOMContentLoaded', function () {
         const textEl  = document.getElementById('status-text');
         if (badgeEl && textEl) {
             badgeEl.className = 'status-badge ' + data.status;
-            textEl.textContent = data.status_label;
+            textEl.textContent = data.ghn_status_label || data.status_label;
         }
 
         // Timeline
-        updateTimeline(data.status);
+        updateTimeline(isGhn ? data.ghn_status : data.status);
 
         // Select
         const sel = document.getElementById('status-select');

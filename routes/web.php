@@ -146,12 +146,17 @@ Route::get('/edit-status/{id}', [AdminController::class, 'editStatus'])
     Route::post('/update-field', [AdminController::class, 'updateField'])->name('update.field');
     Route::post('/delete-field', [AdminController::class, 'deleteField'])->name('delete.field');
     Route::get('/manage-orders', [AdminController::class, 'manageOrders'])->name('manage.orders');
+    Route::post('/orders/{order}/ghn-demo', [\App\Http\Controllers\GHNController::class, 'createDemoOrder'])
+        ->name('orders.ghn-demo');
+    Route::post('/orders/{order}/ghn-fake-status', [\App\Http\Controllers\GHNController::class, 'fakeStatus'])
+        ->name('orders.ghn-fake-status');
 Route::get('/edit-status-order/{id}', [AdminController::class, 'editStatusOrder'])
     ->name('edit.status.order');    Route::post('/update-order-status', [AdminController::class, 'updateOrderStatus'])->name('update.order.status');
     Route::post('/update-order-items-status', [AdminController::class, 'updateOrderItemsStatus'])->name('update.order.items.status');
 
     // Shipment management from admin
     Route::get('/order/{order}/shipment', [AdminController::class, 'viewShipment'])->name('order.shipment');
+    Route::get('/order/{order}/shipment/data', [AdminController::class, 'shipmentData'])->name('order.shipment.data');
     Route::post('/order/{order}/shipment/status', [AdminController::class, 'updateShipmentStatus'])->name('order.shipment.status');
     Route::get('/manage-services', [AdminController::class, 'manageServices'])->name('manage.services');
     Route::post('/store-service', [AdminController::class, 'storeService'])->name('store.service');
@@ -262,6 +267,9 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function(){
     Route::get('/dashboard', [PagesController::class, 'dashboard'])->name('dashboard');
     Route::get('/about', [PagesController::class, 'about'])->name('about');
     Route::get('/vouchers', [PagesController::class, 'vouchers'])->name('vouchers');
+    Route::get('/ghn/provinces', [\App\Http\Controllers\GHNController::class, 'provinces'])->name('ghn.provinces');
+    Route::get('/ghn/districts', [\App\Http\Controllers\GHNController::class, 'districts'])->name('ghn.districts');
+    Route::get('/ghn/wards', [\App\Http\Controllers\GHNController::class, 'wards'])->name('ghn.wards');
     
 
     // Fields & Services
@@ -296,6 +304,7 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function(){
     )->name('address.order.edit');
     // Booking
     Route::get('/my-bookings-fetch', [PagesController::class, 'myBookingsFetch'])->name('myBookings.fetch');
+    Route::get('/order/{order}/shipping-status', [PagesController::class, 'orderShippingStatus'])->name('order.shipping.status');
     Route::get('/bookingcreate', [PagesController::class, 'bookingcreate'])->name('bookingcreate');
     Route::post('/booking', [PagesController::class, 'storeBooking'])->name('bookingstore');
     Route::get('/my-bookings', [BookingController::class, 'myBookings'])->name('myBookings');
@@ -371,6 +380,11 @@ Route::get('/booking/momo/{booking_id}',
 )->name('booking.momo');
 
 
+});
+
+Route::middleware(['auth', 'role:shipper'])->prefix('shipper')->name('shipper.')->group(function () {
+    Route::get('/dashboard', [\App\Http\Controllers\ShipperController::class, 'index'])->name('dashboard');
+    Route::post('/orders/{order}/status', [\App\Http\Controllers\ShipperController::class, 'updateStatus'])->name('orders.status');
 });
 
 // Chatbot is available to guests as well as authenticated users.

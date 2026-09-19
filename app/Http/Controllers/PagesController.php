@@ -477,7 +477,7 @@ public function showOrderPaymentMethod(Order $order)
     $service = DB::table('order_items as oi')
         ->join('services as s', 'oi.service_id', '=', 's.id')
         ->where('oi.order_id', $order->id)
-        ->select('s.name', 's.price', 's.image', 'oi.quantity')
+        ->select('s.name', 'oi.price', 'oi.original_price', 's.image', 'oi.quantity')
         ->get();
 
     $addresses = \App\Models\UserAddress::where('user_id', auth()->id())->get();
@@ -572,6 +572,43 @@ private function calculateVoucherDiscount(Voucher $voucher, float $orderTotal): 
     return min((float) $voucher->discount_amount, $orderTotal);
 }
 
+private function rememberCheckoutAddress(array $data): ?\App\Models\UserAddress
+{
+    if (empty($data['to_province_id']) || empty($data['to_district_id']) || empty($data['to_ward_code']) || empty($data['detail_address'])) {
+        return null;
+    }
+
+    $user = auth()->user();
+    $address = !empty($data['selected_address_id'])
+        ? \App\Models\UserAddress::where('user_id', $user->id)->find($data['selected_address_id'])
+        : $user->addresses()->where('is_default', true)->first();
+
+    $attributes = [
+        'name' => $user->name,
+        'phone' => $user->phone,
+        'street_address' => $data['detail_address'],
+        'ward' => $data['to_ward_name'] ?? null,
+        'district' => $data['to_district_name'] ?? null,
+        'city' => $data['to_province_name'] ?? null,
+        'ghn_province_id' => (int) $data['to_province_id'],
+        'ghn_district_id' => (int) $data['to_district_id'],
+        'ghn_ward_code' => $data['to_ward_code'],
+        'is_default' => true,
+    ];
+
+    if (!$address) {
+        $address = $user->addresses()->create($attributes);
+    } else {
+        $address->update($attributes);
+    }
+
+    $user->addresses()
+        ->where('id', '!=', $address->id)
+        ->update(['is_default' => false]);
+
+    return $address;
+}
+
     public function applyVoucher(Request $request, Order $order)
     {
         $request->validate([
@@ -610,7 +647,14 @@ private function calculateVoucherDiscount(Voucher $voucher, float $orderTotal): 
 
         $data = $request->validate([
             'payment_method' => 'required|in:momo,cash,bank_transfer',
-            'selected_address_id' => 'nullable|exists:user_addresses,id',
+            'selected_address_id' => 'nullable|exists:user_addresses,id,user_id,' . auth()->id(),
+            'to_province_id' => 'nullable|integer',
+            'to_district_id' => 'nullable|integer',
+            'to_ward_code' => 'nullable|string|max:20',
+            'detail_address' => 'nullable|string|max:255',
+            'to_province_name' => 'nullable|string|max:100',
+            'to_district_name' => 'nullable|string|max:100',
+            'to_ward_name' => 'nullable|string|max:100',
             'note' => 'nullable|string',
             'shipping_service' => 'nullable|string',
             'shipping_fee' => 'nullable|numeric|min:0',
@@ -662,9 +706,15 @@ private function calculateVoucherDiscount(Voucher $voucher, float $orderTotal): 
 
         $finalAmount = max(0, (float) $order->total_amount + $shippingFee - $voucherDiscount);
 
+        $address = $this->rememberCheckoutAddress($data);
+
         // Update order with selected address, note, shipping and voucher
         $order->update([
-            'user_address_id' => $data['selected_address_id'] ?? $order->user_address_id,
+            'user_address_id' => $address?->id ?? $order->user_address_id,
+            'to_province_id' => $data['to_province_id'] ?? null,
+            'to_district_id' => $data['to_district_id'] ?? null,
+            'to_ward_code' => $data['to_ward_code'] ?? null,
+            'detail_address' => $data['detail_address'] ?? null,
             'note' => $data['note'] ?? null,
             'shipping_service' => $data['shipping_service'] ?? null,
             'shipping_fee' => $shippingFee,
@@ -683,13 +733,13 @@ private function calculateVoucherDiscount(Voucher $voucher, float $orderTotal): 
             [
                 'amount' => $finalAmount,
                 'status' => 'pending',
-                'user_address_id' => $data['selected_address_id'] ?? null,
+                'user_address_id' => $address?->id,
             ]
         );
 
         $payment->update([
             'amount' => $finalAmount,
-            'user_address_id' => $data['selected_address_id'] ?? null,
+            'user_address_id' => $address?->id,
         ]);
 
     /*
@@ -909,7 +959,7 @@ public function myServices()
     $filterStatus = $request->query('status');
     $keyword = $request->query('keyword');
 
-    $query = Order::with(['items.service', 'payment'])
+    $query = Order::with(['items.service', 'payment', 'shipment'])
         ->where('user_id', auth()->id());
 
     if ($keyword) {
@@ -930,6 +980,21 @@ public function myServices()
         'user.my-services',
         compact('filterStatus', 'keyword', 'myServices')
     );
+}
+
+public function orderShippingStatus(Order $order)
+{
+    abort_unless($order->user_id === auth()->id(), 403);
+
+    return response()->json([
+        'ghn_code' => $order->ghn_code,
+        'ghn_status' => $order->ghn_status,
+        'ghn_status_label' => $order->ghn_status
+            ? (\App\Services\GHNService::demoStatusLabels()[$order->ghn_status] ?? $order->ghn_status)
+            : null,
+        'shipment_status' => $order->shipment?->status,
+        'shipment_status_label' => $order->shipment?->statusLabel(),
+    ]);
 }
 
 public function addAjax(Request $request)

@@ -60,12 +60,19 @@ class ShippingService
 
     public function trackingPayload(OrderShipment $shipment): array
     {
+        $shipment->loadMissing('order');
+        $ghnStatus = $shipment->order?->ghn_status;
+
         return [
             'id' => $shipment->id,
             'tracking_code' => $shipment->tracking_code,
             'provider' => $shipment->provider,
             'status' => $shipment->status,
             'status_label' => $shipment->statusLabel(),
+            'ghn_status' => $ghnStatus,
+            'ghn_status_label' => $ghnStatus
+                ? (\App\Services\GHNService::demoStatusLabels()[$ghnStatus] ?? $ghnStatus)
+                : null,
             'labels' => OrderShipment::labels(),
             'statuses' => OrderShipment::STATUSES,
             'pickup' => [
@@ -121,8 +128,14 @@ class ShippingService
 
     private function tryCreateGhnOrder(Order $order, string $clientOrderCode): array
     {
-        if (config('services.ghn.mode', 'demo') !== 'ghn') {
-            return ['ok' => false, 'error' => 'GHN mode is disabled.'];
+        if (
+            config('services.ghn.mode', 'demo') !== 'ghn'
+            || !config('services.ghn.allow_order_creation', false)
+        ) {
+            return [
+                'ok' => false,
+                'error' => 'GHN đang ở chế độ mô phỏng, không tạo vận đơn thật.',
+            ];
         }
 
         $token = config('services.ghn.token');

@@ -554,7 +554,7 @@ public function updateProfile(Request $request)
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email',
             'phone' => 'nullable|string|max:20',
-            'role' => 'required|in:user,admin',
+            'role' => 'required|in:user,admin,shipper',
         ]);
 
         User::create([
@@ -572,7 +572,7 @@ public function updateProfile(Request $request)
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users,email,' . $request->input('id'),
             'phone' => 'nullable|string|max:20',
-            'role' => 'required|in:user,admin',
+            'role' => 'required|in:user,admin,shipper',
         ]);
 
         User::findOrFail($validated['id'])->update([
@@ -805,11 +805,30 @@ public function manageOrders(Request $request)
         ]);
     }
 
+    public function shipmentData(Order $order, \App\Services\ShippingService $shipping)
+    {
+        $shipment = $shipping->ensureShipmentForOrder($order);
+
+        return response()->json($shipping->trackingPayload($shipment));
+    }
+
     /**
      * Admin: update shipment status (AJAX)
      */
     public function updateShipmentStatus(Request $request, Order $order, \App\Services\ShippingService $shipping)
     {
+        if ($order->ghn_code) {
+            $labels = \App\Services\GHNService::demoStatusLabels();
+            $data = $request->validate([
+                'status' => 'required|in:' . implode(',', array_keys($labels)),
+            ]);
+            $order->update(['ghn_status' => $data['status']]);
+            \App\Services\GHNService::recordStatus($order, $data['status']);
+            $shipment = $order->shipment ?: $shipping->ensureShipmentForOrder($order->fresh());
+            $shipping->updateStatus($shipment, \App\Services\GHNService::shipmentStatusForDemo($data['status']));
+            return response()->json($shipping->trackingPayload($shipment->fresh()));
+        }
+
         $data = $request->validate([
             'status' => 'required|in:' . implode(',', \App\Models\OrderShipment::STATUSES),
         ]);

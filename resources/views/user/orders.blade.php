@@ -71,7 +71,7 @@
                                         {{ $order->items->count() }} mặt hàng
                                     </td>
                                     <td>
-                                        <strong class="text-primary">{{ number_format($order->total_amount, 0, ',', '.') }} ₫</strong>
+                                        <strong class="text-primary">{{ number_format($order->payable_amount, 0, ',', '.') }} ₫</strong>
                                     </td>
                                     <td>
                                         @switch($order->status)

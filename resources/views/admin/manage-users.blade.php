@@ -139,6 +139,7 @@
                         <select name="role" class="form-control" required>
                             <option value="user">User</option>
                             <option value="admin">Admin</option>
+                            <option value="shipper">Shipper</option>
                         </select>
                     </div>
 
@@ -188,6 +189,7 @@
                         <select id="edit_role" name="role" class="form-control" required>
                             <option value="user">User</option>
                             <option value="admin">Admin</option>
+                            <option value="shipper">Shipper</option>
                         </select>
                     </div>
                 </div>

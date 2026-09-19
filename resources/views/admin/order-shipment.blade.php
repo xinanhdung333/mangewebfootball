@@ -60,7 +60,7 @@
                     <span class="info-label">Trạng thái hiện tại</span>
                     <span id="status-badge" class="status-badge {{ $shipment->status }}">
                         <i class="bi bi-circle-fill" style="font-size:.45rem"></i>
-                        <span id="status-text">{{ $shipment->statusLabel() }}</span>
+                        <span id="status-text">{{ $tracking['ghn_status_label'] ?? $shipment->statusLabel() }}</span>
                     </span>
                 </div>
                 @if($order->userAddress)
@@ -74,9 +74,11 @@
             <div class="track-card-header"><i class="bi bi-list-check text-success"></i> Tiến trình</div>
             <div class="track-card-body">
                 @php
-                    $statuses = \App\Models\OrderShipment::STATUSES;
-                    $labels   = \App\Models\OrderShipment::labels();
-                    $currentIndex = array_search($shipment->status, $statuses);
+                    $isGhn = (bool) $order->ghn_code;
+                    $statuses = $isGhn ? \App\Services\GHNService::demoStatuses() : \App\Models\OrderShipment::STATUSES;
+                    $labels   = $isGhn ? \App\Services\GHNService::demoStatusLabels() : \App\Models\OrderShipment::labels();
+                    $currentStatus = $isGhn ? ($order->ghn_status ?: 'ready_to_pick') : $shipment->status;
+                    $currentIndex = array_search($currentStatus, $statuses);
                     $icons = ['created'=>'bi-box','picked_up'=>'bi-bag-check','transporting'=>'bi-truck','delivering'=>'bi-house-door','delivered'=>'bi-check2-circle'];
                 @endphp
                 <ul class="timeline" id="timeline">
@@ -99,9 +101,9 @@
             <div class="track-card-body">
                 <label class="form-label fw-semibold mb-1" style="font-size:.85rem">Chọn trạng thái mới</label>
                 <select id="admin-status-select" class="form-select admin-select mb-2">
-                    @foreach(\App\Models\OrderShipment::STATUSES as $sv)
-                    <option value="{{ $sv }}" {{ $shipment->status === $sv ? 'selected' : '' }}>
-                        {{ \App\Models\OrderShipment::labels()[$sv] ?? $sv }}
+                    @foreach($statuses as $sv)
+                    <option value="{{ $sv }}" {{ $currentStatus === $sv ? 'selected' : '' }}>
+                        {{ $labels[$sv] ?? $sv }}
                     </option>
                     @endforeach
                 </select>
@@ -144,8 +146,10 @@
 document.addEventListener('DOMContentLoaded', function() {
     let trackingData = @json($tracking);
     const statusUrl  = '{{ route('admin.order.shipment.status', $order->id) }}';
+    const dataUrl    = '{{ route('admin.order.shipment.data', $order->id) }}';
     const csrfToken  = '{{ csrf_token() }}';
-    const allStatuses = @json(\App\Models\OrderShipment::STATUSES);
+    const isGhn = @json((bool) $order->ghn_code);
+    const allStatuses = @json($order->ghn_code ? \App\Services\GHNService::demoStatuses() : \App\Models\OrderShipment::STATUSES);
 
     const map = L.map('map');
     const mapTiles = L.tileLayer(
@@ -231,9 +235,9 @@ document.addEventListener('DOMContentLoaded', function() {
             // badge
             const badge=document.getElementById('status-badge');
             badge.className='status-badge '+data.status;
-            document.getElementById('status-text').textContent=data.status_label;
+            document.getElementById('status-text').textContent=data.ghn_status_label || data.status_label;
             // timeline
-            updateTimeline(data.status);
+            updateTimeline(isGhn ? data.ghn_status : data.status);
             // marker
             animateMarker(shipperM, data.shipper.lat, data.shipper.lng);
             if(data.route&&data.route.length) drawRoute(data.route);
@@ -248,6 +252,21 @@ document.addEventListener('DOMContentLoaded', function() {
         })
         .finally(()=>{this.innerHTML=orig;this.disabled=false;});
     });
+
+    setInterval(() => {
+        fetch(dataUrl, {headers: {'X-Requested-With': 'XMLHttpRequest', 'Accept': 'application/json'}})
+            .then(response => response.ok ? response.json() : Promise.reject())
+            .then(data => {
+                trackingData = data;
+                const badge = document.getElementById('status-badge');
+                badge.className = 'status-badge ' + data.status;
+                document.getElementById('status-text').textContent = data.ghn_status_label || data.status_label;
+                updateTimeline(data.status);
+                animateMarker(shipperM, data.shipper.lat, data.shipper.lng);
+                if (data.route && data.route.length) drawRoute(data.route);
+            })
+            .catch(() => {});
+    }, 10000);
 });
 </script>
 

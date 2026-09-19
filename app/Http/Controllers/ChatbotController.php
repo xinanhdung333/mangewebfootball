@@ -117,7 +117,9 @@ class ChatbotController extends Controller
         $isProductQuestion = str_contains($message, 'sản phẩm')
             || str_contains($message, 'san pham')
             || str_contains($message, 'mặt hàng')
-            || str_contains($message, 'mat hang');
+            || str_contains($message, 'mat hang')
+            || str_contains($message, 'bóng')
+            || str_contains($message, 'bong');
 
         if (!$isProductQuestion) {
             return null;
@@ -183,6 +185,37 @@ class ChatbotController extends Controller
             return 'Một số sản phẩm đang còn hàng: ' . $items . '.';
         }
 
+        if (
+            str_contains($message, 'bóng')
+            || str_contains($message, 'bong')
+        ) {
+            $ballProducts = (clone $query)
+                ->where(function ($serviceQuery) {
+                    $serviceQuery
+                        ->where('name', 'like', '%bóng%')
+                        ->orWhere('name', 'like', '%bong%')
+                        ->orWhereHas('category', function ($categoryQuery) {
+                            $categoryQuery->where('name', 'like', '%bóng%')
+                                ->orWhere('name', 'like', '%bong%');
+                        });
+                })
+                ->orderBy('price')
+                ->limit(5)
+                ->get(['name', 'price']);
+
+            if ($ballProducts->isEmpty()) {
+                return 'Hiện shop chưa có thông tin sản phẩm bóng phù hợp. Bạn có thể cho mình biết bạn cần bóng đá, bóng rổ hay môn nào?';
+            }
+
+            $items = $ballProducts->map(
+                fn (Service $service): string => $service->name . ' - ' . number_format((float) $service->price, 0, ',', '.') . ' VND'
+            )->implode('; ');
+
+            return 'Nếu bạn người cao và gầy, thể hình không quyết định loại bóng; nên chọn theo môn chơi và kích thước tay. '
+                . 'Một số bóng đang còn hàng tại shop: ' . $items
+                . '. Bạn cần bóng đá, bóng rổ hay môn khác để mình tư vấn đúng hơn?';
+        }
+
         return null;
     }
 
@@ -226,8 +259,8 @@ class ChatbotController extends Controller
                 ],
                 'contents' => $contents,
                 'generationConfig' => [
-                    'temperature' => 0.35,
-                    'maxOutputTokens' => 300,
+                    'temperature' => 0.2,
+                    'maxOutputTokens' => 600,
                 ],
             ];
             $endpoint = 'https://generativelanguage.googleapis.com/v1beta/models/'
@@ -274,7 +307,7 @@ class ChatbotController extends Controller
         $path = storage_path('app/chatbot_context.txt');
 
         $huongDan = "Bạn là trợ lý chăm sóc khách hàng của SportsHub. "
-            . "Trả lời bằng tiếng Việt tự nhiên, lịch sự, ngắn gọn (2-4 câu), đi thẳng vào câu hỏi. "
+            . "Trả lời bằng tiếng Việt tự nhiên, lịch sự, rõ ràng (2-5 câu), đi thẳng vào câu hỏi và phải kết thúc trọn ý. "
             . "Đọc cả lịch sử hội thoại để hiểu các câu hỏi tiếp theo như 'cái đó', 'khi nào', 'bao nhiêu'. "
             .             "Dùng thông tin trong DỮ LIỆU SHOP; không được bịa giá, giờ, tình trạng sân, chính sách hoặc đơn hàng. "
             . "Với câu hỏi xin tư vấn chung (ví dụ thời tiết, khung giờ phù hợp, cách chuẩn bị), hãy đưa ra "

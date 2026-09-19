@@ -40,7 +40,7 @@
                 $items = $order->items;
             @endphp
 
-            <div class="col-md-6">
+            <div class="col-md-6 order-card" data-order-id="{{ $order->id }}">
                 <div class="card shadow-sm h-100">
                     <div class="row g-0 h-100 align-items-center">
                         <div class="col-sm-4 p-3">
@@ -67,13 +67,43 @@
                                 <p class="text-muted mb-2">{{ $items->count() }} sản phẩm trong đơn</p>
                                 <p class="text-muted mb-2">Tổng số lượng: {{ $items->sum('quantity') }}</p>
                                 <p class="text-muted mb-3">Phương thức thanh toán: {{ $order->payment->payment_method ?? 'Chưa xác định' }}</p>
+                                @if($order->ghn_code)
+                                    <div class="mb-3">
+                                        <span class="badge bg-info text-dark shipping-status-badge">
+                                            <i class="bi bi-truck me-1"></i>
+                                            GHN: {{ \App\Services\GHNService::demoStatusLabels()[$order->ghn_status] ?? 'Chờ lấy hàng' }}
+                                        </span>
+                                        <small class="text-muted d-block mt-1">Mã vận đơn: {{ $order->ghn_code }}</small>
+                                    </div>
+                                @elseif($order->shipment)
+                                    <div class="mb-3">
+                                        <span class="badge bg-info text-dark shipping-status-badge">
+                                            <i class="bi bi-truck me-1"></i>{{ $order->shipment->statusLabel() }}
+                                        </span>
+                                    </div>
+                                @endif
                                 <div class="mt-auto">
                                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-1 mb-1">
-                                        <strong class="order-price">{{ number_format($order->total_amount, 0, ',', '.') }}đ</strong>
+                                        <div>
+                                            <strong class="order-price">{{ number_format($order->payable_amount, 0, ',', '.') }}đ</strong>
+                                            @if((float) $order->shipping_fee > 0 || (float) $order->voucher_discount > 0)
+                                                <small class="text-muted d-block">
+                                                    Gồm ship {{ number_format($order->shipping_fee ?? 0, 0, ',', '.') }}đ
+                                                    @if((float) $order->voucher_discount > 0)
+                                                        · giảm {{ number_format($order->voucher_discount, 0, ',', '.') }}đ
+                                                    @endif
+                                                </small>
+                                            @endif
+                                        </div>
                                     </div>
                                     <div class="order-btn-row">
                                         @if($order->status === 'pending')
                                             <a href="{{ route('user.payment.order', $order->id) }}" class="btn btn-sm btn-primary">Thanh toán</a>
+                                        @endif
+                                        @if($order->ghn_code || $order->shipment)
+                                            <a href="{{ route('user.order.tracking', $order->id) }}" class="btn btn-sm btn-success">
+                                                <i class="bi bi-map me-1"></i>Theo dõi
+                                            </a>
                                         @endif
                                         <a href="{{ route('user.orderDetail', $order->id) }}" class="btn btn-sm btn-outline-primary">Xem chi tiết</a>
                                     </div>

@@ -49,15 +49,17 @@ return [
 
     'ghn' => [
         'mode' => env('GHN_MODE', 'demo'), // ghn or demo
+        // Chỉ bật khi muốn tạo vận đơn thật trên GHN. Mặc định luôn mô phỏng.
+        'allow_order_creation' => filter_var(env('GHN_ALLOW_ORDER_CREATION', false), FILTER_VALIDATE_BOOLEAN),
         'token' => env('GHN_TOKEN'),
-        'shop_id' => env('GHN_SHOP_ID'),
+        'shop_id' => env('GHN_SHOP_ID', '222411'),
         'endpoint' => env('GHN_ENDPOINT', 'https://dev-online-gateway.ghn.vn/shiip/public-api'),
-        'from_name' => env('GHN_FROM_NAME', 'Shop Football'),
-        'from_phone' => env('GHN_FROM_PHONE', '0901234567'),
+        'from_name' => env('GHN_FROM_NAME', 'Sportshub'),
+        'from_phone' => env('GHN_FROM_PHONE', '0765897253'),
         'from_address' => env('GHN_FROM_ADDRESS', '123 Test Street'),
-        'from_ward_name' => env('GHN_FROM_WARD_NAME', 'Phường Từ Liêm'),
-        'from_district_name' => env('GHN_FROM_DISTRICT_NAME', 'Quận Bắc Từ Liêm'),
-        'from_province_name' => env('GHN_FROM_PROVINCE_NAME', 'Hà Nội'),
+        'from_ward_code' => env('GHN_FROM_WARD_CODE', '11008'),
+        'from_district_id' => (int) env('GHN_FROM_DISTRICT_ID', 1482),
+        'from_province_id' => (int) env('GHN_FROM_PROVINCE_ID', 201),
     ],
 
     'ghn_demo' => [

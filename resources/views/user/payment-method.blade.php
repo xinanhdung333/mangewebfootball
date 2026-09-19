@@ -37,7 +37,11 @@
 <form method="POST" action="{{ $submitRoute }}">
 @csrf
 
-<input type="hidden" id="selectedAddressId" name="selected_address_id" value="">
+<input type="hidden" id="selectedAddressId" name="selected_address_id"
+       value="{{ optional($addresses->firstWhere('is_default', true) ?? $addresses->first())->id }}">
+<input type="hidden" id="ghn-province-name" name="to_province_name">
+<input type="hidden" id="ghn-district-name" name="to_district_name">
+<input type="hidden" id="ghn-ward-name" name="to_ward_name">
 <input type="hidden" id="hiddenShippingFee" name="shipping_fee" value="0">
 <input type="hidden" id="hiddenVoucherCode" name="voucher_code" value="">
 
@@ -87,6 +91,13 @@
     data-address-id="{{ $address->id }}"
     data-lat="{{ $address->lat ?? '' }}"
     data-lng="{{ $address->lng ?? '' }}"
+    data-ghn-province-id="{{ $address->ghn_province_id ?? '' }}"
+    data-ghn-district-id="{{ $address->ghn_district_id ?? '' }}"
+    data-ghn-ward-code="{{ $address->ghn_ward_code ?? '' }}"
+    data-detail-address="{{ $address->street_address }}"
+    data-old-city="{{ $address->city }}"
+    data-old-district="{{ $address->district }}"
+    data-old-ward="{{ $address->ward }}"
     @if($address->is_default || $loop->first) checked @endif
 >
 <div class="pay-radio-row address-card">
@@ -123,6 +134,33 @@ Bạn chưa có địa chỉ giao hàng.
 </div>
 
 @endif
+
+<div class="row g-2 mt-3" id="ghn-address-fields">
+    <div class="col-md-4">
+        <label for="ghn-province" class="form-label small fw-semibold">Tỉnh/thành GHN</label>
+        <select id="ghn-province" name="to_province_id" class="form-select" required>
+            <option value="">Đang tải tỉnh/thành...</option>
+        </select>
+    </div>
+    <div class="col-md-4">
+        <label for="ghn-district" class="form-label small fw-semibold">Quận/huyện GHN</label>
+        <select id="ghn-district" name="to_district_id" class="form-select" required disabled>
+            <option value="">Chọn tỉnh trước</option>
+        </select>
+    </div>
+    <div class="col-md-4">
+        <label for="ghn-ward" class="form-label small fw-semibold">Phường/xã GHN</label>
+        <select id="ghn-ward" name="to_ward_code" class="form-select" required disabled>
+            <option value="">Chọn quận/huyện trước</option>
+        </select>
+    </div>
+    <div class="col-12">
+        <label for="ghn-detail-address" class="form-label small fw-semibold">Địa chỉ chi tiết</label>
+        <input id="ghn-detail-address" name="detail_address" class="form-control"
+               placeholder="Số nhà, tên đường" required>
+        <div id="ghn-address-error" class="text-danger small mt-1"></div>
+    </div>
+</div>
 
 </div>
 @endif
@@ -1218,5 +1256,140 @@ document.addEventListener('DOMContentLoaded', function () {
     };
 });
 </script>
+
+@if($type === 'order')
+<script>
+document.addEventListener('DOMContentLoaded', async () => {
+    const province = document.getElementById('ghn-province');
+    const district = document.getElementById('ghn-district');
+    const ward = document.getElementById('ghn-ward');
+    const error = document.getElementById('ghn-address-error');
+    const provinceName = document.getElementById('ghn-province-name');
+    const districtName = document.getElementById('ghn-district-name');
+    const wardName = document.getElementById('ghn-ward-name');
+    const detailAddress = document.getElementById('ghn-detail-address');
+    const selectedAddressId = document.getElementById('selectedAddressId');
+    const selectedAddress = document.querySelector('.address-option:checked');
+    const routes = {
+        provinces: @json(route('user.ghn.provinces')),
+        districts: @json(route('user.ghn.districts')),
+        wards: @json(route('user.ghn.wards'))
+    };
+
+    const fill = (select, items, valueKey, labelKey, placeholder) => {
+        select.innerHTML = `<option value="">${placeholder}</option>`;
+        items.forEach(item => {
+            const option = document.createElement('option');
+            option.value = item[valueKey];
+            option.textContent = item[labelKey];
+            select.appendChild(option);
+        });
+        select.disabled = false;
+    };
+
+    const load = async (url) => {
+        const response = await fetch(url, {headers: {'Accept': 'application/json'}});
+        if (!response.ok) throw new Error('GHN không tải được dữ liệu địa chỉ.');
+        return response.json();
+    };
+
+    const normalize = value => (value || '')
+        .toLocaleLowerCase('vi')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/^(tinh|thanh pho|quan|huyen|phuong|xa)\s+/i, '')
+        .replace(/[^a-z0-9]+/g, '');
+
+    const findAddressItem = (items, key, value) => {
+        const wanted = normalize(value);
+        if (!wanted) return null;
+        return items.find(item => normalize(item[key]) === wanted)
+            || items.find(item => normalize(item[key]).includes(wanted) || wanted.includes(normalize(item[key])));
+    };
+
+    const setSelectValue = (select, value) => {
+        if (value === null || value === undefined) return false;
+        const stringValue = String(value);
+        const exists = [...select.options].some(option => option.value === stringValue);
+        if (!exists) return false;
+        select.value = stringValue;
+        return true;
+    };
+
+    const setSelectedAddress = (option) => {
+        if (!option) return;
+        selectedAddressId.value = option.dataset.addressId || '';
+        if (option.dataset.ghnProvinceId) province.value = option.dataset.ghnProvinceId;
+        if (option.dataset.ghnDistrictId) district.value = option.dataset.ghnDistrictId;
+        if (option.dataset.ghnWardCode) ward.value = option.dataset.ghnWardCode;
+        if (detailAddress && option.dataset.detailAddress) {
+            detailAddress.value = option.dataset.detailAddress;
+        }
+    };
+
+    try {
+        const provinces = await load(routes.provinces);
+        fill(province, provinces, 'ProvinceID', 'ProvinceName', 'Chọn tỉnh/thành');
+        const savedProvince = selectedAddress?.dataset.ghnProvinceId
+            || findAddressItem(provinces, 'ProvinceName', selectedAddress?.dataset.oldCity)?.ProvinceID;
+        if (savedProvince && setSelectValue(province, savedProvince)) {
+            const districts = await load(`${routes.districts}?province_id=${province.value}`);
+            fill(district, districts, 'DistrictID', 'DistrictName', 'Chọn quận/huyện');
+            const savedDistrict = selectedAddress?.dataset.ghnDistrictId
+                || findAddressItem(districts, 'DistrictName', selectedAddress?.dataset.oldDistrict)?.DistrictID;
+            if (savedDistrict && setSelectValue(district, savedDistrict)) {
+                const wards = await load(`${routes.wards}?district_id=${district.value}`);
+                fill(ward, wards, 'WardCode', 'WardName', 'Chọn phường/xã');
+                const savedWard = selectedAddress?.dataset.ghnWardCode
+                    || findAddressItem(wards, 'WardName', selectedAddress?.dataset.oldWard)?.WardCode;
+                setSelectValue(ward, savedWard);
+            }
+        }
+    } catch (e) {
+        error.textContent = e.message;
+    }
+
+    setSelectedAddress(selectedAddress);
+    provinceName.value = province.options[province.selectedIndex]?.text || '';
+    districtName.value = district.options[district.selectedIndex]?.text || '';
+    wardName.value = ward.options[ward.selectedIndex]?.text || '';
+    province.addEventListener('change', () => {
+        provinceName.value = province.options[province.selectedIndex]?.text || '';
+    });
+
+    province.addEventListener('change', async () => {
+        district.disabled = true;
+        ward.disabled = true;
+        try {
+            const districts = await load(`${routes.districts}?province_id=${province.value}`);
+            fill(district, districts, 'DistrictID', 'DistrictName', 'Chọn quận/huyện');
+            provinceName.value = province.options[province.selectedIndex]?.text || '';
+        } catch (e) { error.textContent = e.message; }
+    });
+
+    district.addEventListener('change', async () => {
+        ward.disabled = true;
+        try {
+            const wards = await load(`${routes.wards}?district_id=${district.value}`);
+            fill(ward, wards, 'WardCode', 'WardName', 'Chọn phường/xã');
+            districtName.value = district.options[district.selectedIndex]?.text || '';
+        } catch (e) { error.textContent = e.message; }
+    });
+
+    ward.addEventListener('change', () => {
+        wardName.value = ward.options[ward.selectedIndex]?.text || '';
+    });
+
+    document.querySelectorAll('.address-option').forEach(option => {
+        option.addEventListener('change', () => {
+            setSelectedAddress(option);
+            provinceName.value = province.options[province.selectedIndex]?.text || '';
+            districtName.value = district.options[district.selectedIndex]?.text || '';
+            wardName.value = ward.options[ward.selectedIndex]?.text || '';
+        });
+    });
+});
+</script>
+@endif
 
 @endsection

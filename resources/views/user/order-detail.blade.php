@@ -56,7 +56,7 @@
 
                                 <td>
                                     <span class="text-success fw-bold fs-5">
-                                        {{ number_format($order->total_amount, 0, ',', '.') }} VNĐ
+                                        {{ number_format($order->payable_amount, 0, ',', '.') }} VNĐ
                                     </span>
                                 </td>
                             </tr>
