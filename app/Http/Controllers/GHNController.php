@@ -27,6 +27,10 @@ class GHNController extends Controller
 
     public function createDemoOrder(Order $order, GHNService $ghn)
     {
+        if ($order->status === 'pending') {
+            return back()->with('error', 'Đơn hàng đang chờ xác nhận nên chưa thể tạo đơn GHN.');
+        }
+
         try {
             $code = $ghn->createDemoOrder($order);
         } catch (\RuntimeException $exception) {

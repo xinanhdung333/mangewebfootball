@@ -40,7 +40,7 @@ class AdminController extends Controller
         $stats_users = User::count();
         $stats_fields = Field::count();
         $stats_bookings = Booking::where('status', 'confirmed')->count();
-        $stats_revenue = UserSpending::sum('total_booking') ?? 0;
+        $stats_revenue = Booking::where('status', 'confirmed')->sum('total_price') ?? 0;
         $stats_services_used = DB::table('booking_services')->count();
         $stats_services = Service::count();
 
@@ -66,7 +66,7 @@ class AdminController extends Controller
             $stats_users = User::count();
             $stats_fields = Field::count();
             $stats_bookings = Booking::where('status', 'confirmed')->count();
-            $stats_revenue = UserSpending::sum('total_booking') ?? 0;
+            $stats_revenue = Booking::where('status', 'confirmed')->sum('total_price') ?? 0;
             $stats_services_used = DB::table('booking_services')->count();
             $stats_services_revenue = DB::table('booking_services')
                 ->join('services', 'booking_services.service_id', '=', 'services.id')

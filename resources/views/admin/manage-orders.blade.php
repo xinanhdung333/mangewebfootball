@@ -179,11 +179,13 @@ $statusMap = [
                                 <i class="bi bi-truck"></i>
                             </a>
 
-                            @if(!$order->ghn_code)
+                            @if(!$order->ghn_code && $order->status !== 'pending')
                                 <form method="POST" action="{{ route('admin.orders.ghn-demo', $order->id) }}" class="d-inline">
                                     @csrf
                                     <button class="btn btn-sm btn-success mb-1">Tạo đơn GHN DEMO</button>
                                 </form>
+                            @elseif(!$order->ghn_code)
+                                <span class="badge bg-warning text-dark mb-1">Chờ xác nhận</span>
                             @elseif($order->ghn_code)
                                 <form method="POST" action="{{ route('admin.orders.ghn-fake-status', $order->id) }}" class="d-inline">
                                     @csrf

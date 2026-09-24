@@ -100,6 +100,10 @@ class GHNService
             throw new \RuntimeException('GHN chỉ được phép chạy chế độ DEMO trong môi trường này.');
         }
 
+        if ($order->status === 'pending') {
+            throw new \RuntimeException('Đơn hàng đang chờ xác nhận nên chưa thể tạo đơn GHN.');
+        }
+
         $order->loadMissing(['user', 'items.service']);
         $phone = $this->recipientPhone($order);
         $payload = $this->payload($order, $phone);

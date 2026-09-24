@@ -715,9 +715,7 @@ class BossController extends Controller
             $stats_fields = Field::count();
             $stats_bookings = Booking::where('status', 'confirmed')->count();
 
-            $stats_revenue = DB::table('user_spending')
-                ->selectRaw('SUM(total_booking + total_services) as total')
-                ->value('total') ?? 0;
+            $stats_revenue = Booking::where('status', 'confirmed')->sum('total_price') ?? 0;
 
             // =======================
             // THỐNG KÊ DỊCH VỤ
