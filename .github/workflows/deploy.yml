@@ -11,7 +11,15 @@ jobs:
       - name: Pull and deploy
         run: |
           cd /var/www/myapp/mangewebfootball
-          git pull origin main
+          for attempt in 1 2 3 4 5; do
+            git pull origin main && break
+            if [ "$attempt" -eq 5 ]; then
+              echo "git pull failed after $attempt attempts"
+              exit 1
+            fi
+            echo "git pull failed, retrying in 20s (attempt $attempt/5)"
+            sleep 20
+          done
           composer install --no-dev --optimize-autoloader --no-interaction || true
           npm install --omit=dev --no-audit --no-fund
           php artisan migrate --force || true
