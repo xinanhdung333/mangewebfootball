@@ -87,7 +87,7 @@ body.dark-mode .table thead th { border-bottom-color: rgba(255,255,255,0.06); }
     <!-- Header + Dark mode toggle -->
     <div class="row mb-3 fade-in" style="animation-delay:.05s">
         <div class="col-md-8">
-            <h2><i class="bi bi-bar-chart-line-fill"></i> Thống kê tổng quan 123</h2>
+            <h2><i class="bi bi-bar-chart-line-fill"></i> Thống kê tổng quan </h2>
             <p class="small-muted">Cập nhật số liệu theo thời gian thực (dựa trên dữ liệu trong DB).</p>
         </div>
         <div class="col-md-4 text-md-end align-self-center">
