@@ -543,6 +543,44 @@ private function mbBankQrData(string $type, int $id, int $amount): array
     ];
 }
 
+public function showOrderBankTransferQr(Order $order)
+{
+    abort_unless($order->user_id === auth()->id(), 403);
+
+    $payment = Payment::where('order_id', $order->id)->firstOrFail();
+    $amount = (int) $payment->amount;
+
+    return view('user.payment-qr', [
+        'type' => 'order',
+        'item' => $order,
+        'payment' => $payment,
+        'amount' => $amount,
+        'description' => 'Don hang #' . $order->id,
+        'backRoute' => route('user.payment.order', $order->id),
+        'doneRoute' => route('user.myServices'),
+        'bankTransfer' => $this->mbBankQrData('order', $order->id, $amount),
+    ]);
+}
+
+public function showBookingBankTransferQr(Booking $booking)
+{
+    abort_unless($booking->user_id === auth()->id(), 403);
+
+    $payment = BookingPayment::where('booking_id', $booking->id)->firstOrFail();
+    $amount = (int) $payment->amount;
+
+    return view('user.payment-qr', [
+        'type' => 'booking',
+        'item' => $booking,
+        'payment' => $payment,
+        'amount' => $amount,
+        'description' => 'Booking #' . $booking->id,
+        'backRoute' => route('user.payment.booking', $booking->id),
+        'doneRoute' => route('user.myBookings'),
+        'bankTransfer' => $this->mbBankQrData('booking', $booking->id, $amount),
+    ]);
+}
+
 private function activeVoucherQuery()
 {
     return Voucher::query()
@@ -799,11 +837,7 @@ private function rememberCheckoutAddress(array $data): ?\App\Models\UserAddress
             'status' => 'pending',
         ]);
 
-        return redirect()->route('user.myServices')
-            ->with(
-                'success',
-                'Vui lòng chuyển khoản theo QR. Đơn hàng sẽ tự động xác nhận sau khi nhận được tiền.'
-            );
+        return redirect()->route('user.payment.order.qr', $order->id);
     }
 
     /*
@@ -936,8 +970,7 @@ public function handleBookingPaymentMethod(Request $request, Booking $booking)
             'status' => 'pending',
         ]);
 
-        return redirect()->route('user.myBookings')
-            ->with('success', 'Vui lòng chuyển khoản theo QR. Booking sẽ tự động xác nhận sau khi nhận được tiền.');
+        return redirect()->route('user.payment.booking.qr', $booking->id);
     }
 
     $payment->update([

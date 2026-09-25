@@ -321,26 +321,6 @@ Quét mã VietQR
 
 </div>
 
-<div id="bankTransferDetails" class="pay-card mb-3 d-none">
-<div class="row g-3 align-items-center">
-<div class="col-md-4 text-center">
-@if(!empty($bankTransfer['qr_url'] ?? null))
-<img id="bankTransferQrImage" src="{{ $bankTransfer['qr_url'] }}" alt="MBBank VietQR" class="img-fluid rounded bg-white p-2" style="max-height:200px">
-@else
-<div class="alert alert-warning mb-0 small">Chưa có QR vì thiếu số tài khoản MBBank trong .env</div>
-@endif
-</div>
-<div class="col-md-8">
-<div class="row g-2 small">
-<div class="col-6"><div class="text-muted">Ngân hàng</div><div class="fw-semibold">{{ $bankTransfer['bank_name'] ?? 'MBBank' }}</div></div>
-<div class="col-6"><div class="text-muted">Số tài khoản</div><div class="fw-semibold">{{ $bankTransfer['account_no'] ?? 'Chưa cấu hình' }}</div></div>
-<div class="col-6"><div class="text-muted">Chủ tài khoản</div><div class="fw-semibold">{{ $bankTransfer['account_name'] ?? 'Chưa cấu hình' }}</div></div>
-<div class="col-6"><div class="text-muted">Số tiền</div><div id="bankTransferAmount" class="fw-semibold pay-accent-text">{{ number_format($amount,0,',','.') }}đ</div></div>
-<div class="col-12"><div class="text-muted">Nội dung chuyển khoản</div><div class="fw-bold text-danger">{{ $bankTransfer['transfer_code'] ?? '' }}</div></div>
-</div>
-</div>
-</div>
-</div>
 
 {{-- ── Order notes ── --}}
 <div class="pay-card mb-3">
@@ -1113,18 +1093,6 @@ document.addEventListener('DOMContentLoaded', function () {
         }
     }
 
-    /* ── 3. Hiện/ẩn QR chuyển khoản ── */
-    const paymentOptions = document.querySelectorAll('.payment-option');
-    const bankTransferDetails = document.getElementById('bankTransferDetails');
-
-    function toggleBankTransferDetails() {
-        const checkedPayment = document.querySelector('.payment-option:checked');
-        if (!bankTransferDetails || !checkedPayment) return;
-        bankTransferDetails.classList.toggle('d-none', checkedPayment.value !== 'bank_transfer');
-    }
-
-    paymentOptions.forEach(opt => opt.addEventListener('change', toggleBankTransferDetails));
-    toggleBankTransferDetails();
 
     /* ── 4. Voucher ── */
     const voucherBtn = document.getElementById('voucherApplyBtn');
@@ -1212,35 +1180,12 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     });
 
-    const bankTransferQrBaseUrl = {!! json_encode($bankTransfer['qr_url'] ?? '') !!};
-    const bankTransferAmountEl = document.getElementById('bankTransferAmount');
-    const bankTransferQrImageEl = document.getElementById('bankTransferQrImage');
-
-    function updateBankTransferSummary() {
-        const ship = currentVoucherFreeShipping ? 0 : (parseFloat(hiddenShippingFee ? hiddenShippingFee.value : 0) || 0);
-        const total = Math.max(0, baseAmount + ship - currentVoucherDiscount);
-
-        if (bankTransferAmountEl) {
-            bankTransferAmountEl.textContent = total.toLocaleString('vi-VN') + 'đ';
-        }
-
-        if (bankTransferQrBaseUrl && bankTransferQrImageEl) {
-            let updatedQrUrl = bankTransferQrBaseUrl;
-            if (updatedQrUrl.includes('amount=')) {
-                updatedQrUrl = updatedQrUrl.replace(/([?&])amount=\d+/, '$1amount=' + Math.round(total));
-            } else {
-                updatedQrUrl += (updatedQrUrl.includes('?') ? '&' : '?') + 'amount=' + Math.round(total);
-            }
-            bankTransferQrImageEl.src = updatedQrUrl;
-        }
-    }
 
     function updateTotal() {
         if (!summaryTotal || '{{ $type }}' !== 'order') return;
         const ship = currentVoucherFreeShipping ? 0 : (parseFloat(hiddenShippingFee ? hiddenShippingFee.value : 0) || 0);
         const total = Math.max(0, baseAmount + ship - currentVoucherDiscount);
         summaryTotal.textContent = total.toLocaleString('vi-VN') + 'đ';
-        updateBankTransferSummary();
     }
 
     const originalShowFeeOnCard = showFeeOnCard;
