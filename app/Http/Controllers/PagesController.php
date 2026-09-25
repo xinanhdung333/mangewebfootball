@@ -559,6 +559,22 @@ public function showOrderBankTransferQr(Order $order)
         'backRoute' => route('user.payment.order', $order->id),
         'doneRoute' => route('user.myServices'),
         'bankTransfer' => $this->mbBankQrData('order', $order->id, $amount),
+        'statusRoute' => route('user.payment.order.status', $order->id),
+    ]);
+}
+
+public function orderPaymentStatus(Order $order)
+{
+    abort_unless($order->user_id === auth()->id(), 403);
+
+    $payment = Payment::where('order_id', $order->id)->first();
+    $paid = $payment && in_array($payment->status, ['paid', 'success'], true);
+
+    return response()->json([
+        'paid' => $paid,
+        'payment_status' => $payment?->status,
+        'order_status' => $order->fresh()?->status,
+        'redirect_url' => route('user.myServices'),
     ]);
 }
 
@@ -578,6 +594,22 @@ public function showBookingBankTransferQr(Booking $booking)
         'backRoute' => route('user.payment.booking', $booking->id),
         'doneRoute' => route('user.myBookings'),
         'bankTransfer' => $this->mbBankQrData('booking', $booking->id, $amount),
+        'statusRoute' => route('user.payment.booking.status', $booking->id),
+    ]);
+}
+
+public function bookingPaymentStatus(Booking $booking)
+{
+    abort_unless($booking->user_id === auth()->id(), 403);
+
+    $payment = BookingPayment::where('booking_id', $booking->id)->first();
+    $paid = $payment && in_array($payment->status, ['paid', 'success'], true);
+
+    return response()->json([
+        'paid' => $paid,
+        'payment_status' => $payment?->status,
+        'booking_status' => $booking->fresh()?->status,
+        'redirect_url' => route('user.myBookings'),
     ]);
 }
 

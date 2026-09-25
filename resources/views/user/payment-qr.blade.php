@@ -14,7 +14,7 @@
                     <h3 class="fw-bold mb-1">Quét mã VietQR</h3>
                     <div class="text-muted">{{ $description }}</div>
                 </div>
-                <span class="qr-status">Đang chờ thanh toán</span>
+                <span class="qr-status" id="qrPaymentStatus">Đang chờ thanh toán</span>
             </div>
 
             <div class="row g-4 align-items-center">
@@ -54,7 +54,7 @@
                         </div>
                     </div>
 
-                    <div class="qr-note">
+                    <div class="qr-note" id="qrPaymentNote">
                         Sau khi chuyển khoản, hệ thống sẽ tự xác nhận khi nhận được tiền. Vui lòng nhập đúng nội dung chuyển khoản để đơn được xử lý nhanh.
                     </div>
 
@@ -115,6 +115,11 @@
     font-weight: 700;
     white-space: nowrap;
 }
+.qr-status-success {
+    border-color: #bbf7d0;
+    background: #f0fdf4;
+    color: #15803d;
+}
 .qr-image-wrap {
     background: #f8fafc;
     border: 1px solid #e2e8f0;
@@ -161,6 +166,10 @@
     color: #475569;
     font-size: .92rem;
 }
+.qr-note-success {
+    background: #f0fdf4;
+    color: #166534;
+}
 .qr-primary-btn {
     background: #ef4427;
     color: #fff;
@@ -191,4 +200,54 @@
     }
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const statusUrl = @json($statusRoute);
+    const fallbackRedirectUrl = @json($doneRoute);
+    const statusEl = document.getElementById('qrPaymentStatus');
+    const noteEl = document.getElementById('qrPaymentNote');
+    let isDone = false;
+
+    async function checkPaymentStatus() {
+        if (isDone) return;
+
+        try {
+            const response = await fetch(statusUrl, {
+                headers: {
+                    'Accept': 'application/json',
+                    'X-Requested-With': 'XMLHttpRequest'
+                }
+            });
+
+            if (!response.ok) return;
+
+            const data = await response.json();
+
+            if (data.paid) {
+                isDone = true;
+                const redirectUrl = data.redirect_url || fallbackRedirectUrl;
+
+                if (statusEl) {
+                    statusEl.textContent = 'Thanh toán thành công';
+                    statusEl.classList.add('qr-status-success');
+                }
+
+                if (noteEl) {
+                    noteEl.classList.add('qr-note-success');
+                    noteEl.innerHTML = '<strong>Đã nhận được thanh toán.</strong> Hệ thống sẽ chuyển bạn về trang quản lý trong giây lát.';
+                }
+
+                setTimeout(() => {
+                    window.location.href = redirectUrl;
+                }, 2200);
+            }
+        } catch (error) {
+        }
+    }
+
+    checkPaymentStatus();
+    setInterval(checkPaymentStatus, 3000);
+});
+</script>
 @endsection

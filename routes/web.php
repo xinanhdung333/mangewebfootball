@@ -356,10 +356,12 @@ Route::post('/user/cart/update-item', [CartController::class, 'updateItem'])
     Route::get('/payment/order/{order}', [PagesController::class, 'showOrderPaymentMethod'])->name('payment.order');
     Route::post('/payment/order/{order}', [PagesController::class, 'handleOrderPaymentMethod'])->name('payment.order.submit');
     Route::get('/payment/order/{order}/qr', [PagesController::class, 'showOrderBankTransferQr'])->name('payment.order.qr');
+    Route::get('/payment/order/{order}/status', [PagesController::class, 'orderPaymentStatus'])->name('payment.order.status');
     Route::post('/payment/order/{order}/apply-voucher', [PagesController::class, 'applyVoucher'])->name('payment.order.apply-voucher');
     Route::get('/payment/booking/{booking}', [PagesController::class, 'showBookingPaymentMethod'])->name('payment.booking');
     Route::post('/payment/booking/{booking}', [PagesController::class, 'handleBookingPaymentMethod'])->name('payment.booking.submit');
     Route::get('/payment/booking/{booking}/qr', [PagesController::class, 'showBookingBankTransferQr'])->name('payment.booking.qr');
+    Route::get('/payment/booking/{booking}/status', [PagesController::class, 'bookingPaymentStatus'])->name('payment.booking.status');
     //payments
     Route::get('/momo/pay', [MomoController::class, 'createPayment'])->name('momo.pay');
     Route::get('/momo/return', [MomoController::class, 'returnUrl'])->name('momo.return');
